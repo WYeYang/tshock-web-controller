@@ -8,6 +8,7 @@ export const loadDocument = async (id: DocumentId): Promise<DocEntry> => {
   // Map id to filename
   const filenameMap: Record<string, string> = {
     'commands': 'tshock-commands.md',
+    'tshock-config-files': 'tshock-config-files.md',
   };
   const filename = filenameMap[id] || `${id}.md`;
   const path = `../../docs/${filename}`;

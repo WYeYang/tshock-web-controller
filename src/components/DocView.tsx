@@ -6,10 +6,11 @@ import type { DocumentId, DocMeta } from '../types/docs';
 
 interface DocViewProps {
   onGoToConfig?: () => void;
+  initialDocId?: string;
 }
 
-export const DocView = ({ onGoToConfig: _onGoToConfig }: DocViewProps) => {
-  const [currentDoc, setCurrentDoc] = useState<DocumentId>('getting-started');
+export const DocView = ({ onGoToConfig: _onGoToConfig, initialDocId }: DocViewProps) => {
+  const [currentDoc, setCurrentDoc] = useState<DocumentId>('commands');
   const [content, setContent] = useState<string>('');
   const [loading, setLoading] = useState(true);
   const [documents, setDocuments] = useState<DocMeta[]>([]);
@@ -17,6 +18,12 @@ export const DocView = ({ onGoToConfig: _onGoToConfig }: DocViewProps) => {
   useEffect(() => {
     setDocuments(getSortedDocuments());
   }, []);
+
+  useEffect(() => {
+    if (initialDocId) {
+      setCurrentDoc(initialDocId as DocumentId);
+    }
+  }, [initialDocId]);
 
   useEffect(() => {
     const loadContent = async () => {

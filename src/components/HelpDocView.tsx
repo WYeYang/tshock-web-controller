@@ -1,8 +1,68 @@
+import { useState } from 'react';
+
 interface HelpDocViewProps {
   onGoToConfig?: () => void;
+  onGoToDocs?: (docId?: string) => void;
 }
 
-export const HelpDocView = ({ onGoToConfig }: HelpDocViewProps) => {
+// 可折叠区域组件
+interface CollapsibleSectionProps {
+  title: string;
+  icon: React.ReactNode;
+  iconClass?: string;
+  borderClass?: string;
+  bgClass?: string;
+  defaultExpanded?: boolean;
+  hint?: string;
+  children: React.ReactNode;
+}
+
+const CollapsibleSection = ({
+  title,
+  icon,
+  iconClass = 'text-white',
+  borderClass = 'border-yellow-500/50',
+  bgClass = 'bg-yellow-500/5',
+  defaultExpanded = false,
+  hint,
+  children,
+}: CollapsibleSectionProps) => {
+  const [isExpanded, setIsExpanded] = useState(defaultExpanded);
+
+  return (
+    <div className={`glass-card neon-border p-6 ${borderClass} ${bgClass}`}>
+      <button
+        onClick={() => setIsExpanded(!isExpanded)}
+        className="w-full flex items-center justify-between text-left group"
+      >
+        <h2 className={`text-lg font-bold ${iconClass} flex items-center gap-3`}>
+          <div className="w-10 h-10 rounded-lg bg-current/10 flex items-center justify-center opacity-80">
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              {icon}
+            </svg>
+          </div>
+          {title}
+          {hint && <span className="text-xs text-slate-500 font-normal ml-2">（{hint}）</span>}
+        </h2>
+        <svg
+          className={`w-5 h-5 text-slate-400 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`}
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+        </svg>
+      </button>
+      <div
+        className={`overflow-hidden transition-all duration-300 ${isExpanded ? 'max-h-[5000px] mt-4 opacity-100' : 'max-h-0 opacity-0'}`}
+      >
+        {children}
+      </div>
+    </div>
+  );
+};
+
+export const HelpDocView = ({ onGoToConfig, onGoToDocs }: HelpDocViewProps) => {
   return (
     <div className="flex flex-col h-full">
       <div className="flex items-center justify-between p-4 border-b border-slate-700/50 bg-slate-900/50 backdrop-blur-xl">
@@ -32,35 +92,135 @@ export const HelpDocView = ({ onGoToConfig }: HelpDocViewProps) => {
       </div>
 
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
-        <div className="glass-card neon-border p-6 border-yellow-500/50 bg-yellow-500/5">
-          <h2 className="text-lg font-bold text-yellow-400 mb-4 flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-yellow-500/20 flex items-center justify-center">
-              <svg className="w-6 h-6 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
+        {/* 1. TShock 安装与初始化 - 默认折叠 */}
+        <CollapsibleSection
+          title="TShock 安装与初始化"
+          icon={<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />}
+          iconClass="text-yellow-400"
+          borderClass="border-yellow-500/50"
+          bgClass="bg-yellow-500/5"
+          defaultExpanded={false}
+          hint="已熟悉可跳过"
+        >
+          <div className="space-y-4 text-slate-300">
+            <div>
+              <h3 className="text-cyan-400 font-medium mb-2">1. 下载与安装</h3>
+              <div className="space-y-3">
+                <div>
+                  <p className="text-sm mb-1">访问 GitHub Releases 页面：</p>
+                  <a href="https://github.com/Pryaxis/TShock/releases/latest" target="_blank" rel="noopener noreferrer" className="text-cyan-400 hover:text-cyan-300 text-sm underline">
+                    https://github.com/Pryaxis/TShock/releases/latest
+                  </a>
+                </div>
+                <div>
+                  <p className="text-sm mb-1">下载压缩包：</p>
+                  <p className="text-xs text-slate-400">
+                    在上方 Releases 页面下载 <code className="text-cyan-400">TShock-x.x.x-for-Terraria-x.x.x-win-x64-Release.zip</code> 格式的文件
+                  </p>
+                </div>
+                <div>
+                  <p className="text-sm mb-1">解压运行：</p>
+                  <ul className="text-xs text-slate-400 space-y-1 list-disc list-inside">
+                    <li>解压到任意目录（如 <code className="text-cyan-400">D:\TShock</code>）</li>
+                    <li>进入解压目录，双击运行 <code className="text-cyan-400">TShock.Installer.exe</code></li>
+                    <li>安装程序会自动下载并安装 .NET 6 运行时</li>
+                    <li>运行后会生成 <code className="text-cyan-400">tshock\config.json</code> 和 <code className="text-cyan-400">tshock\sscconfig.json</code>（强制开荒配置）配置文件</li>
+                  </ul>
+                  {onGoToDocs && (
+                    <button
+                      onClick={() => onGoToDocs('tshock-config-files')}
+                      className="mt-3 inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg text-white text-sm hover:opacity-90 transition-all"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      </svg>
+                      查看配置文件说明
+                    </button>
+                  )}
+                </div>
+              </div>
             </div>
-            首次使用请先配置
-          </h2>
-          <p className="text-slate-300 text-sm mb-4">
-            在使用命令助手和服务器状态之前，需要先配置服务器地址和获取 Token。
-          </p>
-          <ol className="list-decimal list-inside space-y-2 text-sm text-slate-300 mb-4">
-            <li>配置 TShock 的 config.json（启用 REST API）</li>
-            <li>重启 TShock 服务器</li>
-            <li>添加 tshock.rest 权限</li>
-            <li>在控制器配置服务器地址</li>
-            <li>输入用户名密码获取 Token</li>
-          </ol>
-          {onGoToConfig && (
-            <button
-              onClick={onGoToConfig}
-              className="w-full py-3 bg-gradient-to-r from-cyan-500 to-purple-500 rounded-lg text-white font-bold text-lg hover:opacity-90 transition-all transform hover:scale-[1.02] active:scale-[0.98] neon-pulse"
-            >
-              立即配置
-            </button>
-          )}
-        </div>
 
+            <div>
+              <h3 className="text-cyan-400 font-medium mb-2">2. 服务器配置</h3>
+              <p className="text-sm mb-2">运行安装程序后，按提示完成以下配置：</p>
+              <div className="bg-slate-800/50 rounded-lg p-3 space-y-2 text-sm">
+                <div><span className="text-green-400">1.</span> 选择服务器端口（默认 7777，可直接回车）</div>
+                <div><span className="text-green-400">2.</span> 选择地图/世界（输入数字选择）</div>
+                <div><span className="text-green-400">3.</span> 设置最大玩家数量（默认 8）</div>
+                <div><span className="text-green-400">4.</span> 是否启用自动端口转发（输入 <code className="text-cyan-400">y</code> 启用）</div>
+                <div><span className="text-green-400">5.</span> 设置服务器密码（无密码直接回车跳过）</div>
+                <div><span className="text-green-400">6.</span> 等待服务器启动完成</div>
+              </div>
+            </div>
+
+            <div>
+              <h3 className="text-cyan-400 font-medium mb-2">3. 初始化管理员</h3>
+              <p className="text-sm mb-2">服务器启动后会显示 setup code，按以下步骤创建管理员：</p>
+              <div className="bg-slate-800/50 rounded-lg p-3 space-y-2 text-sm">
+                <div><span className="text-green-400">1.</span> 游戏内连接服务器，输入 <code className="text-cyan-400">/setup [你的setup code]</code></div>
+                <div><span className="text-green-400">2.</span> 创建管理员账户：<code className="text-cyan-400 ml-2">/user add 用户名 密码 superadmin</code></div>
+                <div><span className="text-green-400">3.</span> 登录账户：<code className="text-cyan-400 ml-2">/login 用户名 密码</code></div>
+              </div>
+            </div>
+          </div>
+        </CollapsibleSection>
+
+        {/* 2. 远程控制（内网穿透）- 默认折叠 */}
+        <CollapsibleSection
+          title="远程控制（内网穿透）"
+          icon={<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0 3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" />}
+          iconClass="text-cyan-400"
+          borderClass="border-cyan-500/50"
+          bgClass="bg-cyan-500/5"
+          defaultExpanded={false}
+          hint="已熟悉可跳过"
+        >
+          <div className="space-y-3">
+            <p className="text-slate-300 text-sm">
+              如果服务器在内网，需要使用远程控制工具进行管理。推荐使用向日葵：
+            </p>
+            <div className="bg-slate-800/30 rounded-lg p-4">
+              <h4 className="text-white font-medium mb-2">向日葵远程控制</h4>
+              <p className="text-slate-400 text-xs mb-2">免费易用的远程控制软件，适合 Windows 服务器</p>
+              <a href="https://service.oray.com/question/15507.html" target="_blank" rel="noopener noreferrer" className="text-cyan-400 hover:text-cyan-300 text-xs underline">
+                内网穿透教程
+              </a>
+            </div>
+            <div className="bg-yellow-900/30 border border-yellow-500/30 rounded-lg p-3">
+              <h4 className="text-yellow-400 font-medium mb-2">端口映射配置（TCP）</h4>
+              <ul className="text-xs text-slate-300 space-y-1 list-disc list-inside">
+                <li>7777 - Terraria 游戏服务器端口</li>
+                <li>7878 - TShock REST API 端口</li>
+              </ul>
+              <p className="text-slate-400 text-xs mt-2">协议类型：TCP（用于远程访问和准确性要求高的数据传输）</p>
+            </div>
+            <div className="bg-green-900/30 border border-green-500/30 rounded-lg p-3">
+              <h4 className="text-green-400 font-medium mb-2">映射后获取的信息</h4>
+              <p className="text-slate-300 text-xs mb-2">完成映射后，复制花生壳提供的外网域名和外网端口：</p>
+              <ul className="text-xs text-slate-300 space-y-1 list-disc list-inside">
+                <li>外网域名 - 用于连接的唯一地址</li>
+                <li>外网端口 - 对应内网端口的外部访问端口</li>
+              </ul>
+              <p className="text-slate-300 text-xs mt-2">在控制器中配置时：</p>
+              <ul className="text-xs text-slate-300 space-y-1 list-disc list-inside">
+                <li>服务器地址：填入 TShock 服务器地址（如 <code className="text-cyan-400">https://xxx.oicp.vip:12345</code>）</li>
+                <li>API 请求会通过后端代理转发</li>
+              </ul>
+            </div>
+            <div className="bg-cyan-900/30 border border-cyan-500/30 rounded-lg p-3">
+              <h4 className="text-cyan-400 font-medium mb-2">其他人加入联机</h4>
+              <p className="text-slate-300 text-xs mb-2">让其他玩家加入服务器，需要告诉他们：</p>
+              <p className="text-slate-300 text-xs mb-1">游戏内 → 多人游戏 → 邀请好友 → 输入以下地址：</p>
+              <div className="bg-slate-900/50 rounded p-2 mt-2">
+                <code className="text-green-400 text-xs">域名:端口</code>
+              </div>
+              <p className="text-slate-300 text-xs mt-2">示例：<code className="text-cyan-400">xxx.oicp.vip:12345</code></p>
+            </div>
+          </div>
+        </CollapsibleSection>
+
+        {/* 3. TShock REST API 配置 */}
         <div className="glass-card neon-border p-6">
           <h2 className="text-lg font-bold text-white mb-6 flex items-center gap-3">
             <div className="w-10 h-10 rounded-lg bg-cyan-500/20 flex items-center justify-center">
@@ -81,7 +241,7 @@ export const HelpDocView = ({ onGoToConfig }: HelpDocViewProps) => {
   "RestApiPort": 7878,
   "EnableTokenEndpointAuthentication": false,
   "LogRest": true,
-  "RESTMaximumRequestsPerInterval": 5,
+  "RESTMaximumRequestsPerInterval": 50,
   "RESTRequestBucketDecreaseIntervalMinutes": 1,
   "ApplicationRestTokens": {}
 }`}
@@ -102,11 +262,7 @@ export const HelpDocView = ({ onGoToConfig }: HelpDocViewProps) => {
                 </div>
                 <div className="flex items-start gap-2">
                   <span className="text-cyan-400 font-bold">RESTMaximumRequestsPerInterval</span>
-                  <span className="text-slate-400">每个时间窗口内的最大请求数（默认 5）</span>
-                </div>
-                <div className="flex items-start gap-2">
-                  <span className="text-cyan-400 font-bold">RESTRequestBucketDecreaseIntervalMinutes</span>
-                  <span className="text-slate-400">请求限制重置的时间间隔（分钟，默认 1）</span>
+                  <span className="text-slate-400">推荐设为 50+，避免频繁触发限流</span>
                 </div>
               </div>
             </div>
@@ -118,7 +274,7 @@ export const HelpDocView = ({ onGoToConfig }: HelpDocViewProps) => {
                 <div className="bg-slate-900/50 rounded p-3 border-2 border-cyan-500/40">
                   <div className="font-mono text-green-400 text-sm mb-1">/group addperm owner tshock.rest</div>
                   <p className="text-slate-300 text-xs">添加 REST API 基础访问权限</p>
-                  <p className="text-yellow-400 text-xs mt-2">⚠️ 重要：获取 Token 的用户必须在拥有此权限的组中</p>
+                  <p className="text-yellow-400 text-xs mt-2">重要：获取 Token 的用户必须在拥有此权限的组中</p>
                 </div>
               </div>
               <p className="text-slate-400 text-sm mt-4">其他所需权限可以在命令助手中根据需要添加。</p>
@@ -137,29 +293,7 @@ export const HelpDocView = ({ onGoToConfig }: HelpDocViewProps) => {
           </div>
         </div>
 
-        <div className="glass-card neon-border p-6">
-          <h2 className="text-lg font-bold text-white mb-6 flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-purple-500/20 flex items-center justify-center">
-              <svg className="w-5 h-5 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-              </svg>
-            </div>
-            完整文档参考
-          </h2>
-          <p className="text-slate-300 text-sm mb-4">
-            需要查看详细的命令文档、API 说明和权限配置？访问文档中心获取完整参考。
-          </p>
-          <p className="text-slate-400 text-sm mb-4">
-            点击侧边栏的「文档中心」菜单，可以查看：
-          </p>
-          <ul className="list-disc list-inside space-y-2 text-sm text-slate-300 mb-4">
-            <li>完整的命令列表和使用示例</li>
-            <li>REST API 端点详细说明</li>
-            <li>权限系统完整指南</li>
-            <li>常见问题解答</li>
-          </ul>
-        </div>
-
+        {/* 4. 故障排查 */}
         <div className="glass-card neon-border p-6">
           <h2 className="text-lg font-bold text-white mb-6 flex items-center gap-3">
             <div className="w-10 h-10 rounded-lg bg-pink-500/20 flex items-center justify-center">

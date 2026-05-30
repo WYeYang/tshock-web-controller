@@ -12,8 +12,9 @@ export interface DocEntry {
   content: string;
 }
 
-export type DocumentId = 
-  | 'commands';
+export type DocumentId =
+  | 'commands'
+  | 'tshock-config-files';
 
 export const DOCUMENTS: Record<DocumentId, DocMeta> = {
   'commands': {
@@ -22,6 +23,13 @@ export const DOCUMENTS: Record<DocumentId, DocMeta> = {
     description: 'TShock 完整命令列表',
     category: '参考',
     order: 1,
+  },
+  'tshock-config-files': {
+    id: 'tshock-config-files',
+    title: '配置文件说明',
+    description: 'config.json 和 sscconfig.json 配置项详解',
+    category: '参考',
+    order: 2,
   },
 };
 

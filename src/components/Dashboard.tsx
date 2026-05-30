@@ -13,6 +13,7 @@ export const Dashboard = () => {
   const [currentView, setCurrentView] = useState<ViewType>('help');
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [previousConfigured, setPreviousConfigured] = useState(false);
+  const [selectedDocId, setSelectedDocId] = useState<string | undefined>(undefined);
 
   // 直接计算是否已配置
   const isConfigured = !!(config.tshock.serverUrl && config.tshock.token);
@@ -53,9 +54,9 @@ export const Dashboard = () => {
       case 'server':
         return <ServerStatusView />;
       case 'help':
-        return <HelpDocView onGoToConfig={() => setCurrentView('config')} />;
+        return <HelpDocView onGoToConfig={() => setCurrentView('config')} onGoToDocs={(docId) => { setCurrentView('docs'); if (docId) setSelectedDocId?.(docId); }} />;
       case 'docs':
-        return <DocView onGoToConfig={() => setCurrentView('config')} />;
+        return <DocView onGoToConfig={() => setCurrentView('config')} initialDocId={selectedDocId} />;
       default:
         return <CommandAssistantView />;
     }
