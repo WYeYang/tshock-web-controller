@@ -2,24 +2,30 @@
 import type { DocEntry, DocumentId, DocMeta } from '../types/docs';
 import { DOCUMENTS } from '../types/docs';
 
-import gettingStartedContent from '../../docs/01-getting-started.md?raw';
-import restApiContent from '../../docs/github_tshock_wiki_rest_endpoints.md?raw';
-import permissionsContent from '../../docs/github_tshock_wiki_permissions.md?raw';
-import commandsContent from '../../docs/tshock-rest-api.md?raw';
+const docModules = import.meta.glob('../../docs/*.md', { query: '?raw', import: 'default' });
 
 export const loadDocument = async (id: DocumentId): Promise<DocEntry> => {
-  const contentMap: Record<DocumentId, string> = {
-    'getting-started': gettingStartedContent,
-    'rest-api': restApiContent,
-    'permissions': permissionsContent,
-    'commands': commandsContent,
+  // Map id to filename
+  const filenameMap: Record<string, string> = {
+    'commands': 'tshock-commands.md',
   };
+  const filename = filenameMap[id] || `${id}.md`;
+  const path = `../../docs/${filename}`;
+
+  if (!docModules[path]) {
+    return {
+      meta: { ...DOCUMENTS[id] },
+      content: '# 文档未找到',
+    };
+  }
+
+  const content = await (docModules[path] as () => Promise<string>)();
 
   return {
     meta: {
       ...DOCUMENTS[id],
     },
-    content: contentMap[id] || '# 文档未找到',
+    content,
   };
 };
 

@@ -4,7 +4,7 @@ import { useTShock } from '../hooks/useTShock';
 import type { Player, BanRecord } from '../types/tshock';
 
 export function ServerStatusView() {
-  const { loading, error, clearError, getServerInfo, getPlayers, kickPlayer, getBanList, unbanPlayer, getPlayerDetails, banMultipleIdentifiers, mutePlayer, unmutePlayer, teleportToPlayer, changeGroup, giveItem } = useTShock();
+  const { loading, error, clearError, getServerInfo, getPlayers, kickPlayer, getBanList, unbanPlayer, getPlayerDetails, banMultipleIdentifiers, mutePlayer, unmutePlayer, teleportToPlayer, changeGroup, giveItem, executeCommand } = useTShock();
   const [serverInfo, setServerInfo] = useState<any>(null);
   const [players, setPlayers] = useState<Player[]>([]);
   const [banList, setBanList] = useState<BanRecord[]>([]);
@@ -20,6 +20,7 @@ export function ServerStatusView() {
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'info' } | null>(null);
   const reasonInputRef = useRef<HTMLInputElement>(null);
   const valueInputRef = useRef<HTMLInputElement>(null);
+  const amountInputRef = useRef<HTMLInputElement>(null);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null); // 定时器引用
 
   const fetchData = useCallback(async () => {
@@ -122,24 +123,26 @@ export function ServerStatusView() {
 
   const confirmAction = async () => {
     setActionLoading(true);
+    const reason = reasonInputRef.current?.value || '';
+    const inputValue = valueInputRef.current?.value || '';
     try {
       if (confirmDialog.type === 'kick' && confirmDialog.player) {
-        await kickPlayer(confirmDialog.player.nickname, confirmReason);
+        await kickPlayer(confirmDialog.player.nickname, reason);
         showToast(`已踢出玩家 ${confirmDialog.player.nickname}`, 'success');
       } else if (confirmDialog.type === 'ban' && confirmDialog.player) {
         const identifiers = [confirmDialog.player.nickname];
         if (confirmDialog.player.username) identifiers.push(`acc:${confirmDialog.player.username}`);
         const detail = playerDetail || confirmDialog.player;
         if (detail.ip) identifiers.push(`ip:${detail.ip}`);
-        const reason = confirmReason || '违规封禁';
-        const results = await banMultipleIdentifiers(identifiers, reason);
+        const banReason = reason || '违规封禁';
+        const results = await banMultipleIdentifiers(identifiers, banReason);
         const successCount = results.filter(r => r.success).length;
         showToast(`封禁成功！已处理 ${successCount}/${identifiers.length} 个标识符`, 'success');
       } else if (confirmDialog.type === 'unban' && confirmDialog.banRecord) {
         await unbanPlayer(confirmDialog.banRecord.ticket_number);
         showToast(`已解封 ${confirmDialog.banRecord.identifier}`, 'success');
       } else if (confirmDialog.type === 'mute' && confirmDialog.player) {
-        await mutePlayer(confirmDialog.player.nickname, confirmReason);
+        await mutePlayer(confirmDialog.player.nickname, reason);
         showToast(`已禁言玩家 ${confirmDialog.player.nickname}`, 'success');
       } else if (confirmDialog.type === 'unmute' && confirmDialog.player) {
         await unmutePlayer(confirmDialog.player.nickname);
@@ -147,15 +150,19 @@ export function ServerStatusView() {
       } else if (confirmDialog.type === 'teleportTo' && confirmDialog.player) {
         await teleportToPlayer(confirmDialog.player.nickname);
         showToast(`已传送至玩家 ${confirmDialog.player.nickname}`, 'success');
-      } else if (confirmDialog.type === 'changeGroup' && confirmDialog.player && confirmInputValue) {
-        await changeGroup(confirmDialog.player.nickname, confirmInputValue);
-        showToast(`已将玩家 ${confirmDialog.player.nickname} 的用户组修改为 ${confirmInputValue}`, 'success');
-      } else if (confirmDialog.type === 'giveItem' && confirmDialog.player && confirmInputValue) {
-        const parts = confirmInputValue.split(' ');
-        const itemName = parts[0];
-        const amount = parts[1] ? parseInt(parts[1]) : 1;
-        await giveItem(confirmDialog.player.nickname, itemName, amount);
-        showToast(`已给予玩家 ${confirmDialog.player.nickname} 物品 ${itemName} x${amount}`, 'success');
+      } else if (confirmDialog.type === 'changeGroup' && confirmDialog.player && inputValue) {
+        await changeGroup(confirmDialog.player.nickname, inputValue);
+        showToast(`已将玩家 ${confirmDialog.player.nickname} 的用户组修改为 ${inputValue}`, 'success');
+      } else if (confirmDialog.type === 'giveItem' && confirmDialog.player) {
+        const itemIdOrName = valueInputRef.current?.value?.trim() || '';
+        const amount = parseInt(amountInputRef.current?.value) || 1;
+        if (!itemIdOrName) {
+          showToast('请输入物品ID或名称', 'error');
+          setActionLoading(false);
+          return;
+        }
+        await executeCommand(`/give ${confirmDialog.player.nickname} ${itemIdOrName} ${amount}`);
+        showToast(`已给予玩家 ${confirmDialog.player.nickname} 物品 ${itemIdOrName} x${amount}`, 'success');
       }
       await fetchData();
       if (selectedPlayer) await openPlayerDetail(selectedPlayer);
@@ -237,7 +244,7 @@ export function ServerStatusView() {
 
     const showReason = confirmDialog.type === 'kick' || confirmDialog.type === 'ban' || confirmDialog.type === 'mute';
     const showInput = confirmDialog.type === 'changeGroup' || confirmDialog.type === 'giveItem';
-    const getInputPlaceholder = () => confirmDialog.type === 'changeGroup' ? '用户组名称' : '物品名 [数量]';
+    const getInputPlaceholder = () => confirmDialog.type === 'changeGroup' ? '用户组名称' : '物品ID/名称 [数量]';
 
     return (
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 lg:pl-[280px]">
@@ -252,8 +259,6 @@ export function ServerStatusView() {
               <input
                 ref={reasonInputRef}
                 type="text"
-                value={confirmReason}
-                onChange={(e) => setConfirmReason(e.target.value)}
                 placeholder="请输入原因（可选）"
                 className="w-full px-3 py-2 sm:px-4 sm:py-3 bg-slate-800/50 border border-slate-700/50 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-purple-500/50 focus:ring-2 focus:ring-purple-500/20 transition-all text-sm sm:text-base"
                 autoFocus
@@ -262,16 +267,42 @@ export function ServerStatusView() {
           )}
           {showInput && (
             <div className="mb-4 sm:mb-6">
-              <label className="block text-slate-400 text-xs sm:text-sm font-medium mb-2">{getInputPlaceholder()}</label>
-              <input
-                ref={valueInputRef}
-                type="text"
-                value={confirmInputValue}
-                onChange={(e) => setConfirmInputValue(e.target.value)}
-                placeholder={getInputPlaceholder()}
-                className="w-full px-3 py-2 sm:px-4 sm:py-3 bg-slate-800/50 border border-slate-700/50 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-purple-500/50 focus:ring-2 focus:ring-purple-500/20 transition-all text-sm sm:text-base"
-                autoFocus
-              />
+              {confirmDialog.type === 'giveItem' ? (
+                <div className="space-y-3">
+                  <div>
+                    <label className="block text-slate-400 text-xs sm:text-sm font-medium mb-2">物品ID/名称</label>
+                    <input
+                      ref={valueInputRef}
+                      type="text"
+                      placeholder="如 4956 或 铁剑"
+                      className="w-full px-3 py-2 sm:px-4 sm:py-3 bg-slate-800/50 border border-slate-700/50 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-purple-500/50 focus:ring-2 focus:ring-purple-500/20 transition-all text-sm sm:text-base"
+                      autoFocus
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-slate-400 text-xs sm:text-sm font-medium mb-2">数量</label>
+                    <input
+                      ref={amountInputRef}
+                      type="number"
+                      placeholder="1"
+                      defaultValue="1"
+                      min="1"
+                      className="w-full px-3 py-2 sm:px-4 sm:py-3 bg-slate-800/50 border border-slate-700/50 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-purple-500/50 focus:ring-2 focus:ring-purple-500/20 transition-all text-sm sm:text-base"
+                    />
+                  </div>
+                </div>
+              ) : (
+                <>
+                  <label className="block text-slate-400 text-xs sm:text-sm font-medium mb-2">{getInputPlaceholder()}</label>
+                  <input
+                    ref={valueInputRef}
+                    type="text"
+                    placeholder={getInputPlaceholder()}
+                    className="w-full px-3 py-2 sm:px-4 sm:py-3 bg-slate-800/50 border border-slate-700/50 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-purple-500/50 focus:ring-2 focus:ring-purple-500/20 transition-all text-sm sm:text-base"
+                    autoFocus
+                  />
+                </>
+              )}
             </div>
           )}
           <div className="flex gap-2 sm:gap-4 flex-col sm:flex-row">
