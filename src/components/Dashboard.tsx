@@ -52,7 +52,7 @@ export const Dashboard = () => {
       case 'command':
         return <CommandAssistantView />;
       case 'server':
-        return <ServerStatusView />;
+        return <ServerStatusView onGoToConfig={() => setCurrentView('config')} />;
       case 'help':
         return <HelpDocView onGoToConfig={() => setCurrentView('config')} onGoToDocs={(docId) => { setCurrentView('docs'); if (docId) setSelectedDocId?.(docId); }} />;
       case 'docs':

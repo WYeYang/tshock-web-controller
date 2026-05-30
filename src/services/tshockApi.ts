@@ -176,7 +176,27 @@ export class TShockApi {
           statusText: response.statusText,
           response: errorText,
         });
-        throw new Error(`HTTP error! status: ${response.status}`);
+        
+        // 尝试解析 JSON 错误信息
+        let errorMessage = `HTTP error! status: ${response.status}`;
+        try {
+          const errorData = JSON.parse(errorText);
+          if (errorData.error) {
+            errorMessage = errorData.error;
+          }
+        } catch {
+          // 如果无法解析 JSON，使用原始文本
+          if (errorText) {
+            errorMessage = errorText;
+          }
+        }
+        
+        // 针对 403 错误提供更友好的提示
+        if (response.status === 403) {
+          throw new Error('认证失败（403）：服务器已重启或 Token 已失效，请重新获取 Token');
+        }
+        
+        throw new Error(errorMessage);
       }
 
       const data: any = await response.json();
@@ -246,11 +266,26 @@ export class TShockApi {
 
   async executeCommand(cmd: string): Promise<CommandResult> {
     const data: any = await this.request<any>(`/v3/server/rawcmd?cmd=${encodeURIComponent(cmd)}`);
-    return {
+    
+    const result: CommandResult = {
       status: data.status,
       response: data.response || '',
       error: data.error || ''
-    } as CommandResult;
+    };
+    
+    // 检查响应中是否包含错误信息
+    const responseArray = Array.isArray(result.response) ? result.response : [result.response];
+    const errorKeywords = ['没有权限', '无法', '失败', '错误', '不能', '无效', '不存在'];
+    const hasError = responseArray.some(msg => 
+      typeof msg === 'string' && errorKeywords.some(keyword => msg.includes(keyword))
+    );
+    
+    if (hasError) {
+      const errorMsg = responseArray.filter(msg => typeof msg === 'string').join('; ');
+      throw new Error(errorMsg);
+    }
+    
+    return result;
   }
 
   async getServerInfo(): Promise<ServerInfo> {
@@ -346,12 +381,15 @@ export class TShockApi {
     return this.executeCommand(`/tp ${targetPlayer}`);
   }
 
-  async changeGroup(playerName: string, groupName: string): Promise<CommandResult> {
-    return this.executeCommand(`/usergroup ${playerName} ${groupName}`);
+  async changeGroup(playerName: string, groupName: string): Promise<any> {
+    const data: any = await this.request<any>(
+      `/v2/users/update?user=${encodeURIComponent(playerName)}&type=name&group=${encodeURIComponent(groupName)}`
+    );
+    return data;
   }
 
   async giveItem(playerName: string, itemName: string, amount: number = 1): Promise<CommandResult> {
-    return this.executeCommand(`/give ${playerName} ${itemName} ${amount}`);
+    return this.executeCommand(`/give ${itemName} ${playerName} ${amount}`);
   }
 
   async getUsers(): Promise<any> {

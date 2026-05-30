@@ -3,8 +3,12 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { useTShock } from '../hooks/useTShock';
 import type { Player, BanRecord } from '../types/tshock';
 
-export function ServerStatusView() {
-  const { loading, error, clearError, getServerInfo, getPlayers, kickPlayer, getBanList, unbanPlayer, getPlayerDetails, banMultipleIdentifiers, mutePlayer, unmutePlayer, teleportToPlayer, changeGroup, giveItem, executeCommand } = useTShock();
+interface ServerStatusViewProps {
+  onGoToConfig?: () => void;
+}
+
+export function ServerStatusView({ onGoToConfig }: ServerStatusViewProps) {
+  const { loading, error, clearError, getServerInfo, getPlayers, kickPlayer, getBanList, unbanPlayer, getPlayerDetails, banMultipleIdentifiers, mutePlayer, unmutePlayer, teleportToPlayer, changeGroup, executeCommand } = useTShock();
   const [serverInfo, setServerInfo] = useState<any>(null);
   const [players, setPlayers] = useState<Player[]>([]);
   const [banList, setBanList] = useState<BanRecord[]>([]);
@@ -14,8 +18,6 @@ export function ServerStatusView() {
   const [playerDetailModalOpen, setPlayerDetailModalOpen] = useState(false);
   const [loadingDetail, setLoadingDetail] = useState(false);
   const [confirmDialog, setConfirmDialog] = useState<{ isOpen: boolean; type: string; player: Player | null; banRecord: BanRecord | null }>({ isOpen: false, type: 'kick', player: null, banRecord: null });
-  const [confirmReason, setConfirmReason] = useState('');
-  const [confirmInputValue, setConfirmInputValue] = useState('');
   const [actionLoading, setActionLoading] = useState(false);
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'info' } | null>(null);
   const reasonInputRef = useRef<HTMLInputElement>(null);
@@ -80,45 +82,29 @@ export function ServerStatusView() {
   };
 
   const handleKick = (player: Player) => {
-    setConfirmReason('');
-    setConfirmInputValue('');
     setConfirmDialog({ isOpen: true, type: 'kick', player, banRecord: null });
   };
   const handleBan = (player: Player) => {
-    setConfirmReason('');
-    setConfirmInputValue('');
     setConfirmDialog({ isOpen: true, type: 'ban', player, banRecord: null });
   };
   const handleMute = (player: Player) => {
-    setConfirmReason('');
-    setConfirmInputValue('');
     setConfirmDialog({ isOpen: true, type: 'mute', player, banRecord: null });
   };
   const handleUnmute = (player: Player) => {
-    setConfirmReason('');
-    setConfirmInputValue('');
     setConfirmDialog({ isOpen: true, type: 'unmute', player, banRecord: null });
   };
   const handleChangeGroup = (player: Player) => {
-    setConfirmReason('');
-    setConfirmInputValue('');
     setConfirmDialog({ isOpen: true, type: 'changeGroup', player, banRecord: null });
   };
   const handleGiveItem = (player: Player) => {
-    setConfirmReason('');
-    setConfirmInputValue('');
     setConfirmDialog({ isOpen: true, type: 'giveItem', player, banRecord: null });
   };
   const handleUnban = (banRecord: BanRecord) => {
-    setConfirmReason('');
-    setConfirmInputValue('');
     setConfirmDialog({ isOpen: true, type: 'unban', player: null, banRecord });
   };
 
   const closeConfirmDialog = () => {
     setConfirmDialog({ isOpen: false, type: 'kick', player: null, banRecord: null });
-    setConfirmReason('');
-    setConfirmInputValue('');
   };
 
   const confirmAction = async () => {
@@ -155,13 +141,14 @@ export function ServerStatusView() {
         showToast(`已将玩家 ${confirmDialog.player.nickname} 的用户组修改为 ${inputValue}`, 'success');
       } else if (confirmDialog.type === 'giveItem' && confirmDialog.player) {
         const itemIdOrName = valueInputRef.current?.value?.trim() || '';
-        const amount = parseInt(amountInputRef.current?.value) || 1;
+        const amountValue = amountInputRef.current?.value || '1';
+        const amount = parseInt(amountValue) || 1;
         if (!itemIdOrName) {
           showToast('请输入物品ID或名称', 'error');
           setActionLoading(false);
           return;
         }
-        await executeCommand(`/give ${confirmDialog.player.nickname} ${itemIdOrName} ${amount}`);
+        await executeCommand(`/give ${itemIdOrName} ${confirmDialog.player.nickname} ${amount}`);
         showToast(`已给予玩家 ${confirmDialog.player.nickname} 物品 ${itemIdOrName} x${amount}`, 'success');
       }
       await fetchData();
@@ -443,9 +430,17 @@ export function ServerStatusView() {
                       禁言
                     </button>
                   ))}
-                  {selectedPlayer && <button onClick={() => handleChangeGroup(selectedPlayer)} className="px-3 py-2 sm:px-4 sm:py-3 bg-purple-500/20 hover:bg-purple-500/30 border border-purple-500/30 rounded-lg text-purple-400 font-medium transition-all flex items-center justify-center gap-1 sm:gap-2 text-xs sm:text-sm">
-                    修改用户组
-                  </button>}
+                  {selectedPlayer && (
+                    displayPlayer.username ? (
+                      <button onClick={() => handleChangeGroup(selectedPlayer)} className="px-3 py-2 sm:px-4 sm:py-3 bg-purple-500/20 hover:bg-purple-500/30 border border-purple-500/30 rounded-lg text-purple-400 font-medium transition-all flex items-center justify-center gap-1 sm:gap-2 text-xs sm:text-sm">
+                        修改用户组
+                      </button>
+                    ) : (
+                      <button disabled className="px-3 py-2 sm:px-4 sm:py-3 bg-slate-700/20 border border-slate-700/30 rounded-lg text-slate-500 font-medium cursor-not-allowed flex items-center justify-center gap-1 sm:gap-2 text-xs sm:text-sm">
+                        未注册无法修改分组
+                      </button>
+                    )
+                  )}
                   {selectedPlayer && <button onClick={() => handleGiveItem(selectedPlayer)} className="px-3 py-2 sm:px-4 sm:py-3 bg-yellow-500/20 hover:bg-yellow-500/30 border border-yellow-500/30 rounded-lg text-yellow-400 font-medium transition-all flex items-center justify-center gap-1 sm:gap-2 text-xs sm:text-sm">
                     给予物品
                   </button>}
@@ -477,8 +472,25 @@ export function ServerStatusView() {
         <div className="mx-4 mt-4 glass-card neon-border p-4 border-red-500/50">
           <div className="flex items-start gap-3">
             <div className="flex-1">
-              <h3 className="text-red-400 font-semibold mb-1">错误</h3>
-              <p className="text-slate-400">{error}</p>
+              {error.includes('403') || error.includes('令牌') || error.includes('token') ? (
+                <>
+                  <h3 className="text-red-400 font-semibold mb-1">认证失败</h3>
+                  <p className="text-slate-300 mb-3">游戏服务器可能已重启，Token 已失效，请重新获取 Token。</p>
+                  {onGoToConfig && (
+                    <button
+                      onClick={onGoToConfig}
+                      className="px-4 py-2 bg-gradient-to-r from-cyan-500 to-purple-500 rounded-lg text-white font-medium hover:opacity-90 transition-all"
+                    >
+                      前往配置面板重新生成 Token
+                    </button>
+                  )}
+                </>
+              ) : (
+                <>
+                  <h3 className="text-red-400 font-semibold mb-1">错误</h3>
+                  <p className="text-slate-400">{error}</p>
+                </>
+              )}
             </div>
             <button onClick={clearError} className="text-slate-500 hover:text-white transition-colors">
               ✕

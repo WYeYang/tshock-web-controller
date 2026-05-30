@@ -1,5 +1,9 @@
 # TShock 命令参考
 
+> 文档来源: [Pryaxis/TShock GitHub Wiki](https://github.com/Pryaxis/TShock/wiki)
+> 
+> - 中文权限文档: [(中文)权限说明](https://github.com/Pryaxis/TShock/wiki/(%E4%B8%AD%E6%96%87)%E6%9D%83%E9%99%90%E8%AF%B4%E6%98%8E)
+
 ## 玩家管理
 
 ### /kick
@@ -62,21 +66,21 @@
 ## 物品管理
 
 ### /give
-给予玩家物品
+给予玩家物品。
 
 ```
-/give <玩家名> <物品名称或ID> [数量]
+/give <物品名称或ID> <玩家名> [数量]
 ```
 
 - **权限**: `tshock.item.give`
 - **示例**:
 ```
-/give 玩家名称 铁剑 1
-/give 玩家名称 4956 1
-/give 玩家名称 天顶剑 1
+/give 铁剑 玩家名称 1
+/give 4956 玩家名称 1
+/give 天顶剑 玩家名称 1
 ```
 
-**注意**：可以输入物品名称或物品ID。
+**注意**: 可以输入物品名称或物品ID，物品参数在前，玩家参数在后。
 
 ### /item
 给自己生成物品
