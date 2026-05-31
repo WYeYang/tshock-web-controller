@@ -468,16 +468,17 @@ export function ServerStatusView({ onGoToConfig }: ServerStatusViewProps) {
 
     const parseBuffString = (buffString: string): { buffId: number; timeLeft: string }[] => {
       const buffs: { buffId: number; timeLeft: string }[] = [];
-      const lines = buffString.split('\n');
-      for (const line of lines) {
-        const match = line.match(/Buff (\d+):.*?(\d+ seconds?)?/i);
-        if (match) {
-          buffs.push({
-            buffId: parseInt(match[1]),
-            timeLeft: match[2] || ''
-          });
+      const parts = buffString.split(',').map(s => s.trim());
+      
+      // Pair them up: buffId, timeLeft, buffId, timeLeft, ...
+      for (let i = 0; i < parts.length; i += 2) {
+        const buffId = parseInt(parts[i]);
+        if (buffId > 0) {
+          const timeLeft = parts[i + 1] ? `${parts[i + 1]}s` : '';
+          buffs.push({ buffId, timeLeft });
         }
       }
+      
       return buffs;
     };
 
