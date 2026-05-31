@@ -168,6 +168,39 @@ export function ServerStatusView({ onGoToConfig }: ServerStatusViewProps) {
   const handleGiveItem = (player: Player) => {
     setConfirmDialog({ isOpen: true, type: 'giveItem', player, banRecord: null });
   };
+
+  const handleClearInventory = async (player: Player) => {
+    try {
+      await executeCommand(`/clearinventory ${player.nickname}`);
+      showToast(`已清除玩家 ${player.nickname} 的背包`, 'success');
+      if (selectedPlayer) await openPlayerDetail(selectedPlayer);
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : '操作失败';
+      showToast(errorMessage, 'error');
+    }
+  };
+
+  const handleClearArmor = async (player: Player) => {
+    try {
+      await executeCommand(`/clear ${player.nickname} armor`);
+      showToast(`已清除玩家 ${player.nickname} 的装备`, 'success');
+      if (selectedPlayer) await openPlayerDetail(selectedPlayer);
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : '操作失败';
+      showToast(errorMessage, 'error');
+    }
+  };
+
+  const handleClearBuffs = async (player: Player) => {
+    try {
+      await executeCommand(`/clear ${player.nickname} buff`);
+      showToast(`已清除玩家 ${player.nickname} 的增益效果`, 'success');
+      if (selectedPlayer) await openPlayerDetail(selectedPlayer);
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : '操作失败';
+      showToast(errorMessage, 'error');
+    }
+  };
   const handleUnban = (banRecord: BanRecord) => {
     setConfirmDialog({ isOpen: true, type: 'unban', player: null, banRecord });
   };

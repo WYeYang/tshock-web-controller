@@ -1,0 +1,141 @@
+{
+  "endpoint": "/v3/players/read 和 /v4/players/read",
+  "method": "GET",
+  "description": "获取在线玩家详细信息（包括背包）",
+  "parameters": {
+    "player": "wen",
+    "token": "F94D0AC988BD92C650C07E4570044B6D8B4859048233E8F4980429405906F724"
+  },
+  "test_status": {
+    "v3_api": {
+      "status": "成功",
+      "url": "http://localhost:7878/v3/players/read?player=wen&token=F94D0AC988BD92C650C07E4570044B6D8B4859048233E8F4980429405906F724",
+      "response": {
+        "status": "200",
+        "nickname": "wen",
+        "username": "wen",
+        "ip": "127.0.0.1",
+        "group": "owner",
+        "registered": "2026-05-29T09:31:25",
+        "muted": false,
+        "position": "4196,2256",
+        "inventory": "物品以 ID:数量 格式返回，中文显示为乱码",
+        "armor": "装备以 ID:数量 格式返回",
+        "dyes": "",
+        "buffs": "332, 352, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0"
+      },
+      "note": "v3 版本物品名称中文显示为乱码（问号）"
+    },
+    "v4_api": {
+      "status": "成功（推荐使用）",
+      "url": "http://localhost:7878/v4/players/read?player=wen&token=F94D0AC988BD92C650C07E4570044B6D8B4859048233E8F4980429405906F724",
+      "response": {
+        "status": "200",
+        "nickname": "wen",
+        "username": "wen",
+        "ip": "127.0.0.1",
+        "group": "owner",
+        "registered": "2026-05-29T09:31:25",
+        "muted": false,
+        "position": "4196,2256",
+        "items": {
+          "inventory": [
+            {
+              "netID": 4914,
+              "prefix": 81,
+              "stack": 1,
+              "favorited": false
+            },
+            {
+              "netID": 4678,
+              "prefix": 81,
+              "stack": 1,
+              "favorited": true
+            },
+            {
+              "netID": 5074,
+              "prefix": 81,
+              "stack": 1,
+              "favorited": true
+            }
+          ],
+          "equipment": [
+            {
+              "netID": 1159,
+              "prefix": 0,
+              "stack": 1,
+              "favorited": false
+            },
+            {
+              "netID": 1160,
+              "prefix": 0,
+              "stack": 1,
+              "favorited": false
+            }
+          ],
+          "dyes": [],
+          "piggy": [
+            {
+              "netID": 159,
+              "prefix": 62,
+              "stack": 1,
+              "favorited": false
+            }
+          ],
+          "safe": [
+            {
+              "netID": 4913,
+              "prefix": 81,
+              "stack": 1,
+              "favorited": false
+            }
+          ],
+          "forge": []
+        },
+        "buffs": "332, 352, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0"
+      },
+      "note": "v4 版本返回结构化的 JSON 数据，推荐使用"
+    }
+  },
+  "字段说明": {
+    "基本信息": {
+      "nickname": "游戏内昵称",
+      "username": "用户名",
+      "ip": "IP 地址",
+      "group": "所属用户组",
+      "registered": "注册时间",
+      "muted": "是否被禁言",
+      "position": "当前位置 (X,Y)"
+    },
+    "物品字段": {
+      "netID": "物品网络 ID（需要对照物品表）",
+      "prefix": "前缀 ID（影响属性词缀）",
+      "stack": "数量",
+      "favorited": "是否被标记为最爱"
+    },
+    "物品分类": {
+      "inventory": "主背包（40 个槽位）",
+      "equipment": "装备栏（18 个槽位：护甲 3 + 配饰 5 + 染料 6 + 时装 4）",
+      "dyes": "染料栏",
+      "piggy": "猪猪储蓄罐（额外存储）",
+      "safe": "安全箱（额外存储）",
+      "forge": "熔炉（额外存储）"
+    }
+  },
+  "物品 ID 参考": {
+    "常见物品": {
+      "9": "石头",
+      "8": "土块",
+      "5": "铜锭",
+      "40": "铁锭",
+      "41": "银锭",
+      "97": "金锭",
+      "1729": "铂金币"
+    }
+  },
+  "buff_id参考": {
+    "332": "渔夫帽（虚弱）",
+    "352": "心追魂（增益）",
+    "0": "无效果"
+  }
+}

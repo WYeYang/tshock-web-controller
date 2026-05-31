@@ -1,0 +1,117 @@
+{
+  "title": "TShock REST API 测试文档",
+  "version": "1.0.0",
+  "date": "2026-05-31",
+  "base_url": "http://localhost:7878",
+  "token": "F94D0AC988BD92C650C07E4570044B6D8B4859048233E8F4980429405906F724",
+  "server_info": {
+    "server_version": "v1.4.5.6",
+    "tshock_version": "6.1.0.0",
+    "port": 7777,
+    "max_players": 8,
+    "current_players": 0
+  },
+  "apis": [
+    {
+      "id": 1,
+      "name": "获取服务器状态",
+      "endpoint": "/v2/server/status",
+      "method": "GET",
+      "file": "01-server-status.json",
+      "description": "获取服务器的当前状态信息",
+      "parameters": ["token"],
+      "response_fields": {
+        "playercount": "在线玩家数量",
+        "maxplayers": "最大玩家数量",
+        "world": "世界名称",
+        "uptime": "运行时间",
+        "serverpassword": "是否需要服务器密码"
+      }
+    },
+    {
+      "id": 2,
+      "name": "获取用户列表",
+      "endpoint": "/v2/users/list",
+      "method": "GET",
+      "file": "02-users-list.json",
+      "description": "获取所有注册用户的列表",
+      "parameters": ["token"],
+      "response_fields": {
+        "name": "用户名",
+        "id": "用户ID",
+        "group": "所属用户组"
+      }
+    },
+    {
+      "id": 3,
+      "name": "获取用户详情",
+      "endpoint": "/v2/users/read",
+      "method": "GET",
+      "file": "03-users-read.json",
+      "description": "获取单个用户的详细信息",
+      "parameters": ["user", "type", "token"],
+      "response_fields": {
+        "name": "用户名",
+        "id": "用户ID",
+        "group": "所属用户组"
+      }
+    },
+    {
+      "id": 4,
+      "name": "更新用户信息",
+      "endpoint": "/v2/users/update",
+      "method": "GET",
+      "file": "04-users-update.json",
+      "description": "更新用户的组、密码等信息",
+      "parameters": ["user", "type", "group", "token"],
+      "response_fields": {
+        "status": "操作状态",
+        "group-response": "操作结果描述"
+      },
+      "test_cases": [
+        {
+          "operation": "修改用户组",
+          "user": "wen",
+          "from": "owner",
+          "to": "admin",
+          "result": "成功"
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "name": "获取用户组列表",
+      "endpoint": "/v2/groups/list",
+      "method": "GET",
+      "file": "05-groups-list.json",
+      "description": "获取所有用户组的列表",
+      "parameters": ["token"],
+      "response_fields": {
+        "name": "用户组名称",
+        "parent": "父用户组（继承关系）",
+        "chatcolor": "聊天颜色 RGB 值"
+      }
+    },
+    {
+      "id": 6,
+      "name": "获取玩家详细信息",
+      "endpoint": "/v3/players/read",
+      "method": "GET",
+      "file": "06-players-read-failed.json",
+      "description": "获取在线玩家的详细信息（包括背包）",
+      "parameters": ["player", "token"],
+      "status": "需要玩家在线",
+      "note": "此 API 需要玩家在游戏中在线才能获取信息，当前测试失败（playercount=0）"
+    }
+  ],
+  "test_results": {
+    "total_tests": 6,
+    "successful": 5,
+    "failed": 1,
+    "notes": [
+      "玩家背包 API 需要玩家在线才能测试",
+      "所有用户相关 API 测试成功",
+      "用户组修改功能正常工作"
+    ]
+  }
+}

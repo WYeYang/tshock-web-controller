@@ -1,0 +1,27 @@
+{
+  "endpoint": "/v2/server/status",
+  "method": "GET",
+  "description": "获取服务器状态",
+  "parameters": {
+    "token": "F94D0AC988BD92C650C07E4570044B6D8B4859048233E8F4980429405906F724"
+  },
+  "full_url": "http://localhost:7878/v2/server/status?token=F94D0AC988BD92C650C07E4570044B6D8B4859048233E8F4980429405906F724",
+  "response": {
+    "status": "200",
+    "name": "",
+    "serverversion": "v1.4.5.6",
+    "tshockversion": "6.1.0.0",
+    "port": 7777,
+    "playercount": 0,
+    "maxplayers": 8,
+    "world": "????-????",
+    "uptime": "0.01:03:55",
+    "serverpassword": false
+  },
+  "notes": {
+    "playercount": "当前在线玩家数量",
+    "maxplayers": "最大玩家数量",
+    "world": "世界名称（中文显示为乱码）",
+    "uptime": "服务器运行时间"
+  }
+}

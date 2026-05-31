@@ -1,0 +1,34 @@
+{
+  "endpoint": "/v2/users/list",
+  "method": "GET",
+  "description": "获取所有用户列表",
+  "parameters": {
+    "token": "F94D0AC988BD92C650C07E4570044B6D8B4859048233E8F4980429405906F724"
+  },
+  "full_url": "http://localhost:7878/v2/users/list?token=F94D0AC988BD92C650C07E4570044B6D8B4859048233E8F4980429405906F724",
+  "response": {
+    "status": "200",
+    "users": [
+      {
+        "name": "wen",
+        "id": 1,
+        "group": "owner"
+      },
+      {
+        "name": "test1",
+        "id": 2,
+        "group": "default"
+      },
+      {
+        "name": "wen23",
+        "id": 3,
+        "group": "default"
+      }
+    ]
+  },
+  "notes": {
+    "name": "用户名",
+    "id": "用户ID",
+    "group": "所属用户组"
+  }
+}

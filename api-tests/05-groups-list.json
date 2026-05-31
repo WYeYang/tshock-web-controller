@@ -1,0 +1,64 @@
+{
+  "endpoint": "/v2/groups/list",
+  "method": "GET",
+  "description": "获取所有用户组列表",
+  "parameters": {
+    "token": "F94D0AC988BD92C650C07E4570044B6D8B4859048233E8F4980429405906F724"
+  },
+  "full_url": "http://localhost:7878/v2/groups/list?token=F94D0AC988BD92C650C07E4570044B6D8B4859048233E8F4980429405906F724",
+  "response": {
+    "status": "200",
+    "groups": [
+      {
+        "name": "guest",
+        "parent": "",
+        "chatcolor": "255,255,255"
+      },
+      {
+        "name": "default",
+        "parent": "guest",
+        "chatcolor": "255,255,255"
+      },
+      {
+        "name": "vip",
+        "parent": "default",
+        "chatcolor": "255,255,255"
+      },
+      {
+        "name": "insecure-guest",
+        "parent": "",
+        "chatcolor": "255,255,255"
+      },
+      {
+        "name": "newadmin",
+        "parent": "vip",
+        "chatcolor": "255,255,255"
+      },
+      {
+        "name": "admin",
+        "parent": "newadmin",
+        "chatcolor": "255,255,255"
+      },
+      {
+        "name": "trustedadmin",
+        "parent": "admin",
+        "chatcolor": "255,255,255"
+      },
+      {
+        "name": "owner",
+        "parent": "trustedadmin",
+        "chatcolor": "255,255,255"
+      },
+      {
+        "name": "superadmin",
+        "parent": "",
+        "chatcolor": "255,255,255"
+      }
+    ]
+  },
+  "notes": {
+    "name": "用户组名称",
+    "parent": "父用户组（继承权限）",
+    "chatcolor": "聊天颜色 RGB 值"
+  }
+}
