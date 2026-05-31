@@ -1,13 +1,12 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useTShock } from '../hooks/useTShock';
-import type { Player, BanRecord, Group, InventoryItem } from '../types/tshock';
+import type { Player, BanRecord, Group } from '../types/tshock';
 import { GroupList } from './GroupList';
 import { GroupEditModal } from './GroupEditModal';
 import { CreateGroupModal } from './CreateGroupModal';
 import { DeleteGroupModal } from './DeleteGroupModal';
-import { ItemSlot } from './ItemSlot';
-import { getBuffIconUrl, getBuffWikiUrl } from '../utils/terraria';
+import { PlayerDetailModal } from './PlayerDetailModal';
 
 interface ServerStatusViewProps {
   onGoToConfig?: () => void;
@@ -412,269 +411,7 @@ export function ServerStatusView({ onGoToConfig }: ServerStatusViewProps) {
     );
   };
 
-  interface BuffSlotProps {
-    buffId: number;
-    timeLeft?: string;
-  }
 
-  const BuffSlot = ({ buffId, timeLeft }: BuffSlotProps) => {
-    if (buffId === 0) {
-      return (
-        <div className="w-10 h-10 bg-slate-800/50 border border-slate-700/50 rounded flex items-center justify-center">
-        </div>
-      );
-    }
-
-    return (
-      <a
-        href={getBuffWikiUrl(buffId)}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="w-10 h-10 bg-slate-800/70 border border-slate-700/70 rounded flex items-center justify-center relative hover:border-slate-500 transition-colors"
-      >
-        <img
-          src={getBuffIconUrl(buffId)}
-          alt={`Buff ${buffId}`}
-          className="w-8 h-8 object-contain"
-          loading="lazy"
-          onError={(e) => {
-            (e.target as HTMLImageElement).style.display = 'none';
-          }}
-        />
-        {timeLeft && (
-          <span className="absolute bottom-0 right-0 text-xs font-bold text-white bg-slate-900/80 px-1 rounded-tl">
-            {timeLeft}
-          </span>
-        )}
-      </a>
-    );
-  };
-
-  const PlayerDetailModalComp = () => {
-    const [activeInventoryTab, setActiveInventoryTab] = useState<'inventory' | 'equipment' | 'dyes' | 'piggy' | 'safe' | 'forge'>('inventory');
-    
-    if (!playerDetailModalOpen) return null;
-    const displayPlayer = playerDetail || selectedPlayer;
-    if (!displayPlayer) return null;
-
-    const tabs = [
-      { key: 'inventory', label: '背包' },
-      { key: 'equipment', label: '装备' },
-      { key: 'dyes', label: '染料' },
-      { key: 'piggy', label: '猪猪存钱罐' },
-      { key: 'safe', label: '保险箱' },
-      { key: 'forge', label: '熔炉' },
-    ];
-
-    const parseBuffString = (buffString: string): { buffId: number; timeLeft: string }[] => {
-      const buffs: { buffId: number; timeLeft: string }[] = [];
-      const parts = buffString.split(',').map(s => s.trim());
-      
-      // Pair them up: buffId, timeLeft, buffId, timeLeft, ...
-      for (let i = 0; i < parts.length; i += 2) {
-        const buffId = parseInt(parts[i]);
-        if (buffId > 0) {
-          const timeLeft = parts[i + 1] ? `${parts[i + 1]}s` : '';
-          buffs.push({ buffId, timeLeft });
-        }
-      }
-      
-      return buffs;
-    };
-
-    const renderItemGrid = (items: InventoryItem[], gridCols: number = 10) => {
-      return (
-        <div 
-          className="grid gap-1"
-          style={{ gridTemplateColumns: `repeat(${gridCols}, minmax(0, 1fr))` }}
-        >
-          {items.map((item, index) => (
-            <ItemSlot key={index} item={item} />
-          ))}
-        </div>
-      );
-    };
-
-    return (
-      <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 lg:pl-[280px]">
-        <div className="glass-card neon-border p-4 sm:p-6 max-w-full sm:max-w-2xl md:max-w-3xl lg:max-w-4xl w-full transform transition-all max-h-[90vh] overflow-y-auto">
-          <div className="flex items-center justify-between mb-4 sm:mb-6">
-            <div className="flex items-center gap-2 sm:gap-3">
-              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-br from-cyan-500/20 to-purple-600/20 flex items-center justify-center">
-                <span className="text-cyan-400 text-lg sm:text-xl">👤</span>
-              </div>
-              <div className="min-w-0 flex-1">
-                <h2 className="text-xl sm:text-2xl font-bold text-white truncate">{displayPlayer.nickname}</h2>
-                <p className="text-slate-400 text-xs sm:text-sm">玩家详情</p>
-              </div>
-            </div>
-            <button onClick={() => { setPlayerDetailModalOpen(false); setSelectedPlayer(null); setPlayerDetail(null); }} className="p-1 sm:p-2 rounded-lg hover:bg-slate-700/50 text-slate-400 hover:text-white transition-all flex-shrink-0">
-              ✕
-            </button>
-          </div>
-
-          {loadingDetail ? (
-            <div className="flex items-center justify-center py-8 sm:py-12">
-              <div className="animate-spin rounded-full h-10 w-10 sm:h-12 sm:w-12 border-b-2 border-cyan-500"></div>
-            </div>
-          ) : (
-            <>
-              <div className="mb-4 sm:mb-6">
-                <h3 className="text-base sm:text-lg font-semibold text-white mb-3 sm:mb-4 flex items-center gap-2">
-                  基本信息
-                </h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                  <div className="bg-slate-800/30 p-3 sm:p-4 rounded-lg border border-slate-700/50">
-                    <p className="text-slate-400 text-xs sm:text-sm mb-1">昵称</p>
-                    <p className="text-white font-medium text-sm sm:text-base truncate">{displayPlayer.nickname}</p>
-                  </div>
-                  <div className="bg-slate-800/30 p-3 sm:p-4 rounded-lg border border-slate-700/50">
-                    <p className="text-slate-400 text-xs sm:text-sm mb-1">用户名</p>
-                    <p className="text-white font-medium text-sm sm:text-base truncate">{displayPlayer.username || '未注册'}</p>
-                  </div>
-                  <div className="bg-slate-800/30 p-3 sm:p-4 rounded-lg border border-slate-700/50">
-                    <p className="text-slate-400 text-xs sm:text-sm mb-1">用户组</p>
-                    <p className="text-white font-medium text-sm sm:text-base truncate">{displayPlayer.group}</p>
-                  </div>
-
-                  <div className="bg-slate-800/30 p-3 sm:p-4 rounded-lg border border-slate-700/50">
-                    <p className="text-slate-400 text-xs sm:text-sm mb-1">IP地址</p>
-                    <p className="text-white font-medium text-sm sm:text-base truncate">{displayPlayer.ip || '未知'}</p>
-                  </div>
-                  <div className="bg-slate-800/30 p-3 sm:p-4 rounded-lg border border-slate-700/50">
-                    <p className="text-slate-400 text-xs sm:text-sm mb-1">禁言</p>
-                    <p className={`font-medium text-sm sm:text-base ${displayPlayer.muted ? 'text-red-400' : 'text-green-400'}`}>{displayPlayer.muted ? '是' : '否'}</p>
-                  </div>
-                  {displayPlayer.position && (
-                    <div className="bg-slate-800/30 p-3 sm:p-4 rounded-lg border border-slate-700/50 col-span-1 sm:col-span-2">
-                      <p className="text-slate-400 text-xs sm:text-sm mb-1">位置</p>
-                      <p className="text-white font-medium text-sm sm:text-base truncate">{displayPlayer.position}</p>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {displayPlayer.items && (
-                <div className="mb-4 sm:mb-6">
-                  <h3 className="text-base sm:text-lg font-semibold text-white mb-3 sm:mb-4 flex items-center gap-2">
-                    物品
-                  </h3>
-                  <div className="flex gap-1 overflow-x-auto pb-2 mb-3">
-                    {tabs.map((tab) => (
-                      <button
-                        key={tab.key}
-                        onClick={() => setActiveInventoryTab(tab.key as any)}
-                        className={`px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium whitespace-nowrap transition-all ${
-                          activeInventoryTab === tab.key
-                            ? 'bg-purple-500/20 text-purple-400'
-                            : 'text-slate-400 hover:text-white hover:bg-slate-700/50'
-                        }`}
-                      >
-                        {tab.label}
-                      </button>
-                    ))}
-                  </div>
-                  <div className="bg-slate-800/30 p-3 sm:p-4 rounded-lg border border-slate-700/50">
-                    {displayPlayer.items[activeInventoryTab] && displayPlayer.items[activeInventoryTab].length > 0 ? (
-                      renderItemGrid(displayPlayer.items[activeInventoryTab])
-                    ) : (
-                      <p className="text-slate-500 text-sm">暂无物品</p>
-                    )}
-                  </div>
-                </div>
-              )}
-
-              {!displayPlayer.items && (
-                <>
-                  {displayPlayer.inventory && (
-                    <div className="mb-4 sm:mb-6">
-                      <h3 className="text-base sm:text-lg font-semibold text-white mb-3 sm:mb-4 flex items-center gap-2">
-                        背包
-                      </h3>
-                      <div className="bg-slate-800/30 p-3 sm:p-4 rounded-lg border border-slate-700/50">
-                        <p className="text-slate-300 whitespace-pre-wrap text-xs sm:text-sm">{displayPlayer.inventory}</p>
-                      </div>
-                    </div>
-                  )}
-
-                  {displayPlayer.armor && (
-                    <div className="mb-4 sm:mb-6">
-                      <h3 className="text-base sm:text-lg font-semibold text-white mb-3 sm:mb-4 flex items-center gap-2">
-                        装备
-                      </h3>
-                      <div className="bg-slate-800/30 p-3 sm:p-4 rounded-lg border border-slate-700/50">
-                        <p className="text-slate-300 whitespace-pre-wrap text-xs sm:text-sm">{displayPlayer.armor}</p>
-                      </div>
-                    </div>
-                  )}
-                </>
-              )}
-
-              {displayPlayer.buffs && (
-                <div className="mb-4 sm:mb-6">
-                  <h3 className="text-base sm:text-lg font-semibold text-white mb-3 sm:mb-4 flex items-center gap-2">
-                    增益效果
-                  </h3>
-                  <div className="bg-slate-800/30 p-3 sm:p-4 rounded-lg border border-slate-700/50">
-                    {(() => {
-                      const buffs = parseBuffString(displayPlayer.buffs!);
-                      if (buffs.length > 0) {
-                        return (
-                          <div className="grid grid-cols-10 gap-1">
-                            {buffs.map((buff, index) => (
-                              <BuffSlot key={index} buffId={buff.buffId} timeLeft={buff.timeLeft} />
-                            ))}
-                          </div>
-                        );
-                      }
-                      return <p className="text-slate-300 whitespace-pre-wrap text-xs sm:text-sm">{displayPlayer.buffs}</p>;
-                    })()}
-                  </div>
-                </div>
-              )}
-
-              <div>
-                <h3 className="text-base sm:text-lg font-semibold text-white mb-3 sm:mb-4 flex items-center gap-2">
-                  操作
-                </h3>
-                <div className="grid grid-cols-2 gap-2 sm:gap-3">
-                  {selectedPlayer && <button onClick={() => handleKick(selectedPlayer)} className="px-3 py-2 sm:px-4 sm:py-3 bg-yellow-500/20 hover:bg-yellow-500/30 border border-yellow-500/30 rounded-lg text-yellow-400 font-medium transition-all flex items-center justify-center gap-1 sm:gap-2 text-xs sm:text-sm">
-                    踢出
-                  </button>}
-                  {selectedPlayer && <button onClick={() => handleBan(selectedPlayer)} className="px-3 py-2 sm:px-4 sm:py-3 bg-red-500/20 hover:bg-red-500/30 border border-red-500/30 rounded-lg text-red-400 font-medium transition-all flex items-center justify-center gap-1 sm:gap-2 text-xs sm:text-sm">
-                    封禁
-                  </button>}
-                  {selectedPlayer && (displayPlayer.muted ? (
-                    <button onClick={() => handleUnmute(selectedPlayer)} className="px-3 py-2 sm:px-4 sm:py-3 bg-green-500/20 hover:bg-green-500/30 border border-green-500/30 rounded-lg text-green-400 font-medium transition-all flex items-center justify-center gap-1 sm:gap-2 text-xs sm:text-sm">
-                      取消禁言
-                    </button>
-                  ) : (
-                    <button onClick={() => handleMute(selectedPlayer)} className="px-3 py-2 sm:px-4 sm:py-3 bg-orange-500/20 hover:bg-orange-500/30 border border-orange-500/30 rounded-lg text-orange-400 font-medium transition-all flex items-center justify-center gap-1 sm:gap-2 text-xs sm:text-sm">
-                      禁言
-                    </button>
-                  ))}
-                  {selectedPlayer && (
-                    displayPlayer.username ? (
-                      <button onClick={() => handleChangeGroup(selectedPlayer)} className="px-3 py-2 sm:px-4 sm:py-3 bg-purple-500/20 hover:bg-purple-500/30 border border-purple-500/30 rounded-lg text-purple-400 font-medium transition-all flex items-center justify-center gap-1 sm:gap-2 text-xs sm:text-sm">
-                        修改用户组
-                      </button>
-                    ) : (
-                      <button disabled className="px-3 py-2 sm:px-4 sm:py-3 bg-slate-700/20 border border-slate-700/30 rounded-lg text-slate-500 font-medium cursor-not-allowed flex items-center justify-center gap-1 sm:gap-2 text-xs sm:text-sm">
-                        未注册无法修改分组
-                      </button>
-                    )
-                  )}
-                  {selectedPlayer && <button onClick={() => handleGiveItem(selectedPlayer)} className="px-3 py-2 sm:px-4 sm:py-3 bg-yellow-500/20 hover:bg-yellow-500/30 border border-yellow-500/30 rounded-lg text-yellow-400 font-medium transition-all flex items-center justify-center gap-1 sm:gap-2 text-xs sm:text-sm">
-                    给予物品
-                  </button>}
-                </div>
-              </div>
-            </>
-          )}
-        </div>
-      </div>
-    );
-  };
 
   return (
     <div className="flex flex-col h-full">
@@ -860,7 +597,22 @@ export function ServerStatusView({ onGoToConfig }: ServerStatusViewProps) {
         </div>
       </div>
 
-      <PlayerDetailModalComp />
+      <PlayerDetailModal 
+        isOpen={playerDetailModalOpen}
+        onClose={() => { setPlayerDetailModalOpen(false); setSelectedPlayer(null); setPlayerDetail(null); }}
+        player={selectedPlayer}
+        detail={playerDetail}
+        loadingDetail={loadingDetail}
+        onKick={handleKick}
+        onBan={handleBan}
+        onMute={handleMute}
+        onUnmute={handleUnmute}
+        onChangeGroup={handleChangeGroup}
+        onGiveItem={handleGiveItem}
+        onClearInventory={handleClearInventory}
+        onClearArmor={handleClearArmor}
+        onClearBuffs={handleClearBuffs}
+      />
       <ConfirmDialogComp />
       <ToastComp />
       <GroupEditModal
