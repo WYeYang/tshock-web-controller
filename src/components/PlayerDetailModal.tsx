@@ -67,7 +67,7 @@ export const PlayerDetailModal = ({
         style={{ gridTemplateColumns: `repeat(${gridCols}, minmax(0, 1fr))` }}
       >
         {items.map((item, index) => (
-          <ItemSlot key={index} item={item} />
+          <ItemSlot key={`${item.netID}-${item.stack}-${item.prefix}-${index}`} item={item} />
         ))}
       </div>
     );
@@ -97,52 +97,51 @@ export const PlayerDetailModal = ({
           </div>
         ) : (
           <>
-            <div className="mb-4 sm:mb-6">
-              <h3 className="text-base sm:text-lg font-semibold text-white mb-3 sm:mb-4 flex items-center gap-2">
+            <div className="mb-3">
+              <h3 className="text-sm font-semibold text-white mb-2 flex items-center gap-2">
                 基本信息
               </h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                <div className="bg-slate-800/30 p-3 sm:p-4 rounded-lg border border-slate-700/50">
-                  <p className="text-slate-400 text-xs sm:text-sm mb-1">昵称</p>
-                  <p className="text-white font-medium text-sm sm:text-base truncate">{displayPlayer.nickname}</p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <div className="bg-slate-800/30 p-2 rounded-lg border border-slate-700/50">
+                  <p className="text-slate-400 text-xs mb-0.5">昵称</p>
+                  <p className="text-white font-medium text-xs truncate">{displayPlayer.nickname}</p>
                 </div>
-                <div className="bg-slate-800/30 p-3 sm:p-4 rounded-lg border border-slate-700/50">
-                  <p className="text-slate-400 text-xs sm:text-sm mb-1">用户名</p>
-                  <p className="text-white font-medium text-sm sm:text-base truncate">{displayPlayer.username || '未注册'}</p>
+                <div className="bg-slate-800/30 p-2 rounded-lg border border-slate-700/50">
+                  <p className="text-slate-400 text-xs mb-0.5">用户名</p>
+                  <p className="text-white font-medium text-xs truncate">{displayPlayer.username || '未注册'}</p>
                 </div>
-                <div className="bg-slate-800/30 p-3 sm:p-4 rounded-lg border border-slate-700/50">
-                  <p className="text-slate-400 text-xs sm:text-sm mb-1">用户组</p>
-                  <p className="text-white font-medium text-sm sm:text-base truncate">{displayPlayer.group}</p>
+                <div className="bg-slate-800/30 p-2 rounded-lg border border-slate-700/50">
+                  <p className="text-slate-400 text-xs mb-0.5">用户组</p>
+                  <p className="text-white font-medium text-xs truncate">{displayPlayer.group}</p>
                 </div>
-
-                <div className="bg-slate-800/30 p-3 sm:p-4 rounded-lg border border-slate-700/50">
-                  <p className="text-slate-400 text-xs sm:text-sm mb-1">IP地址</p>
-                  <p className="text-white font-medium text-sm sm:text-base truncate">{displayPlayer.ip || '未知'}</p>
+                <div className="bg-slate-800/30 p-2 rounded-lg border border-slate-700/50">
+                  <p className="text-slate-400 text-xs mb-0.5">IP地址</p>
+                  <p className="text-white font-medium text-xs truncate">{displayPlayer.ip || '未知'}</p>
                 </div>
-                <div className="bg-slate-800/30 p-3 sm:p-4 rounded-lg border border-slate-700/50">
-                  <p className="text-slate-400 text-xs sm:text-sm mb-1">禁言</p>
-                  <p className={`font-medium text-sm sm:text-base ${displayPlayer.muted ? 'text-red-400' : 'text-green-400'}`}>{displayPlayer.muted ? '是' : '否'}</p>
+                <div className="bg-slate-800/30 p-2 rounded-lg border border-slate-700/50">
+                  <p className="text-slate-400 text-xs mb-0.5">禁言</p>
+                  <p className={`font-medium text-xs ${displayPlayer.muted ? 'text-red-400' : 'text-green-400'}`}>{displayPlayer.muted ? '是' : '否'}</p>
                 </div>
                 {displayPlayer.position && (
-                  <div className="bg-slate-800/30 p-3 sm:p-4 rounded-lg border border-slate-700/50 col-span-1 sm:col-span-2">
-                    <p className="text-slate-400 text-xs sm:text-sm mb-1">位置</p>
-                    <p className="text-white font-medium text-sm sm:text-base truncate">{displayPlayer.position}</p>
+                  <div className="bg-slate-800/30 p-2 rounded-lg border border-slate-700/50 col-span-1 sm:col-span-2">
+                    <p className="text-slate-400 text-xs mb-0.5">位置</p>
+                    <p className="text-white font-medium text-xs truncate">{displayPlayer.position}</p>
                   </div>
                 )}
               </div>
             </div>
 
             {displayPlayer.items && (
-              <div className="mb-4 sm:mb-6">
-                <h3 className="text-base sm:text-lg font-semibold text-white mb-3 sm:mb-4 flex items-center gap-2">
+              <div className="mb-3">
+                <h3 className="text-sm font-semibold text-white mb-2 flex items-center gap-2">
                   物品
                 </h3>
-                <div className="flex gap-1 overflow-x-auto pb-2 mb-3">
+                <div className="flex gap-1 overflow-x-auto pb-2 mb-2">
                   {tabs.map((tab) => (
                     <button
                       key={tab.key}
                       onClick={() => setActiveInventoryTab(tab.key as any)}
-                      className={`px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium whitespace-nowrap transition-all ${
+                      className={`px-2 py-1 rounded text-xs font-medium whitespace-nowrap transition-all ${
                         activeInventoryTab === tab.key
                           ? 'bg-purple-500/20 text-purple-400'
                           : 'text-slate-400 hover:text-white hover:bg-slate-700/50'
@@ -152,7 +151,7 @@ export const PlayerDetailModal = ({
                     </button>
                   ))}
                 </div>
-                <div className="bg-slate-800/30 p-3 sm:p-4 rounded-lg border border-slate-700/50">
+                <div className="bg-slate-800/30 p-3 sm:p-4 rounded-lg border border-slate-700/50 h-[300px] overflow-y-auto">
                   {displayPlayer.items[activeInventoryTab] && displayPlayer.items[activeInventoryTab].length > 0 ? (
                     renderItemGrid(displayPlayer.items[activeInventoryTab])
                   ) : (
@@ -165,23 +164,23 @@ export const PlayerDetailModal = ({
             {!displayPlayer.items && (
               <>
                 {displayPlayer.inventory && (
-                  <div className="mb-4 sm:mb-6">
-                    <h3 className="text-base sm:text-lg font-semibold text-white mb-3 sm:mb-4 flex items-center gap-2">
+                  <div className="mb-3">
+                    <h3 className="text-sm font-semibold text-white mb-2 flex items-center gap-2">
                       背包
                     </h3>
-                    <div className="bg-slate-800/30 p-3 sm:p-4 rounded-lg border border-slate-700/50">
-                      <p className="text-slate-300 whitespace-pre-wrap text-xs sm:text-sm">{displayPlayer.inventory}</p>
+                    <div className="bg-slate-800/30 p-2 rounded-lg border border-slate-700/50 h-[300px] overflow-y-auto">
+                      <p className="text-slate-300 whitespace-pre-wrap text-xs">{displayPlayer.inventory}</p>
                     </div>
                   </div>
                 )}
 
                 {displayPlayer.armor && (
-                  <div className="mb-4 sm:mb-6">
-                    <h3 className="text-base sm:text-lg font-semibold text-white mb-3 sm:mb-4 flex items-center gap-2">
+                  <div className="mb-3">
+                    <h3 className="text-sm font-semibold text-white mb-2 flex items-center gap-2">
                       装备
                     </h3>
-                    <div className="bg-slate-800/30 p-3 sm:p-4 rounded-lg border border-slate-700/50">
-                      <p className="text-slate-300 whitespace-pre-wrap text-xs sm:text-sm">{displayPlayer.armor}</p>
+                    <div className="bg-slate-800/30 p-2 rounded-lg border border-slate-700/50 h-[300px] overflow-y-auto">
+                      <p className="text-slate-300 whitespace-pre-wrap text-xs">{displayPlayer.armor}</p>
                     </div>
                   </div>
                 )}
@@ -189,11 +188,11 @@ export const PlayerDetailModal = ({
             )}
 
             {/* {displayPlayer.buffs && (
-              <div className="mb-3 sm:mb-4">
-                <h3 className="text-sm sm:text-base font-semibold text-white mb-2 sm:mb-3 flex items-center gap-2">
+              <div className="mb-3">
+                <h3 className="text-sm font-semibold text-white mb-2 flex items-center gap-2">
                   增益效果
                 </h3>
-                <div className="bg-slate-800/30 p-2 sm:p-3 rounded-lg border border-slate-700/50 min-h-[200px]">
+                <div className="bg-slate-800/30 p-2 rounded-lg border border-slate-700/50 min-h-[200px]">
                   {(() => {
                     const buffs = parseBuffString(displayPlayer.buffs!);
                     if (buffs.length > 0) {
@@ -212,37 +211,37 @@ export const PlayerDetailModal = ({
             )} */}
 
             <div>
-              <h3 className="text-base sm:text-lg font-semibold text-white mb-3 sm:mb-4 flex items-center gap-2">
+              <h3 className="text-sm font-semibold text-white mb-2 flex items-center gap-2">
                 操作
               </h3>
-              <div className="grid grid-cols-2 gap-2 sm:gap-3">
-                {player && onKick && <button onClick={() => onKick(player)} className="px-3 py-2 sm:px-4 sm:py-3 bg-yellow-500/20 hover:bg-yellow-500/30 border border-yellow-500/30 rounded-lg text-yellow-400 font-medium transition-all flex items-center justify-center gap-1 sm:gap-2 text-xs sm:text-sm">
+              <div className="grid grid-cols-2 gap-2">
+                {player && onKick && <button onClick={() => onKick(player)} className="px-2 py-1.5 bg-yellow-500/20 hover:bg-yellow-500/30 border border-yellow-500/30 rounded-lg text-yellow-400 font-medium transition-all flex items-center justify-center gap-1 text-xs">
                   踢出
                 </button>}
-                {player && onBan && <button onClick={() => onBan(player)} className="px-3 py-2 sm:px-4 sm:py-3 bg-red-500/20 hover:bg-red-500/30 border border-red-500/30 rounded-lg text-red-400 font-medium transition-all flex items-center justify-center gap-1 sm:gap-2 text-xs sm:text-sm">
+                {player && onBan && <button onClick={() => onBan(player)} className="px-2 py-1.5 bg-red-500/20 hover:bg-red-500/30 border border-red-500/30 rounded-lg text-red-400 font-medium transition-all flex items-center justify-center gap-1 text-xs">
                   封禁
                 </button>}
                 {player && onMute && onUnmute && (displayPlayer.muted ? (
-                  <button onClick={() => onUnmute(player)} className="px-3 py-2 sm:px-4 sm:py-3 bg-green-500/20 hover:bg-green-500/30 border border-green-500/30 rounded-lg text-green-400 font-medium transition-all flex items-center justify-center gap-1 sm:gap-2 text-xs sm:text-sm">
+                  <button onClick={() => onUnmute(player)} className="px-2 py-1.5 bg-green-500/20 hover:bg-green-500/30 border border-green-500/30 rounded-lg text-green-400 font-medium transition-all flex items-center justify-center gap-1 text-xs">
                     取消禁言
                   </button>
                 ) : (
-                  <button onClick={() => onMute(player)} className="px-3 py-2 sm:px-4 sm:py-3 bg-orange-500/20 hover:bg-orange-500/30 border border-orange-500/30 rounded-lg text-orange-400 font-medium transition-all flex items-center justify-center gap-1 sm:gap-2 text-xs sm:text-sm">
+                  <button onClick={() => onMute(player)} className="px-2 py-1.5 bg-orange-500/20 hover:bg-orange-500/30 border border-orange-500/30 rounded-lg text-orange-400 font-medium transition-all flex items-center justify-center gap-1 text-xs">
                     禁言
                   </button>
                 ))}
                 {player && onChangeGroup && (
                   displayPlayer.username ? (
-                    <button onClick={() => onChangeGroup(player)} className="px-3 py-2 sm:px-4 sm:py-3 bg-purple-500/20 hover:bg-purple-500/30 border border-purple-500/30 rounded-lg text-purple-400 font-medium transition-all flex items-center justify-center gap-1 sm:gap-2 text-xs sm:text-sm">
+                    <button onClick={() => onChangeGroup(player)} className="px-2 py-1.5 bg-purple-500/20 hover:bg-purple-500/30 border border-purple-500/30 rounded-lg text-purple-400 font-medium transition-all flex items-center justify-center gap-1 text-xs">
                       修改用户组
                     </button>
                   ) : (
-                    <button disabled className="px-3 py-2 sm:px-4 sm:py-3 bg-slate-700/20 border border-slate-700/30 rounded-lg text-slate-500 font-medium cursor-not-allowed flex items-center justify-center gap-1 sm:gap-2 text-xs sm:text-sm">
-                      未注册无法修改分组
+                    <button disabled className="px-2 py-1.5 bg-slate-700/20 border border-slate-700/30 rounded-lg text-slate-500 font-medium cursor-not-allowed flex items-center justify-center gap-1 text-xs">
+                      未注册
                     </button>
                   )
                 )}
-                {player && onGiveItem && <button onClick={() => onGiveItem(player)} className="px-3 py-2 sm:px-4 sm:py-3 bg-yellow-500/20 hover:bg-yellow-500/30 border border-yellow-500/30 rounded-lg text-yellow-400 font-medium transition-all flex items-center justify-center gap-1 sm:gap-2 text-xs sm:text-sm">
+                {player && onGiveItem && <button onClick={() => onGiveItem(player)} className="px-2 py-1.5 bg-yellow-500/20 hover:bg-yellow-500/30 border border-yellow-500/30 rounded-lg text-yellow-400 font-medium transition-all flex items-center justify-center gap-1 text-xs">
                   给予物品
                 </button>}
               </div>
