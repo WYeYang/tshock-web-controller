@@ -7,6 +7,8 @@ import { GroupEditModal } from './GroupEditModal';
 import { CreateGroupModal } from './CreateGroupModal';
 import { DeleteGroupModal } from './DeleteGroupModal';
 import { PlayerDetailModal } from './PlayerDetailModal';
+import { ItemSelectorModal } from './ItemSelectorModal';
+import { ITEM_DATA } from '../data';
 
 interface ServerStatusViewProps {
   onGoToConfig?: () => void;
@@ -57,9 +59,11 @@ export function ServerStatusView({ onGoToConfig }: ServerStatusViewProps) {
   const [confirmDialog, setConfirmDialog] = useState<{ isOpen: boolean; type: string; player: Player | null; banRecord: BanRecord | null }>({ isOpen: false, type: 'kick', player: null, banRecord: null });
   const [actionLoading, setActionLoading] = useState(false);
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'info' } | null>(null);
+  const [itemSelectorOpen, setItemSelectorOpen] = useState(false);
+  const [inputValue, setInputValue] = useState('');
+  const [amountValue, setAmountValue] = useState('1');
   const reasonInputRef = useRef<HTMLInputElement>(null);
   const valueInputRef = useRef<HTMLInputElement>(null);
-  const amountInputRef = useRef<HTMLInputElement>(null);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const fetchData = useCallback(async () => {
@@ -165,11 +169,18 @@ export function ServerStatusView({ onGoToConfig }: ServerStatusViewProps) {
     setConfirmDialog({ isOpen: true, type: 'changeGroup', player, banRecord: null });
   };
   const handleGiveItem = (player: Player) => {
+    setInputValue('');
+    setAmountValue('1');
     setConfirmDialog({ isOpen: true, type: 'giveItem', player, banRecord: null });
   };
 
   const handleUnban = (banRecord: BanRecord) => {
     setConfirmDialog({ isOpen: true, type: 'unban', player: null, banRecord });
+  };
+
+  const handleSelectItem = (itemId: number) => {
+    const itemData = ITEM_DATA[itemId];
+    setInputValue(itemData?.zh || itemData?.en || itemId.toString());
   };
 
   const closeConfirmDialog = () => {
@@ -179,7 +190,7 @@ export function ServerStatusView({ onGoToConfig }: ServerStatusViewProps) {
   const confirmAction = async () => {
     setActionLoading(true);
     const reason = reasonInputRef.current?.value || '';
-    const inputValue = valueInputRef.current?.value || '';
+    const changeGroupValue = valueInputRef.current?.value || '';
     try {
       if (confirmDialog.type === 'kick' && confirmDialog.player) {
         await kickPlayer(confirmDialog.player.nickname, reason);
@@ -202,12 +213,11 @@ export function ServerStatusView({ onGoToConfig }: ServerStatusViewProps) {
       } else if (confirmDialog.type === 'unmute' && confirmDialog.player) {
         await unmutePlayer(confirmDialog.player.nickname);
         showToast(`已取消禁言玩家 ${confirmDialog.player.nickname}`, 'success');
-      } else if (confirmDialog.type === 'changeGroup' && confirmDialog.player && inputValue) {
-        await changeGroup(confirmDialog.player.nickname, inputValue);
-        showToast(`已将玩家 ${confirmDialog.player.nickname} 的用户组修改为 ${inputValue}`, 'success');
+      } else if (confirmDialog.type === 'changeGroup' && confirmDialog.player && changeGroupValue) {
+        await changeGroup(confirmDialog.player.nickname, changeGroupValue);
+        showToast(`已将玩家 ${confirmDialog.player.nickname} 的用户组修改为 ${changeGroupValue}`, 'success');
       } else if (confirmDialog.type === 'giveItem' && confirmDialog.player) {
-        const itemIdOrName = valueInputRef.current?.value?.trim() || '';
-        const amountValue = amountInputRef.current?.value || '1';
+        const itemIdOrName = inputValue.trim() || '';
         const amount = parseInt(amountValue) || 1;
         if (!itemIdOrName) {
           showToast('请输入物品ID或名称', 'error');
@@ -322,28 +332,32 @@ export function ServerStatusView({ onGoToConfig }: ServerStatusViewProps) {
             <div className="mb-4 sm:mb-6">
               {confirmDialog.type === 'giveItem' ? (
                 <div className="space-y-3">
-                  <div>
-                    <label className="block text-slate-400 text-xs sm:text-sm font-medium mb-2">物品ID/名称</label>
-                    <input
-                      ref={valueInputRef}
-                      type="text"
-                      placeholder="如 4956 或 铁剑"
-                      className="w-full px-3 py-2 sm:px-4 sm:py-3 bg-slate-800/50 border border-slate-700/50 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-purple-500/50 focus:ring-2 focus:ring-purple-500/20 transition-all text-sm sm:text-base"
-                      autoFocus
-                    />
+                    <div>
+                      <label className="block text-slate-400 text-xs sm:text-sm font-medium mb-2">物品ID/名称</label>
+                      <div className="flex gap-2">
+                        <input
+                          value={inputValue}
+                          onChange={(e) => setInputValue(e.target.value)}
+                          type="text"
+                          placeholder="如 4956 或 铁剑"
+                          className="flex-1 px-3 py-2 sm:px-4 sm:py-3 bg-slate-800/50 border border-slate-700/50 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-purple-500/50 focus:ring-2 focus:ring-purple-500/20 transition-all text-sm sm:text-base"
+                          autoFocus
+                        />
+                        <button onClick={(e) => { e.stopPropagation(); setItemSelectorOpen(true); }} className="px-3 py-2 bg-purple-500/20 hover:bg-purple-500/30 border border-purple-500/50 rounded-lg text-purple-400 font-medium transition-all flex-shrink-0">选择</button>
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-slate-400 text-xs sm:text-sm font-medium mb-2">数量</label>
+                      <input
+                        value={amountValue}
+                        onChange={(e) => setAmountValue(e.target.value)}
+                        type="number"
+                        placeholder="1"
+                        min="1"
+                        className="w-full px-3 py-2 sm:px-4 sm:py-3 bg-slate-800/50 border border-slate-700/50 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-purple-500/50 focus:ring-2 focus:ring-purple-500/20 transition-all text-sm sm:text-base"
+                      />
+                    </div>
                   </div>
-                  <div>
-                    <label className="block text-slate-400 text-xs sm:text-sm font-medium mb-2">数量</label>
-                    <input
-                      ref={amountInputRef}
-                      type="number"
-                      placeholder="1"
-                      defaultValue="1"
-                      min="1"
-                      className="w-full px-3 py-2 sm:px-4 sm:py-3 bg-slate-800/50 border border-slate-700/50 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-purple-500/50 focus:ring-2 focus:ring-purple-500/20 transition-all text-sm sm:text-base"
-                    />
-                  </div>
-                </div>
               ) : (
                 <>
                   <label className="block text-slate-400 text-xs sm:text-sm font-medium mb-2">{getInputPlaceholder()}</label>
@@ -602,6 +616,11 @@ export function ServerStatusView({ onGoToConfig }: ServerStatusViewProps) {
         groupName={confirmDeleteGroup}
         onDelete={deleteExistingGroup}
         showToast={showToast}
+      />
+      <ItemSelectorModal
+        isOpen={itemSelectorOpen}
+        onClose={() => setItemSelectorOpen(false)}
+        onSelectItem={handleSelectItem}
       />
     </div>
   );
