@@ -1,5 +1,45 @@
+import { ITEM_DATA, getItemIconUrl as getItemIconUrlFromData, getItemName, getPrefixName } from '../data';
+
+export interface ItemInfo {
+  netId: number;
+  name: string;
+  iconUrl: string;
+  tooltip: string;
+}
+
+export function getItemInfo(netId: number, prefixId: number = 0): ItemInfo | null {
+  const data = ITEM_DATA[netId];
+  if (!data) return null;
+  
+  const name = data.zh || data.en;
+  const prefixName = prefixId > 0 ? getPrefixName(prefixId) : undefined;
+  const fullName = prefixName ? `${prefixName} ${name}` : name;
+  
+  let tooltip = `ID: ${netId}`;
+  if (data.zh) tooltip += ` | ${data.zh}`;
+  if (data.en && data.en !== data.zh) tooltip += ` (${data.en})`;
+  
+  return {
+    netId,
+    name: fullName,
+    iconUrl: getItemIconUrlFromData(netId),
+    tooltip
+  };
+}
+
 export function getItemIconUrl(netId: number): string {
-  return `https://terraria.wiki.gg/images/thumb/${getItemIconPath(netId)}/32px-${getItemIconPath(netId)}`;
+  return getItemIconUrlFromData(netId);
+}
+
+export { getItemName };
+
+export function getItemTooltip(netId: number): string {
+  const data = ITEM_DATA[netId];
+  if (!data) return `ID: ${netId}`;
+  let tooltip = `ID: ${netId}`;
+  if (data.zh) tooltip += ` | ${data.zh}`;
+  if (data.en && data.en !== data.zh) tooltip += ` (${data.en})`;
+  return tooltip;
 }
 
 export function getBuffIconUrl(buffId: number): string {
@@ -12,10 +52,6 @@ export function getItemWikiUrl(netId: number): string {
 
 export function getBuffWikiUrl(buffId: number): string {
   return `https://terraria.wiki.gg/wiki/Buff_IDs#${buffId}`;
-}
-
-function getItemIconPath(netId: number): string {
-  return `Item_${netId}.png`;
 }
 
 function getBuffIconPath(buffId: number): string {

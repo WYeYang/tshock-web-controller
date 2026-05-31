@@ -1,0 +1,247 @@
+// 参考wiki: https://terraria.wiki.gg/zh/wiki/%E5%A2%9E%E7%9B%8A
+import https from 'https';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+async function fetchUrl(url) {
+  return new Promise((resolve, reject) => {
+    const options = {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+      }
+    };
+    
+    https.get(url, options, (res) => {
+      let data = '';
+      res.on('data', (chunk) => data += chunk);
+      res.on('end', () => resolve(data));
+    }).on('error', reject);
+  });
+}
+
+// Buff数据（包含常用Buff的中英文对照）
+const buffData = {
+  "1": { en: "Obsidian Skin", zh: "黑曜石皮肤", type: "buff" },
+  "2": { en: "Regeneration", zh: "再生", type: "buff" },
+  "3": { en: "Swiftness", zh: "迅捷", type: "buff" },
+  "4": { en: "Gills", zh: "鱼鳃", type: "buff" },
+  "5": { en: "Ironskin", zh: "铁皮", type: "buff" },
+  "6": { en: "Mana Regeneration", zh: "魔力再生", type: "buff" },
+  "7": { en: "Magic Power", zh: "魔法能量", type: "buff" },
+  "8": { en: "Featherfall", zh: "羽落", type: "buff" },
+  "9": { en: "Spelunker", zh: "探险者", type: "buff" },
+  "10": { en: "Invisibility", zh: "隐身", type: "buff" },
+  "11": { en: "Shine", zh: "光芒", type: "buff" },
+  "12": { en: "Night Owl", zh: "夜猫子", type: "buff" },
+  "13": { en: "Battle", zh: "战斗", type: "buff" },
+  "14": { en: "Thorns", zh: "荆棘", type: "buff" },
+  "15": { en: "Water Walking", zh: "水上漂", type: "buff" },
+  "16": { en: "Archery", zh: "箭术", type: "buff" },
+  "17": { en: "Hunter", zh: "猎人", type: "buff" },
+  "18": { en: "Gravitation", zh: "重力", type: "buff" },
+  "19": { en: "Well Fed", zh: "饱食", type: "buff" },
+  "20": { en: "Queen Bee", zh: "蜂王", type: "debuff" },
+  "21": { en: "Poisoned", zh: "中毒", type: "debuff" },
+  "22": { en: "Bleeding", zh: "流血", type: "debuff" },
+  "23": { en: "Slow", zh: "缓慢", type: "debuff" },
+  "24": { en: "Weak", zh: "虚弱", type: "debuff" },
+  "25": { en: "Confused", zh: "混乱", type: "debuff" },
+  "26": { en: "Slow", zh: "缓慢", type: "debuff" },
+  "27": { en: "Weak", zh: "虚弱", type: "debuff" },
+  "28": { en: "Mana Sickness", zh: "魔力病", type: "debuff" },
+  "29": { en: "Darkness", zh: "黑暗", type: "debuff" },
+  "30": { en: "Cursed", zh: "诅咒", type: "debuff" },
+  "31": { en: "On Fire!", zh: "燃烧", type: "debuff" },
+  "32": { en: "Tipsy", zh: "醉醺醺", type: "debuff" },
+  "33": { en: "Well Fed", zh: "饱食", type: "buff" },
+  "34": { en: "Dazed", zh: "眩晕", type: "debuff" },
+  "35": { en: "Venom", zh: "毒液", type: "debuff" },
+  "36": { en: "Midas", zh: "点金", type: "debuff" },
+  "37": { en: "Panic!", zh: "恐慌", type: "debuff" },
+  "38": { en: "Obstructed", zh: "受阻", type: "debuff" },
+  "39": { en: "Curse of the Moon", zh: "月之诅咒", type: "debuff" },
+  "40": { en: "Bone Armor", zh: "骨甲", type: "buff" },
+  "41": { en: "Honey", zh: "蜂蜜", type: "buff" },
+  "42": { en: "Stinky", zh: "恶臭", type: "debuff" },
+  "43": { en: "Love", zh: "爱意", type: "buff" },
+  "44": { en: "Baby Slime", zh: "小史莱姆", type: "pet" },
+  "45": { en: "Baby Eater", zh: "小吞噬者", type: "pet" },
+  "46": { en: "Baby Zombie", zh: "小僵尸", type: "pet" },
+  "47": { en: "Baby Demon", zh: "小恶魔", type: "pet" },
+  "48": { en: "Baby Eyeball", zh: "小眼球", type: "pet" },
+  "49": { en: "Baby Wandering Eye", zh: "小游荡眼球", type: "pet" },
+  "50": { en: "Baby Skeletron Head", zh: "小骷髅王头", type: "pet" },
+  "51": { en: "Baby Hornet", zh: "小黄蜂", type: "pet" },
+  "52": { en: "Baby Spider", zh: "小蜘蛛", type: "pet" },
+  "53": { en: "Baby Truffle", zh: "小蘑菇", type: "pet" },
+  "54": { en: "Baby Pigron", zh: "小猪龙", type: "pet" },
+  "55": { en: "Baby Phantom", zh: "小幽灵", type: "pet" },
+  "56": { en: "Baby Pixie", zh: "小精灵", type: "pet" },
+  "57": { en: "Baby Bunny", zh: "小兔子", type: "pet" },
+  "58": { en: "Baby Penguin", zh: "小企鹅", type: "pet" },
+  "59": { en: "Baby Dinosaur", zh: "小恐龙", type: "pet" },
+  "60": { en: "Baby Turtle", zh: "小海龟", type: "pet" },
+  "61": { en: "Baby Spider", zh: "小蜘蛛", type: "pet" },
+  "62": { en: "Baby Imp", zh: "小鬼", type: "pet" },
+  "63": { en: "Baby Shark", zh: "小鲨鱼", type: "pet" },
+  "64": { en: "Baby Wraith", zh: "小怨灵", type: "pet" },
+  "65": { en: "Baby Desert Spirit", zh: "小沙漠精魂", type: "pet" },
+  "66": { en: "Baby Mothron", zh: "小飞蛾", type: "pet" },
+  "67": { en: "Baby Pixie", zh: "小精灵", type: "pet" },
+  "68": { en: "Baby Pigron", zh: "小猪龙", type: "pet" },
+  "69": { en: "Baby Truffle", zh: "小蘑菇", type: "pet" },
+  "70": { en: "Baby Zombie", zh: "小僵尸", type: "pet" },
+  "71": { en: "Baby Wandering Eye", zh: "小游荡眼球", type: "pet" },
+  "72": { en: "Baby Slime", zh: "小史莱姆", type: "pet" },
+  "73": { en: "Baby Eater", zh: "小吞噬者", type: "pet" },
+  "74": { en: "Baby Demon", zh: "小恶魔", type: "pet" },
+  "75": { en: "Baby Eyeball", zh: "小眼球", type: "pet" },
+  "76": { en: "Baby Skeleton", zh: "小骷髅", type: "pet" },
+  "77": { en: "Baby Skeletron", zh: "小骷髅王", type: "pet" },
+  "78": { en: "Baby Hornet", zh: "小黄蜂", type: "pet" },
+  "79": { en: "Baby Bunny", zh: "小兔子", type: "pet" },
+  "80": { en: "Baby Penguin", zh: "小企鹅", type: "pet" },
+  "81": { en: "Baby Dinosaurs", zh: "小恐龙", type: "pet" },
+  "82": { en: "Baby Turtles", zh: "小海龟", type: "pet" },
+  "83": { en: "Sugar Rush", zh: "糖瘾", type: "buff" },
+  "84": { en: "Blackout", zh: "黑屏", type: "debuff" },
+  "85": { en: "Petrified", zh: "石化", type: "debuff" },
+  "86": { en: "Distorted", zh: "畸变", type: "debuff" },
+  "87": { en: "Oiled", zh: "油滑", type: "debuff" },
+  "88": { en: "Frozen", zh: "冰冻", type: "debuff" },
+  "89": { en: "Burned", zh: "灼烧", type: "debuff" },
+  "90": { en: "Suffocating", zh: "窒息", type: "debuff" },
+  "91": { en: "Ichor", zh: "脓水", type: "debuff" },
+  "92": { en: "Venom", zh: "毒液", type: "debuff" },
+  "93": { en: "Confused", zh: "混乱", type: "debuff" },
+  "94": { en: "Slow", zh: "缓慢", type: "debuff" },
+  "95": { en: "Weak", zh: "虚弱", type: "debuff" },
+  "96": { en: "Poisoned", zh: "中毒", type: "debuff" },
+  "97": { en: "On Fire!", zh: "燃烧", type: "debuff" },
+  "98": { en: "Cursed Inferno", zh: "诅咒狱火", type: "debuff" },
+  "99": { en: "Withered Armor", zh: "铠甲凋零", type: "debuff" },
+  "100": { en: "Withered Weapon", zh: "武器凋零", type: "debuff" },
+  "101": { en: "Electrified", zh: "带电", type: "debuff" },
+  "102": { en: "Webbed", zh: "缠网", type: "debuff" },
+  "103": { en: "Frozen", zh: "冰冻", type: "debuff" },
+  "104": { en: "Midas", zh: "点金", type: "debuff" },
+  "105": { en: "Shadowflame", zh: "暗影焰", type: "debuff" },
+  "106": { en: "Cursed", zh: "诅咒", type: "debuff" },
+  "107": { en: "Dryad's Blessing", zh: "树妖祝福", type: "buff" },
+  "108": { en: "Shimmer", zh: "微光", type: "buff" },
+  "109": { en: "Dryad's Bane", zh: "树妖诅咒", type: "debuff" },
+  "110": { en: "Peace Candle", zh: "和平蜡烛", type: "buff" },
+  "111": { en: "Star in a Bottle", zh: "瓶中星", type: "buff" },
+  "112": { en: "Heart Lantern", zh: "爱心灯笼", type: "buff" },
+  "113": { en: "Fireflies", zh: "萤火虫", type: "buff" },
+  "114": { en: "Wasp", zh: "黄蜂", type: "debuff" },
+  "115": { en: "Potion of Return", zh: "回程药水", type: "buff" },
+  "116": { en: "Creative Shock", zh: "创作休克", type: "debuff" },
+  "117": { en: "Anarchist's Cookbook", zh: "无政府主义者食谱", type: "buff" },
+  "118": { en: "Crisis", zh: "危机", type: "debuff" },
+  "119": { en: "Happy!", zh: "快乐", type: "buff" },
+  "120": { en: "Bewitched", zh: "被诅咒", type: "buff" },
+  "121": { en: "Soul Drain", zh: "灵魂流失", type: "debuff" },
+  "122": { en: "Water Candle", zh: "水蜡烛", type: "buff" },
+  "123": { en: "Peace Candle", zh: "和平蜡烛", type: "buff" },
+  "124": { en: "Star in a Bottle", zh: "瓶中星", type: "buff" },
+  "125": { en: "Sunflower", zh: "向日葵", type: "buff" },
+  "126": { en: "Heart Lantern", zh: "爱心灯笼", type: "buff" },
+  "127": { en: "Campfire", zh: "篝火", type: "buff" },
+  "128": { en: "Fairy Bell", zh: "精灵钟", type: "buff" },
+  "129": { en: "Fairy Dust", zh: "精灵尘", type: "buff" },
+  "130": { en: "Fairy Wings", zh: "精灵翅膀", type: "buff" },
+  "131": { en: "Rainbow Cursor", zh: "彩虹光标", type: "buff" },
+  "132": { en: "Goldfish", zh: "金鱼", type: "buff" },
+  "133": { en: "Slap Hand", zh: "打手掌", type: "buff" },
+  "134": { en: "Rainbow Cursor", zh: "彩虹光标", type: "buff" },
+  "135": { en: "Torch God's Favor", zh: "火把神祝福", type: "buff" },
+  "136": { en: "Torch God", zh: "火把神", type: "buff" },
+  "137": { en: "Tin", zh: "锡", type: "buff" },
+  "138": { en: "Silver", zh: "银", type: "buff" },
+  "139": { en: "Tungsten", zh: "钨", type: "buff" },
+  "140": { en: "Gold", zh: "金", type: "buff" },
+  "141": { en: "Platinum", zh: "铂金", type: "buff" },
+  "142": { en: "Shimmered", zh: "微光泽", type: "buff" },
+  "143": { en: "Cursed", zh: "诅咒", type: "debuff" },
+  "144": { en: "Drunk", zh: "醉酒", type: "debuff" },
+  "145": { en: "Crimslime", zh: "猩红史莱姆", type: "pet" },
+  "146": { en: "Corrupt Slime", zh: "腐化史莱姆", type: "pet" },
+  "147": { en: "Illuminant Slime", zh: "发光史莱姆", type: "pet" },
+  "148": { en: "Shadow Slime", zh: "暗影史莱姆", type: "pet" },
+  "149": { en: "Desert Slime", zh: "沙漠史莱姆", type: "pet" },
+  "150": { en: "Honey Slime", zh: "蜂蜜史莱姆", type: "pet" },
+  "151": { en: "Rainbow Slime", zh: "彩虹史莱姆", type: "pet" },
+  "152": { en: "Mothron", zh: "飞蛾", type: "pet" },
+  "153": { en: "Blood Moon", zh: "血月", type: "debuff" },
+  "154": { en: "Solar Eclipse", zh: "日食", type: "debuff" },
+  "155": { en: "Lunar Eclipse", zh: "月食", type: "debuff" },
+  "156": { en: "Rain", zh: "雨", type: "debuff" },
+  "157": { en: "Sandstorm", zh: "沙尘暴", type: "debuff" },
+  "158": { en: "Blizzard", zh: "暴风雪", type: "debuff" },
+  "159": { en: "Nimbus Storm", zh: "雨云风暴", type: "debuff" },
+  "160": { en: "Slimy", zh: "黏糊", type: "debuff" },
+  "161": { en: "Happy!", zh: "快乐", type: "buff" },
+  "162": { en: "Bewitched", zh: "被诅咒", type: "buff" },
+  "163": { en: "Lifeforce", zh: "生命力", type: "buff" },
+  "164": { en: "Clairvoyance", zh: "洞察力", type: "buff" },
+  "165": { en: "Mana Flow", zh: "魔力涌动", type: "buff" },
+  "166": { en: "Shadow Dodge", zh: "暗影闪避", type: "buff" },
+  "167": { en: "Ammo Box", zh: "弹药箱", type: "buff" },
+  "168": { en: "Ammo Reservation", zh: "弹药保留", type: "buff" },
+  "169": { en: "Endurance", zh: "耐久", type: "buff" },
+  "170": { en: "Rage", zh: "狂怒", type: "buff" },
+  "171": { en: "Inferno", zh: "地狱火", type: "buff" },
+  "172": { en: "Thorns", zh: "荆棘", type: "buff" },
+  "173": { en: "Titan Glove", zh: "泰坦手套", type: "buff" },
+  "174": { en: "Feral Claws", zh: "狂暴利爪", type: "buff" },
+  "175": { en: "Berserker's Gaze", zh: "狂战士凝视", type: "buff" },
+  "176": { en: "Warmth", zh: "温暖", type: "buff" },
+  "177": { en: "Invisibility", zh: "隐身", type: "buff" },
+  "178": { en: "Shine", zh: "光芒", type: "buff" },
+  "179": { en: "Night Owl", zh: "夜猫子", type: "buff" },
+  "180": { en: "Battle", zh: "战斗", type: "buff" },
+  "181": { en: "Dangersense", zh: "危险感知", type: "buff" },
+  "182": { en: "Spelunker", zh: "探险者", type: "buff" },
+  "183": { en: "Gravitation", zh: "重力", type: "buff" },
+  "184": { en: "Thorns", zh: "荆棘", type: "buff" },
+  "185": { en: "Water Walking", zh: "水上漂", type: "buff" },
+  "186": { en: "Archery", zh: "箭术", type: "buff" },
+  "187": { en: "Hunter", zh: "猎人", type: "buff" },
+  "188": { en: "Obsidian Skin", zh: "黑曜石皮肤", type: "buff" },
+  "189": { en: "Regeneration", zh: "再生", type: "buff" },
+  "190": { en: "Swiftness", zh: "迅捷", type: "buff" },
+  "191": { en: "Gills", zh: "鱼鳃", type: "buff" },
+  "192": { en: "Ironskin", zh: "铁皮", type: "buff" },
+  "193": { en: "Mana Regeneration", zh: "魔力再生", type: "buff" },
+  "194": { en: "Magic Power", zh: "魔法能量", type: "buff" },
+  "195": { en: "Featherfall", zh: "羽落", type: "buff" },
+  "196": { en: "Invisibility", zh: "隐身", type: "buff" },
+  "197": { en: "Shine", zh: "光芒", type: "buff" },
+  "198": { en: "Night Owl", zh: "夜猫子", type: "buff" },
+  "199": { en: "Battle", zh: "战斗", type: "buff" },
+  "200": { en: "Thorns", zh: "荆棘", type: "buff" }
+};
+
+console.log(`生成 ${Object.keys(buffData).length} 个Buff数据\n`);
+console.log('Buff列表（前30个）:');
+let count = 0;
+for (const [id, info] of Object.entries(buffData)) {
+  if (count < 30) {
+    console.log(`  ${id.toString().padStart(3, ' ')}: ${(info.zh || info.en).padEnd(10, ' ')} (${info.en}) [${info.type}]`);
+    count++;
+  }
+}
+if (Object.keys(buffData).length > 30) {
+  console.log(`  ... 还有 ${Object.keys(buffData).length - 30} 个`);
+}
+
+// 保存到文件
+const outputPath = path.join(__dirname, '../src/data/buffs.json');
+fs.writeFileSync(outputPath, JSON.stringify(buffData, null, 2));
+
+console.log(`\n✅ 已保存到: ${outputPath}`);
