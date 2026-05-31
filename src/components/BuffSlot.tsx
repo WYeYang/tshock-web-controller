@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { getBuffIconUrl, getBuffWikiUrl } from '../utils/terraria';
-import { getBuffName, getBuffType } from '../data';
+import { getBuffName, getBuffType, BUFF_DATA } from '../data';
 
 interface BuffSlotProps {
   buffId: number;
@@ -19,6 +19,8 @@ export const BuffSlot = ({ buffId, timeLeft }: BuffSlotProps) => {
 
   const buffName = getBuffName(buffId);
   const buffType = getBuffType(buffId);
+  const buffData = BUFF_DATA[buffId];
+  const isUnknown = !buffName;
 
   return (
     <div className="relative">
@@ -32,7 +34,7 @@ export const BuffSlot = ({ buffId, timeLeft }: BuffSlotProps) => {
       >
         <img
           src={getBuffIconUrl(buffId)}
-          alt={`Buff ${buffId}`}
+          alt={buffName || `Buff ${buffId}`}
           className="w-8 h-8 object-contain"
           loading="lazy"
           onError={(e) => {
@@ -46,13 +48,30 @@ export const BuffSlot = ({ buffId, timeLeft }: BuffSlotProps) => {
         )}
       </a>
       
-      {showTooltip && buffName && (
+      {showTooltip && (
         <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg shadow-lg whitespace-nowrap z-50">
-          <div className={`text-sm font-bold ${buffType === 'debuff' ? 'text-red-400' : buffType === 'pet' ? 'text-yellow-400' : 'text-green-400'}`}>
-            {buffName}
+          <div className={`text-sm font-bold ${
+            isUnknown ? 'text-slate-400' :
+            buffType === 'debuff' ? 'text-red-400' : 
+            buffType === 'pet' ? 'text-yellow-400' : 
+            buffType === 'mount' ? 'text-blue-400' : 
+            buffType === 'summon' ? 'text-purple-400' : 
+            'text-green-400'
+          }`}>
+            {buffName || `Buff ${buffId}`}
           </div>
-          <div className="text-xs text-slate-400">
-            ID: {buffId} ({buffType || 'unknown'})
+          {buffData?.zhDesc && (
+            <div className="text-xs text-slate-300 mt-1 max-w-xs">
+              {buffData.zhDesc}
+            </div>
+          )}
+          {!buffData?.zhDesc && buffData?.desc && (
+            <div className="text-xs text-slate-400 mt-1 max-w-xs">
+              {buffData.desc}
+            </div>
+          )}
+          <div className="text-xs text-slate-400 mt-1">
+            ID: {buffId}
           </div>
         </div>
       )}

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import type { Player, InventoryItem } from '../types/tshock';
 import { ItemSlot } from './ItemSlot';
-import { BuffSlot } from './BuffSlot';
+// import { BuffSlot } from './BuffSlot';
 
 interface PlayerDetailModalProps {
   isOpen: boolean;
@@ -15,9 +15,6 @@ interface PlayerDetailModalProps {
   onUnmute?: (player: Player) => void;
   onChangeGroup?: (player: Player) => void;
   onGiveItem?: (player: Player) => void;
-  onClearInventory?: (player: Player) => void;
-  onClearArmor?: (player: Player) => void;
-  onClearBuffs?: (player: Player) => void;
 }
 
 export const PlayerDetailModal = ({ 
@@ -31,10 +28,7 @@ export const PlayerDetailModal = ({
   onMute,
   onUnmute,
   onChangeGroup,
-  onGiveItem,
-  onClearInventory,
-  onClearArmor,
-  onClearBuffs
+  onGiveItem
 }: PlayerDetailModalProps) => {
   const [activeInventoryTab, setActiveInventoryTab] = useState<'inventory' | 'equipment' | 'dyes' | 'piggy' | 'safe' | 'forge'>('inventory');
 
@@ -51,20 +45,20 @@ export const PlayerDetailModal = ({
     { key: 'forge', label: '熔炉' },
   ];
 
-  const parseBuffString = (buffString: string): { buffId: number; timeLeft: string }[] => {
-    const buffs: { buffId: number; timeLeft: string }[] = [];
-    const parts = buffString.split(',').map(s => s.trim());
-    
-    for (let i = 0; i < parts.length; i += 2) {
-      const buffId = parseInt(parts[i]);
-      if (buffId > 0) {
-        const timeLeft = parts[i + 1] ? `${parts[i + 1]}s` : '';
-        buffs.push({ buffId, timeLeft });
-      }
-    }
-    
-    return buffs;
-  };
+  // const parseBuffString = (buffString: string): { buffId: number; timeLeft: string }[] => {
+  //   const buffs: { buffId: number; timeLeft: string }[] = [];
+  //   const parts = buffString.split(',').map(s => s.trim());
+  //   
+  //   for (let i = 0; i < parts.length; i += 2) {
+  //     const buffId = parseInt(parts[i]);
+  //     if (buffId > 0) {
+  //       const timeLeft = parts[i + 1] ? `${parts[i + 1]}s` : '';
+  //       buffs.push({ buffId, timeLeft });
+  //     }
+  //   }
+  //   
+  //   return buffs;
+  // };
 
   const renderItemGrid = (items: InventoryItem[], gridCols: number = 10) => {
     return (
@@ -194,12 +188,12 @@ export const PlayerDetailModal = ({
               </>
             )}
 
-            {displayPlayer.buffs && (
-              <div className="mb-4 sm:mb-6">
-                <h3 className="text-base sm:text-lg font-semibold text-white mb-3 sm:mb-4 flex items-center gap-2">
+            {/* {displayPlayer.buffs && (
+              <div className="mb-3 sm:mb-4">
+                <h3 className="text-sm sm:text-base font-semibold text-white mb-2 sm:mb-3 flex items-center gap-2">
                   增益效果
                 </h3>
-                <div className="bg-slate-800/30 p-3 sm:p-4 rounded-lg border border-slate-700/50">
+                <div className="bg-slate-800/30 p-2 sm:p-3 rounded-lg border border-slate-700/50 min-h-[200px]">
                   {(() => {
                     const buffs = parseBuffString(displayPlayer.buffs!);
                     if (buffs.length > 0) {
@@ -211,11 +205,11 @@ export const PlayerDetailModal = ({
                         </div>
                       );
                     }
-                    return <p className="text-slate-300 whitespace-pre-wrap text-xs sm:text-sm">{displayPlayer.buffs}</p>;
+                    return <p className="text-slate-300 whitespace-pre-wrap text-xs">{displayPlayer.buffs}</p>;
                   })()}
                 </div>
               </div>
-            )}
+            )} */}
 
             <div>
               <h3 className="text-base sm:text-lg font-semibold text-white mb-3 sm:mb-4 flex items-center gap-2">
@@ -250,15 +244,6 @@ export const PlayerDetailModal = ({
                 )}
                 {player && onGiveItem && <button onClick={() => onGiveItem(player)} className="px-3 py-2 sm:px-4 sm:py-3 bg-yellow-500/20 hover:bg-yellow-500/30 border border-yellow-500/30 rounded-lg text-yellow-400 font-medium transition-all flex items-center justify-center gap-1 sm:gap-2 text-xs sm:text-sm">
                   给予物品
-                </button>}
-                {player && onClearInventory && <button onClick={() => onClearInventory(player)} className="px-3 py-2 sm:px-4 sm:py-3 bg-red-500/20 hover:bg-red-500/30 border border-red-500/30 rounded-lg text-red-400 font-medium transition-all flex items-center justify-center gap-1 sm:gap-2 text-xs sm:text-sm">
-                  清空背包
-                </button>}
-                {player && onClearArmor && <button onClick={() => onClearArmor(player)} className="px-3 py-2 sm:px-4 sm:py-3 bg-orange-500/20 hover:bg-orange-500/30 border border-orange-500/30 rounded-lg text-orange-400 font-medium transition-all flex items-center justify-center gap-1 sm:gap-2 text-xs sm:text-sm">
-                  清空装备
-                </button>}
-                {player && onClearBuffs && <button onClick={() => onClearBuffs(player)} className="px-3 py-2 sm:px-4 sm:py-3 bg-cyan-500/20 hover:bg-cyan-500/30 border border-cyan-500/30 rounded-lg text-cyan-400 font-medium transition-all flex items-center justify-center gap-1 sm:gap-2 text-xs sm:text-sm">
-                  清空Buff
                 </button>}
               </div>
             </div>

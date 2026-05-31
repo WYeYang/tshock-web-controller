@@ -2,1001 +2,1429 @@
   "1": {
     "en": "Obsidian Skin",
     "zh": "黑曜石皮肤",
+    "desc": "Immune to lava",
+    "zhDesc": "对熔岩免疫",
     "type": "buff"
   },
   "2": {
     "en": "Regeneration",
     "zh": "再生",
+    "desc": "Provides life regeneration",
+    "zhDesc": "提供生命再生",
     "type": "buff"
   },
   "3": {
     "en": "Swiftness",
     "zh": "迅捷",
+    "desc": "25% increased movement speed",
+    "zhDesc": "移动速度提高25%",
     "type": "buff"
   },
   "4": {
     "en": "Gills",
     "zh": "鱼鳃",
+    "desc": "Breathe water instead of air",
+    "zhDesc": "在水中呼吸而不是空气",
     "type": "buff"
   },
   "5": {
     "en": "Ironskin",
     "zh": "铁皮",
+    "desc": "Increase defense by 8",
+    "zhDesc": "提高8点防御",
     "type": "buff"
   },
   "6": {
     "en": "Mana Regeneration",
     "zh": "魔力再生",
+    "desc": "Increased mana regeneration",
+    "zhDesc": "提高魔力再生速度",
     "type": "buff"
   },
   "7": {
     "en": "Magic Power",
     "zh": "魔法能量",
+    "desc": "20% increased magic damage",
+    "zhDesc": "魔法伤害提高20%",
     "type": "buff"
   },
   "8": {
     "en": "Featherfall",
     "zh": "羽落",
+    "desc": "Press UP or DOWN to control speed of descent",
+    "zhDesc": "按向上或向下键控制下落速度",
     "type": "buff"
   },
   "9": {
     "en": "Spelunker",
     "zh": "探险者",
+    "desc": "Shows the location of treasure and ore",
+    "zhDesc": "显示宝藏和矿石的位置",
     "type": "buff"
   },
   "10": {
     "en": "Invisibility",
     "zh": "隐身",
+    "desc": "Grants invisibility",
+    "zhDesc": "获得隐身效果",
     "type": "buff"
   },
   "11": {
     "en": "Shine",
     "zh": "光芒",
+    "desc": "Emitting light",
+    "zhDesc": "发出光芒",
     "type": "buff"
   },
   "12": {
     "en": "Night Owl",
     "zh": "夜猫子",
+    "desc": "Increased night vision",
+    "zhDesc": "提高夜视能力",
     "type": "buff"
   },
   "13": {
     "en": "Battle",
     "zh": "战斗",
+    "desc": "Increased enemy spawn rate",
+    "zhDesc": "提高敌人生成率",
     "type": "buff"
   },
   "14": {
     "en": "Thorns",
     "zh": "荆棘",
+    "desc": "Attackers also take damage",
+    "zhDesc": "攻击者也会受到伤害",
     "type": "buff"
   },
   "15": {
     "en": "Water Walking",
     "zh": "水上漂",
+    "desc": "Press DOWN to enter water",
+    "zhDesc": "按向下键进入水中",
     "type": "buff"
   },
   "16": {
     "en": "Archery",
     "zh": "箭术",
+    "desc": "20% increased arrow damage and speed",
+    "zhDesc": "箭矢伤害和速度提高20%",
     "type": "buff"
   },
   "17": {
     "en": "Hunter",
     "zh": "猎人",
+    "desc": "Shows the location of enemies",
+    "zhDesc": "显示敌人位置",
     "type": "buff"
   },
   "18": {
     "en": "Gravitation",
     "zh": "重力",
+    "desc": "Press UP to reverse gravity",
+    "zhDesc": "按向上键反转重力",
     "type": "buff"
   },
   "19": {
-    "en": "Well Fed",
-    "zh": "饱食",
+    "en": "Shadow Orb",
+    "zh": "暗影珠",
+    "desc": "A magical orb that provides light",
+    "zhDesc": "一颗提供光芒的魔法珠子",
     "type": "buff"
   },
   "20": {
-    "en": "Queen Bee",
-    "zh": "蜂王",
+    "en": "Poisoned",
+    "zh": "中毒",
+    "desc": "Slowly losing life",
+    "zhDesc": "持续损失生命",
     "type": "debuff"
   },
   "21": {
-    "en": "Poisoned",
-    "zh": "中毒",
+    "en": "Potion Sickness",
+    "zh": "药水疾病",
+    "desc": "Cannot consume anymore healing items",
+    "zhDesc": "无法再使用治疗物品",
     "type": "debuff"
   },
   "22": {
-    "en": "Bleeding",
-    "zh": "流血",
+    "en": "Darkness",
+    "zh": "黑暗",
+    "desc": "Decreased light vision",
+    "zhDesc": "降低夜视能力",
     "type": "debuff"
   },
   "23": {
-    "en": "Slow",
-    "zh": "缓慢",
+    "en": "Cursed",
+    "zh": "诅咒",
+    "desc": "Cannot use any items",
+    "zhDesc": "无法使用任何物品",
     "type": "debuff"
   },
   "24": {
-    "en": "Weak",
-    "zh": "虚弱",
+    "en": "On Fire!",
+    "zh": "着火！",
+    "desc": "Slowly losing life",
+    "zhDesc": "持续损失生命",
     "type": "debuff"
   },
   "25": {
-    "en": "Confused",
-    "zh": "混乱",
-    "type": "debuff"
+    "en": "Tipsy",
+    "zh": "微醉",
+    "desc": "Increased melee abilities, lowered defense",
+    "zhDesc": "提高近战能力，降低防御",
+    "type": "buff"
   },
   "26": {
-    "en": "Slow",
-    "zh": "缓慢",
-    "type": "debuff"
+    "en": "Well Fed",
+    "zh": "饱食",
+    "desc": "Minor improvements to all stats",
+    "zhDesc": "所有属性小幅提升",
+    "type": "buff"
   },
   "27": {
-    "en": "Weak",
-    "zh": "虚弱",
-    "type": "debuff"
+    "en": "Fairy",
+    "zh": "妖精",
+    "desc": "A fairy is following you",
+    "zhDesc": "一只妖精正在跟随你",
+    "type": "pet"
   },
   "28": {
-    "en": "Mana Sickness",
-    "zh": "魔力病",
-    "type": "debuff"
+    "en": "Werewolf",
+    "zh": "狼人",
+    "desc": "Physical abilities are increased",
+    "zhDesc": "物理能力提升",
+    "type": "buff"
   },
   "29": {
-    "en": "Darkness",
-    "zh": "黑暗",
-    "type": "debuff"
+    "en": "Clairvoyance",
+    "zh": "透视",
+    "desc": "Magic powers are increased",
+    "zhDesc": "魔法能力提升",
+    "type": "buff"
   },
   "30": {
-    "en": "Cursed",
-    "zh": "诅咒",
+    "en": "Bleeding",
+    "zh": "流血",
+    "desc": "Cannot regenerate life",
+    "zhDesc": "无法再生生命",
     "type": "debuff"
   },
   "31": {
-    "en": "On Fire!",
-    "zh": "燃烧",
+    "en": "Confused",
+    "zh": "困惑",
+    "desc": "Movement is reversed",
+    "zhDesc": "移动方向反转",
     "type": "debuff"
   },
   "32": {
-    "en": "Tipsy",
-    "zh": "醉醺醺",
+    "en": "Slow",
+    "zh": "缓慢",
+    "desc": "Movement speed is reduced",
+    "zhDesc": "移动速度降低",
     "type": "debuff"
   },
   "33": {
-    "en": "Well Fed",
-    "zh": "饱食",
-    "type": "buff"
-  },
-  "34": {
-    "en": "Dazed",
-    "zh": "眩晕",
+    "en": "Weak",
+    "zh": "虚弱",
+    "desc": "Physical abilities are decreased",
+    "zhDesc": "物理能力降低",
     "type": "debuff"
   },
+  "34": {
+    "en": "Merfolk",
+    "zh": "人鱼",
+    "desc": "Can breathe and move easily underwater",
+    "zhDesc": "可以在水下轻松呼吸和移动",
+    "type": "buff"
+  },
   "35": {
-    "en": "Venom",
-    "zh": "毒液",
+    "en": "Silenced",
+    "zh": "沉默",
+    "desc": "Cannot use items that require mana",
+    "zhDesc": "无法使用需要魔力的物品",
     "type": "debuff"
   },
   "36": {
-    "en": "Midas",
-    "zh": "点金",
+    "en": "Broken Armor",
+    "zh": "破碎盔甲",
+    "desc": "Defense is cut in half",
+    "zhDesc": "防御减半",
     "type": "debuff"
   },
   "37": {
-    "en": "Panic!",
-    "zh": "恐慌",
-    "type": "debuff"
+    "en": "Horrified",
+    "zh": "恐惧",
+    "desc": "You have seen something nasty, there is no escape.",
+    "zhDesc": "你看到了一些可怕的东西，无处可逃。",
+    "type": "buff"
   },
   "38": {
-    "en": "Obstructed",
-    "zh": "受阻",
-    "type": "debuff"
+    "en": "The Tongue",
+    "zh": "舌头",
+    "desc": "You are being sucked into the mouth",
+    "zhDesc": "你正被吸进嘴里",
+    "type": "buff"
   },
   "39": {
-    "en": "Curse of the Moon",
-    "zh": "月之诅咒",
+    "en": "Cursed Inferno",
+    "zh": "诅咒地狱火",
+    "desc": "Losing life",
+    "zhDesc": "损失生命",
     "type": "debuff"
   },
   "40": {
-    "en": "Bone Armor",
-    "zh": "骨甲",
-    "type": "buff"
+    "en": "Pet Bunny",
+    "zh": "宠物兔子",
+    "desc": "I think it wants your carrot",
+    "zhDesc": "我想它想要你的胡萝卜",
+    "type": "pet"
   },
   "41": {
-    "en": "Honey",
-    "zh": "蜂蜜",
-    "type": "buff"
+    "en": "Baby Penguin",
+    "zh": "企鹅宝宝",
+    "desc": "I think it wants your fish",
+    "zhDesc": "我想它想要你的鱼",
+    "type": "pet"
   },
   "42": {
-    "en": "Stinky",
-    "zh": "恶臭",
-    "type": "debuff"
+    "en": "Pet Turtle",
+    "zh": "宠物乌龟",
+    "desc": "Happy turtle time!",
+    "zhDesc": "快乐乌龟时间！",
+    "type": "pet"
   },
   "43": {
-    "en": "Love",
-    "zh": "爱意",
+    "en": "Paladin's Shield",
+    "zh": "圣骑士护盾",
+    "desc": "25% of damage taken will be redirected to another player",
+    "zhDesc": "25%的伤害将转移给另一名玩家",
     "type": "buff"
   },
   "44": {
-    "en": "Baby Slime",
-    "zh": "小史莱姆",
-    "type": "pet"
+    "en": "Frostburn",
+    "zh": "霜火",
+    "desc": "It's either really hot or really cold. Either way it REALLY hurts",
+    "zhDesc": "要么真的很热，要么真的很冷。不管怎样都很疼",
+    "type": "debuff"
   },
   "45": {
     "en": "Baby Eater",
-    "zh": "小吞噬者",
+    "zh": "宝宝噬魂者",
+    "desc": "A baby Eater of Souls is following you",
+    "zhDesc": "一个噬魂者宝宝正在跟随你",
     "type": "pet"
   },
   "46": {
-    "en": "Baby Zombie",
-    "zh": "小僵尸",
-    "type": "pet"
+    "en": "Chilled",
+    "zh": "寒冷",
+    "desc": "Your movement speed has been reduced",
+    "zhDesc": "你的移动速度降低了",
+    "type": "buff"
   },
   "47": {
-    "en": "Baby Demon",
-    "zh": "小恶魔",
-    "type": "pet"
+    "en": "Frozen",
+    "zh": "冻结",
+    "desc": "You can't move!",
+    "zhDesc": "你无法移动！",
+    "type": "buff"
   },
   "48": {
-    "en": "Baby Eyeball",
-    "zh": "小眼球",
-    "type": "pet"
+    "en": "Honey",
+    "zh": "蜂蜜",
+    "desc": "Life regeneration is increased",
+    "zhDesc": "生命再生提高",
+    "type": "buff"
   },
   "49": {
-    "en": "Baby Wandering Eye",
-    "zh": "小游荡眼球",
-    "type": "pet"
+    "en": "Pygmies",
+    "zh": "矮人",
+    "desc": "The pygmies will fight for you",
+    "zhDesc": "矮人们将为你而战",
+    "type": "buff"
   },
   "50": {
     "en": "Baby Skeletron Head",
-    "zh": "小骷髅王头",
+    "zh": "骷髅王头宝宝",
+    "desc": "Don't even ask...",
+    "zhDesc": "别问了...",
     "type": "pet"
   },
   "51": {
     "en": "Baby Hornet",
-    "zh": "小黄蜂",
+    "zh": "黄蜂宝宝",
+    "desc": "It thinks you are its mother",
+    "zhDesc": "它认为你是它妈妈",
     "type": "pet"
   },
   "52": {
-    "en": "Baby Spider",
-    "zh": "小蜘蛛",
-    "type": "pet"
+    "en": "Tiki Spirit",
+    "zh": "提基灵魂",
+    "desc": "A friendly spirit is following you",
+    "zhDesc": "一个友善的灵魂正在跟随你",
+    "type": "buff"
   },
   "53": {
-    "en": "Baby Truffle",
-    "zh": "小蘑菇",
+    "en": "Pet Lizard",
+    "zh": "宠物蜥蜴",
+    "desc": "Chillin' like a reptilian",
+    "zhDesc": "像爬行动物一样酷",
     "type": "pet"
   },
   "54": {
-    "en": "Baby Pigron",
-    "zh": "小猪龙",
+    "en": "Pet Parrot",
+    "zh": "宠物鹦鹉",
+    "desc": "Polly want's the cracker",
+    "zhDesc": "波利想要饼干",
     "type": "pet"
   },
   "55": {
-    "en": "Baby Phantom",
-    "zh": "小幽灵",
+    "en": "Baby Truffle",
+    "zh": "松露宝宝",
+    "desc": "Isn't this just soooo cute?",
+    "zhDesc": "这不是太可爱了吗？",
     "type": "pet"
   },
   "56": {
-    "en": "Baby Pixie",
-    "zh": "小精灵",
+    "en": "Pet Sapling",
+    "zh": "树苗宝宝",
+    "desc": "A little sapling is following you",
+    "zhDesc": "一颗小树苗正在跟随你",
     "type": "pet"
   },
   "57": {
-    "en": "Baby Bunny",
-    "zh": "小兔子",
+    "en": "Wisp",
+    "zh": "精灵",
+    "desc": "A wisp is following you",
+    "zhDesc": "一个精灵正在跟随你",
     "type": "pet"
   },
   "58": {
-    "en": "Baby Penguin",
-    "zh": "小企鹅",
-    "type": "pet"
+    "en": "Rapid Healing",
+    "zh": "快速治疗",
+    "desc": "Life regeneration is greatly increased",
+    "zhDesc": "生命再生大幅提高",
+    "type": "buff"
   },
   "59": {
-    "en": "Baby Dinosaur",
-    "zh": "小恐龙",
-    "type": "pet"
+    "en": "Shadow Dodge",
+    "zh": "暗影闪避",
+    "desc": "You will dodge the next attack",
+    "zhDesc": "你将闪避下一次攻击",
+    "type": "buff"
   },
   "60": {
-    "en": "Baby Turtle",
-    "zh": "小海龟",
-    "type": "pet"
+    "en": "Leaf Crystal",
+    "zh": "叶水晶",
+    "desc": "Shoots crystal leaves at nearby enemies",
+    "zhDesc": "向附近的敌人发射水晶叶",
+    "type": "buff"
   },
   "61": {
-    "en": "Baby Spider",
-    "zh": "小蜘蛛",
+    "en": "Baby Dinosaur",
+    "zh": "恐龙宝宝",
+    "desc": "A baby dinosaur is following you",
+    "zhDesc": "一个恐龙宝宝正在跟随你",
     "type": "pet"
   },
   "62": {
-    "en": "Baby Imp",
-    "zh": "小鬼",
-    "type": "pet"
+    "en": "Ice Barrier",
+    "zh": "冰屏障",
+    "desc": "Damage taken is reduced by 25%",
+    "zhDesc": "受到的伤害降低25%",
+    "type": "buff"
   },
   "63": {
-    "en": "Baby Shark",
-    "zh": "小鲨鱼",
-    "type": "pet"
+    "en": "Panic!",
+    "zh": "恐慌！",
+    "desc": "Movement speed is increased",
+    "zhDesc": "移动速度提高",
+    "type": "buff"
   },
   "64": {
-    "en": "Baby Wraith",
-    "zh": "小怨灵",
+    "en": "Baby Slime",
+    "zh": "史莱姆宝宝",
+    "desc": "The baby slime will fight for you",
+    "zhDesc": "史莱姆宝宝将为你而战",
     "type": "pet"
   },
   "65": {
-    "en": "Baby Desert Spirit",
-    "zh": "小沙漠精魂",
-    "type": "pet"
+    "en": "Eyeball Spring",
+    "zh": "眼球弹簧",
+    "desc": "An eyeball spring is following you",
+    "zhDesc": "一个眼球弹簧正在跟随你",
+    "type": "buff"
   },
   "66": {
-    "en": "Baby Mothron",
-    "zh": "小飞蛾",
+    "en": "Baby Snowman",
+    "zh": "雪人宝宝",
+    "desc": "A baby snowman is following you",
+    "zhDesc": "一个雪人宝宝正在跟随你",
     "type": "pet"
   },
   "67": {
-    "en": "Baby Pixie",
-    "zh": "小精灵",
-    "type": "pet"
+    "en": "Burning",
+    "zh": "燃烧",
+    "desc": "Losing life and slowed movement",
+    "zhDesc": "损失生命并减慢移动",
+    "type": "debuff"
   },
   "68": {
-    "en": "Baby Pigron",
-    "zh": "小猪龙",
-    "type": "pet"
+    "en": "Suffocation",
+    "zh": "窒息",
+    "desc": "Losing life",
+    "zhDesc": "损失生命",
+    "type": "buff"
   },
   "69": {
-    "en": "Baby Truffle",
-    "zh": "小蘑菇",
-    "type": "pet"
+    "en": "Ichor",
+    "zh": "脓血",
+    "desc": "Reduced defense",
+    "zhDesc": "降低防御",
+    "type": "debuff"
   },
   "70": {
-    "en": "Baby Zombie",
-    "zh": "小僵尸",
-    "type": "pet"
+    "en": "Venom",
+    "zh": "毒液",
+    "desc": "Losing life",
+    "zhDesc": "损失生命",
+    "type": "debuff"
   },
   "71": {
-    "en": "Baby Wandering Eye",
-    "zh": "小游荡眼球",
-    "type": "pet"
+    "en": "Weapon Imbue: Venom",
+    "zh": "武器灌注：毒液",
+    "desc": "Melee attacks inflict venom on your targets",
+    "zhDesc": "近战攻击使目标中毒",
+    "type": "debuff"
   },
   "72": {
-    "en": "Baby Slime",
-    "zh": "小史莱姆",
-    "type": "pet"
+    "en": "Midas",
+    "zh": "迈达斯",
+    "desc": "Drop more money on death",
+    "zhDesc": "死亡时掉落更多金币",
+    "type": "buff"
   },
   "73": {
-    "en": "Baby Eater",
-    "zh": "小吞噬者",
-    "type": "pet"
+    "en": "Weapon Imbue: Cursed Flames",
+    "zh": "武器灌注：诅咒火焰",
+    "desc": "Melee attacks inflict enemies with cursed flames",
+    "zhDesc": "近战攻击使敌人感染诅咒火焰",
+    "type": "debuff"
   },
   "74": {
-    "en": "Baby Demon",
-    "zh": "小恶魔",
-    "type": "pet"
+    "en": "Weapon Imbue: Fire",
+    "zh": "武器灌注：火焰",
+    "desc": "Melee attacks set enemies on fire",
+    "zhDesc": "近战攻击使敌人着火",
+    "type": "debuff"
   },
   "75": {
-    "en": "Baby Eyeball",
-    "zh": "小眼球",
-    "type": "pet"
+    "en": "Weapon Imbue: Gold",
+    "zh": "武器灌注：金",
+    "desc": "Melee attacks make enemies drop more gold",
+    "zhDesc": "近战攻击使敌人掉落更多金币",
+    "type": "buff"
   },
   "76": {
-    "en": "Baby Skeleton",
-    "zh": "小骷髅",
-    "type": "pet"
+    "en": "Weapon Imbue: Ichor",
+    "zh": "武器灌注：脓血",
+    "desc": "Melee attacks decrease enemies defense",
+    "zhDesc": "近战攻击降低敌人防御",
+    "type": "debuff"
   },
   "77": {
-    "en": "Baby Skeletron",
-    "zh": "小骷髅王",
-    "type": "pet"
+    "en": "Weapon Imbue: Nanites",
+    "zh": "武器灌注：纳米机器人",
+    "desc": "Melee attacks confuse enemies",
+    "zhDesc": "近战攻击使敌人困惑",
+    "type": "buff"
   },
   "78": {
-    "en": "Baby Hornet",
-    "zh": "小黄蜂",
-    "type": "pet"
+    "en": "Weapon Imbue: Confetti",
+    "zh": "武器灌注：彩纸",
+    "desc": "Melee attacks cause confetti to appear",
+    "zhDesc": "近战攻击使彩纸出现",
+    "type": "buff"
   },
   "79": {
-    "en": "Baby Bunny",
-    "zh": "小兔子",
-    "type": "pet"
+    "en": "Weapon Imbue: Poison",
+    "zh": "武器灌注：毒药",
+    "desc": "Melee attacks poison enemies",
+    "zhDesc": "近战攻击使敌人中毒",
+    "type": "debuff"
   },
   "80": {
-    "en": "Baby Penguin",
-    "zh": "小企鹅",
-    "type": "pet"
+    "en": "Blackout",
+    "zh": "眩晕",
+    "desc": "Light vision severely reduced",
+    "zhDesc": "视觉严重降低",
+    "type": "debuff"
   },
   "81": {
-    "en": "Baby Dinosaurs",
-    "zh": "小恐龙",
+    "en": "Pet Spider",
+    "zh": "宠物蜘蛛",
+    "desc": "A spider is following you",
+    "zhDesc": "一只蜘蛛正在跟随你",
     "type": "pet"
   },
   "82": {
-    "en": "Baby Turtles",
-    "zh": "小海龟",
-    "type": "pet"
-  },
-  "83": {
-    "en": "Sugar Rush",
-    "zh": "糖瘾",
+    "en": "Squashling",
+    "zh": "南瓜宝宝",
+    "desc": "A squashling is following you",
+    "zhDesc": "一个南瓜宝宝正在跟随你",
     "type": "buff"
   },
+  "83": {
+    "en": "Ravens",
+    "zh": "乌鸦",
+    "desc": "The ravens will attack your enemies",
+    "zhDesc": "乌鸦将攻击你的敌人",
+    "type": "summon"
+  },
   "84": {
-    "en": "Blackout",
-    "zh": "黑屏",
-    "type": "debuff"
+    "en": "Black Cat",
+    "zh": "黑猫",
+    "desc": "A black kitty is following you",
+    "zhDesc": "一只小黑猫正在跟随你",
+    "type": "buff"
   },
   "85": {
-    "en": "Petrified",
-    "zh": "石化",
+    "en": "Cursed Sapling",
+    "zh": "诅咒树苗",
+    "desc": "A cursed sapling is following you",
+    "zhDesc": "一个诅咒树苗正在跟随你",
     "type": "debuff"
   },
   "86": {
-    "en": "Distorted",
-    "zh": "畸变",
-    "type": "debuff"
+    "en": "Water Candle",
+    "zh": "水蜡烛",
+    "desc": "Increased monster spawn rate",
+    "zhDesc": "提高怪物生成率",
+    "type": "buff"
   },
   "87": {
-    "en": "Oiled",
-    "zh": "油滑",
+    "en": "Cozy Fire",
+    "zh": "温暖火焰",
+    "desc": "Life regen is slightly increased",
+    "zhDesc": "生命再生略微提高",
     "type": "debuff"
   },
   "88": {
-    "en": "Frozen",
-    "zh": "冰冻",
-    "type": "debuff"
+    "en": "Chaos State",
+    "zh": "混沌状态",
+    "desc": "Using the Rod of Discord will take life",
+    "zhDesc": "使用混沌棒将消耗生命",
+    "type": "buff"
   },
   "89": {
-    "en": "Burned",
-    "zh": "灼烧",
-    "type": "debuff"
+    "en": "Heart Lamp",
+    "zh": "爱心灯笼",
+    "desc": "Life regen is increased",
+    "zhDesc": "生命再生提高",
+    "type": "buff"
   },
   "90": {
-    "en": "Suffocating",
-    "zh": "窒息",
-    "type": "debuff"
+    "en": "Rudolph",
+    "zh": "鲁道夫",
+    "desc": "Riding the red nosed reindeer",
+    "zhDesc": "骑着红鼻子驯鹿",
+    "type": "mount"
   },
   "91": {
-    "en": "Ichor",
-    "zh": "脓水",
-    "type": "debuff"
+    "en": "Puppy",
+    "zh": "小狗",
+    "desc": "A puppy is following you",
+    "zhDesc": "一只小狗正在跟随你",
+    "type": "buff"
   },
   "92": {
-    "en": "Venom",
-    "zh": "毒液",
-    "type": "debuff"
+    "en": "Baby Grinch",
+    "zh": "圣诞怪杰宝宝",
+    "desc": "A baby grinch is following you",
+    "zhDesc": "一个圣诞怪杰宝宝正在跟随你",
+    "type": "pet"
   },
   "93": {
-    "en": "Confused",
-    "zh": "混乱",
-    "type": "debuff"
+    "en": "Ammo Box",
+    "zh": "弹药盒",
+    "desc": "20% chance to not consume ammo",
+    "zhDesc": "20%几率不消耗弹药",
+    "type": "buff"
   },
   "94": {
-    "en": "Slow",
-    "zh": "缓慢",
+    "en": "Mana Sickness",
+    "zh": "魔力疾病",
+    "desc": "Magic damage reduced by",
+    "zhDesc": "魔法伤害降低",
     "type": "debuff"
   },
   "95": {
-    "en": "Weak",
-    "zh": "虚弱",
-    "type": "debuff"
+    "en": "Beetle Endurance",
+    "zh": "甲虫耐力",
+    "desc": "Damage taken reduced by 15%",
+    "zhDesc": "受到的伤害降低15%",
+    "type": "buff"
   },
   "96": {
-    "en": "Poisoned",
-    "zh": "中毒",
-    "type": "debuff"
+    "en": "Beetle Endurance",
+    "zh": "甲虫耐力",
+    "desc": "Damage taken reduced by 30%",
+    "zhDesc": "受到的伤害降低30%",
+    "type": "buff"
   },
   "97": {
-    "en": "On Fire!",
-    "zh": "燃烧",
-    "type": "debuff"
+    "en": "Beetle Endurance",
+    "zh": "甲虫耐力",
+    "desc": "Damage taken reduced by 45%",
+    "zhDesc": "受到的伤害降低45%",
+    "type": "buff"
   },
   "98": {
-    "en": "Cursed Inferno",
-    "zh": "诅咒狱火",
-    "type": "debuff"
+    "en": "Beetle Might",
+    "zh": "甲虫之力",
+    "desc": "Melee damage and speed increase by 10%",
+    "zhDesc": "近战伤害和速度提高10%",
+    "type": "buff"
   },
   "99": {
-    "en": "Withered Armor",
-    "zh": "铠甲凋零",
-    "type": "debuff"
+    "en": "Beetle Might",
+    "zh": "甲虫之力",
+    "desc": "Melee damage and speed increase by 20%",
+    "zhDesc": "近战伤害和速度提高20%",
+    "type": "buff"
   },
   "100": {
-    "en": "Withered Weapon",
-    "zh": "武器凋零",
-    "type": "debuff"
+    "en": "Beetle Might",
+    "zh": "甲虫之力",
+    "desc": "Melee damage and speed increase by 30%",
+    "zhDesc": "近战伤害和速度提高30%",
+    "type": "buff"
   },
   "101": {
-    "en": "Electrified",
-    "zh": "带电",
-    "type": "debuff"
+    "en": "Fairy",
+    "zh": "妖精",
+    "desc": "A fairy is following you",
+    "zhDesc": "一只妖精正在跟随你",
+    "type": "pet"
   },
   "102": {
-    "en": "Webbed",
-    "zh": "缠网",
-    "type": "debuff"
+    "en": "Fairy",
+    "zh": "妖精",
+    "desc": "A fairy is following you",
+    "zhDesc": "一只妖精正在跟随你",
+    "type": "pet"
   },
   "103": {
-    "en": "Frozen",
-    "zh": "冰冻",
-    "type": "debuff"
+    "en": "Wet",
+    "zh": "潮湿",
+    "desc": "You are dripping water",
+    "zhDesc": "你在滴水",
+    "type": "buff"
   },
   "104": {
-    "en": "Midas",
-    "zh": "点金",
-    "type": "debuff"
+    "en": "Mining",
+    "zh": "采矿",
+    "desc": "25% increased mining speed",
+    "zhDesc": "采矿速度提高25%",
+    "type": "buff"
   },
   "105": {
-    "en": "Shadowflame",
-    "zh": "暗影焰",
-    "type": "debuff"
+    "en": "Heartreach",
+    "zh": "捡心",
+    "desc": "Increased heart pickup range",
+    "zhDesc": "提高心的拾取范围",
+    "type": "buff"
   },
   "106": {
-    "en": "Cursed",
-    "zh": "诅咒",
-    "type": "debuff"
+    "en": "Calm",
+    "zh": "宁静",
+    "desc": "Reduced enemy aggression",
+    "zhDesc": "降低敌人攻击性",
+    "type": "buff"
   },
   "107": {
-    "en": "Dryad's Blessing",
-    "zh": "树妖祝福",
+    "en": "Builder",
+    "zh": "建筑工",
+    "desc": "Increased placement speed and range",
+    "zhDesc": "提高放置速度和范围",
     "type": "buff"
   },
   "108": {
-    "en": "Shimmer",
-    "zh": "微光",
+    "en": "Titan",
+    "zh": "泰坦",
+    "desc": "Increased knockback",
+    "zhDesc": "提高击退",
     "type": "buff"
   },
   "109": {
-    "en": "Dryad's Bane",
-    "zh": "树妖诅咒",
-    "type": "debuff"
-  },
-  "110": {
-    "en": "Peace Candle",
-    "zh": "和平蜡烛",
+    "en": "Flipper",
+    "zh": "脚蹼",
+    "desc": "Move like normal in water",
+    "zhDesc": "在水中像平常一样移动",
     "type": "buff"
   },
+  "110": {
+    "en": "Summoning",
+    "zh": "召唤",
+    "desc": "Increased max number of minions",
+    "zhDesc": "提高最大召唤物数量",
+    "type": "summon"
+  },
   "111": {
-    "en": "Star in a Bottle",
-    "zh": "瓶中星",
+    "en": "Dangersense",
+    "zh": "危险感知",
+    "desc": "You can see nearby hazards",
+    "zhDesc": "你可以看到附近的危险",
     "type": "buff"
   },
   "112": {
-    "en": "Heart Lantern",
-    "zh": "爱心灯笼",
+    "en": "Ammo Reservation",
+    "zh": "弹药储备",
+    "desc": "20% chance to not consume ammo",
+    "zhDesc": "20%几率不消耗弹药",
     "type": "buff"
   },
   "113": {
-    "en": "Fireflies",
-    "zh": "萤火虫",
+    "en": "Lifeforce",
+    "zh": "生命力",
+    "desc": "20% increased max life",
+    "zhDesc": "最大生命提高20%",
     "type": "buff"
   },
   "114": {
-    "en": "Wasp",
-    "zh": "黄蜂",
-    "type": "debuff"
+    "en": "Endurance",
+    "zh": "耐力",
+    "desc": "10% reduced damage",
+    "zhDesc": "伤害降低10%",
+    "type": "buff"
   },
   "115": {
-    "en": "Potion of Return",
-    "zh": "回程药水",
+    "en": "Rage",
+    "zh": "狂暴",
+    "desc": "10% increased critical chance",
+    "zhDesc": "暴击率提高10%",
     "type": "buff"
   },
   "116": {
-    "en": "Creative Shock",
-    "zh": "创作休克",
-    "type": "debuff"
+    "en": "Inferno",
+    "zh": "地狱火",
+    "desc": "Nearby enemies are ignited",
+    "zhDesc": "附近的敌人被点燃",
+    "type": "buff"
   },
   "117": {
-    "en": "Anarchist's Cookbook",
-    "zh": "无政府主义者食谱",
+    "en": "Wrath",
+    "zh": "愤怒",
+    "desc": "10% increased damage",
+    "zhDesc": "伤害提高10%",
     "type": "buff"
   },
   "118": {
-    "en": "Crisis",
-    "zh": "危机",
-    "type": "debuff"
+    "en": "Minecart",
+    "zh": "矿车",
+    "desc": "Riding in a minecart",
+    "zhDesc": "坐在矿车里",
+    "type": "mount"
   },
   "119": {
-    "en": "Happy!",
-    "zh": "快乐",
+    "en": "Lovestruck",
+    "zh": "恋爱",
+    "desc": "You are in love!",
+    "zhDesc": "你恋爱了！",
     "type": "buff"
   },
   "120": {
-    "en": "Bewitched",
-    "zh": "被诅咒",
+    "en": "Stinky",
+    "zh": "臭",
+    "desc": "You smell terrible",
+    "zhDesc": "你闻起来很糟糕",
     "type": "buff"
   },
   "121": {
-    "en": "Soul Drain",
-    "zh": "灵魂流失",
-    "type": "debuff"
+    "en": "Fishing",
+    "zh": "钓鱼",
+    "desc": "Increased fishing level",
+    "zhDesc": "提高钓鱼等级",
+    "type": "buff"
   },
   "122": {
-    "en": "Water Candle",
-    "zh": "水蜡烛",
+    "en": "Sonar",
+    "zh": "声纳",
+    "desc": "You can see what's biting your hook",
+    "zhDesc": "你可以看到什么在咬你的钩",
     "type": "buff"
   },
   "123": {
-    "en": "Peace Candle",
-    "zh": "和平蜡烛",
+    "en": "Crate",
+    "zh": "板条箱",
+    "desc": "Greater chance of fishing up a crate",
+    "zhDesc": "钓上板条箱的几率更高",
     "type": "buff"
   },
   "124": {
-    "en": "Star in a Bottle",
-    "zh": "瓶中星",
+    "en": "Warmth",
+    "zh": "温暖",
+    "desc": "Reduced damage from cold sources",
+    "zhDesc": "降低来自寒冷来源的伤害",
     "type": "buff"
   },
   "125": {
-    "en": "Sunflower",
-    "zh": "向日葵",
-    "type": "buff"
+    "en": "Hornet",
+    "zh": "黄蜂",
+    "desc": "The hornet will fight for you",
+    "zhDesc": "黄蜂将为你而战",
+    "type": "summon"
   },
   "126": {
-    "en": "Heart Lantern",
-    "zh": "爱心灯笼",
-    "type": "buff"
+    "en": "Imp",
+    "zh": "小恶魔",
+    "desc": "The imp will fight for you",
+    "zhDesc": "小恶魔将为你而战",
+    "type": "summon"
   },
   "127": {
-    "en": "Campfire",
-    "zh": "篝火",
+    "en": "Zephyr Fish",
+    "zh": "和风鱼",
+    "desc": "It likes swimming around you",
+    "zhDesc": "它喜欢在你周围游泳",
     "type": "buff"
   },
   "128": {
-    "en": "Fairy Bell",
-    "zh": "精灵钟",
-    "type": "buff"
+    "en": "Bunny Mount",
+    "zh": "兔子坐骑",
+    "desc": "You are craving carrots",
+    "zhDesc": "你渴望胡萝卜",
+    "type": "mount"
   },
   "129": {
-    "en": "Fairy Dust",
-    "zh": "精灵尘",
-    "type": "buff"
+    "en": "Pigron Mount",
+    "zh": "猪龙坐骑",
+    "desc": "Now you see me....",
+    "zhDesc": "现在你看到我了....",
+    "type": "mount"
   },
   "130": {
-    "en": "Fairy Wings",
-    "zh": "精灵翅膀",
-    "type": "buff"
+    "en": "Slime Mount",
+    "zh": "史莱姆坐骑",
+    "desc": "BOOOIIINNNG!",
+    "zhDesc": "蹦蹦跳跳！",
+    "type": "mount"
   },
   "131": {
-    "en": "Rainbow Cursor",
-    "zh": "彩虹光标",
-    "type": "buff"
+    "en": "Turtle Mount",
+    "zh": "乌龟坐骑",
+    "desc": "Slow if by land, zoom if by sea",
+    "zhDesc": "在陆地上慢，在海里快",
+    "type": "mount"
   },
   "132": {
-    "en": "Goldfish",
-    "zh": "金鱼",
-    "type": "buff"
+    "en": "Bee Mount",
+    "zh": "蜜蜂坐骑",
+    "desc": "BzzzBzzBZZZZBzzz",
+    "zhDesc": "嗡嗡嗡嗡嗡嗡",
+    "type": "mount"
   },
   "133": {
-    "en": "Slap Hand",
-    "zh": "打手掌",
-    "type": "buff"
+    "en": "Spider",
+    "zh": "蜘蛛",
+    "desc": "The spider will fight for you",
+    "zhDesc": "蜘蛛将为你而战",
+    "type": "summon"
   },
   "134": {
-    "en": "Rainbow Cursor",
-    "zh": "彩虹光标",
-    "type": "buff"
+    "en": "Twins",
+    "zh": "双子",
+    "desc": "The twins will fight for you",
+    "zhDesc": "双子将为你而战",
+    "type": "summon"
   },
   "135": {
-    "en": "Torch God's Favor",
-    "zh": "火把神祝福",
-    "type": "buff"
+    "en": "Pirate",
+    "zh": "海盗",
+    "desc": "The pirate will fight for you",
+    "zhDesc": "海盗将为你而战",
+    "type": "summon"
   },
   "136": {
-    "en": "Torch God",
-    "zh": "火把神",
-    "type": "buff"
+    "en": "Mini Minotaur",
+    "zh": "迷你牛头怪",
+    "desc": "How do you defeat a mini Minotaur?",
+    "zhDesc": "你如何击败迷你牛头怪？",
+    "type": "summon"
   },
   "137": {
-    "en": "Tin",
-    "zh": "锡",
+    "en": "Slime",
+    "zh": "史莱姆",
+    "desc": "You are slimy and sticky",
+    "zhDesc": "你又黏又滑",
     "type": "buff"
   },
   "138": {
-    "en": "Silver",
-    "zh": "银",
-    "type": "buff"
+    "en": "Minecart",
+    "zh": "矿车",
+    "desc": "Riding in a minecart",
+    "zhDesc": "坐在矿车里",
+    "type": "mount"
   },
   "139": {
-    "en": "Tungsten",
-    "zh": "钨",
-    "type": "buff"
+    "en": "Sharknado",
+    "zh": "鲨鱼龙",
+    "desc": "The sharknado will fight for you",
+    "zhDesc": "鲨鱼龙将为你而战",
+    "type": "summon"
   },
   "140": {
-    "en": "Gold",
-    "zh": "金",
-    "type": "buff"
+    "en": "UFO",
+    "zh": "UFO",
+    "desc": "The UFO will fight for you",
+    "zhDesc": "UFO将为你而战",
+    "type": "summon"
   },
   "141": {
-    "en": "Platinum",
-    "zh": "铂金",
-    "type": "buff"
+    "en": "UFO Mount",
+    "zh": "UFO坐骑",
+    "desc": "It's a good thing you had a MAC",
+    "zhDesc": "幸好你有MAC",
+    "type": "mount"
   },
   "142": {
-    "en": "Shimmered",
-    "zh": "微光泽",
-    "type": "buff"
+    "en": "Drill Mount",
+    "zh": "钻头坐骑",
+    "desc": "Riding in a flying drill",
+    "zhDesc": "坐在飞行钻头上",
+    "type": "mount"
   },
   "143": {
-    "en": "Cursed",
-    "zh": "诅咒",
-    "type": "debuff"
+    "en": "Scutlix Mount",
+    "zh": "斯库特利克斯坐骑",
+    "desc": "Pew Pew",
+    "zhDesc": "砰砰",
+    "type": "mount"
   },
   "144": {
-    "en": "Drunk",
-    "zh": "醉酒",
-    "type": "debuff"
+    "en": "Electrified",
+    "zh": "触电",
+    "desc": "You cannot move",
+    "zhDesc": "你无法移动",
+    "type": "buff"
   },
   "145": {
-    "en": "Crimslime",
-    "zh": "猩红史莱姆",
-    "type": "pet"
+    "en": "Moon Bite",
+    "zh": "月咬",
+    "desc": "You are unable to absorb healing effects",
+    "zhDesc": "你无法吸收治疗效果",
+    "type": "debuff"
   },
   "146": {
-    "en": "Corrupt Slime",
-    "zh": "腐化史莱姆",
-    "type": "pet"
+    "en": "Happy!",
+    "zh": "快乐！",
+    "desc": "Movement speed increased and monster spawns reduced",
+    "zhDesc": "移动速度提高，怪物生成减少",
+    "type": "buff"
   },
   "147": {
-    "en": "Illuminant Slime",
-    "zh": "发光史莱姆",
-    "type": "pet"
+    "en": "Banner",
+    "zh": "旗帜",
+    "desc": "Increased damage and defense from the following:",
+    "zhDesc": "提高来自以下的伤害和防御：",
+    "type": "buff"
   },
   "148": {
-    "en": "Shadow Slime",
-    "zh": "暗影史莱姆",
-    "type": "pet"
+    "en": "Feral Bite",
+    "zh": "野性之咬",
+    "desc": "Increased damage, Decreased life regen, Causes status effects",
+    "zhDesc": "提高伤害，降低生命再生，造成状态效果",
+    "type": "buff"
   },
   "149": {
-    "en": "Desert Slime",
-    "zh": "沙漠史莱姆",
-    "type": "pet"
+    "en": "Webbed",
+    "zh": "蛛网",
+    "desc": "You are stuck",
+    "zhDesc": "你被卡住了",
+    "type": "debuff"
   },
   "150": {
-    "en": "Honey Slime",
-    "zh": "蜂蜜史莱姆",
-    "type": "pet"
+    "en": "Bewitched",
+    "zh": "蛊惑",
+    "desc": "Increased max number of minions",
+    "zhDesc": "提高最大召唤物数量",
+    "type": "buff"
   },
   "151": {
-    "en": "Rainbow Slime",
-    "zh": "彩虹史莱姆",
-    "type": "pet"
+    "en": "Life Drain",
+    "zh": "生命吸取",
+    "desc": "Increased life regeneration",
+    "zhDesc": "提高生命再生",
+    "type": "buff"
   },
   "152": {
-    "en": "Mothron",
-    "zh": "飞蛾",
-    "type": "pet"
+    "en": "Magic Lantern",
+    "zh": "魔法灯笼",
+    "desc": "An enchanted lantern is lighting your way",
+    "zhDesc": "一个魔法灯笼正在照亮你的路",
+    "type": "buff"
   },
   "153": {
-    "en": "Blood Moon",
-    "zh": "血月",
+    "en": "Shadowflame",
+    "zh": "暗影火焰",
+    "desc": "Losing life",
+    "zhDesc": "损失生命",
     "type": "debuff"
   },
   "154": {
-    "en": "Solar Eclipse",
-    "zh": "日食",
-    "type": "debuff"
+    "en": "Baby Face Monster",
+    "zh": "小脸怪宝宝",
+    "desc": "A baby face monster is following you",
+    "zhDesc": "一个小脸怪宝宝正在跟随你",
+    "type": "pet"
   },
   "155": {
-    "en": "Lunar Eclipse",
-    "zh": "月食",
-    "type": "debuff"
+    "en": "Crimson Heart",
+    "zh": "猩红之心",
+    "desc": "A magical heart that provides light",
+    "zhDesc": "一颗提供光芒的魔法心",
+    "type": "buff"
   },
   "156": {
-    "en": "Rain",
-    "zh": "雨",
+    "en": "Stoned",
+    "zh": "石化",
+    "desc": "You are completely petrified!",
+    "zhDesc": "你完全被石化了！",
     "type": "debuff"
   },
   "157": {
-    "en": "Sandstorm",
-    "zh": "沙尘暴",
-    "type": "debuff"
+    "en": "Peace Candle",
+    "zh": "和平蜡烛",
+    "desc": "Decreased monster spawn rate",
+    "zhDesc": "降低怪物生成率",
+    "type": "buff"
   },
   "158": {
-    "en": "Blizzard",
-    "zh": "暴风雪",
-    "type": "debuff"
+    "en": "Star in a Bottle",
+    "zh": "瓶中星",
+    "desc": "Increased mana regeneration",
+    "zhDesc": "提高魔力再生",
+    "type": "buff"
   },
   "159": {
-    "en": "Nimbus Storm",
-    "zh": "雨云风暴",
-    "type": "debuff"
+    "en": "Sharpened",
+    "zh": "锋利",
+    "desc": "Melee weapons have armor penetration",
+    "zhDesc": "近战武器有护甲穿透",
+    "type": "buff"
   },
   "160": {
-    "en": "Slimy",
-    "zh": "黏糊",
+    "en": "Dazed",
+    "zh": "眩晕",
+    "desc": "Movement is greatly slowed",
+    "zhDesc": "移动大幅减慢",
     "type": "debuff"
   },
   "161": {
-    "en": "Happy!",
-    "zh": "快乐",
-    "type": "buff"
+    "en": "Deadly Sphere",
+    "zh": "致命球体",
+    "desc": "The Deadly Sphere will fight for you",
+    "zhDesc": "致命球体将为你而战",
+    "type": "summon"
   },
   "162": {
-    "en": "Bewitched",
-    "zh": "被诅咒",
-    "type": "buff"
+    "en": "Unicorn Mount",
+    "zh": "独角兽坐骑",
+    "desc": "Charge ahead... fabulously!",
+    "zhDesc": "向前冲刺...美妙地！",
+    "type": "mount"
   },
   "163": {
-    "en": "Lifeforce",
-    "zh": "生命力",
-    "type": "buff"
+    "en": "Obstructed",
+    "zh": "遮蔽",
+    "desc": "You can't see!",
+    "zhDesc": "你看不到！",
+    "type": "debuff"
   },
   "164": {
-    "en": "Clairvoyance",
-    "zh": "洞察力",
-    "type": "buff"
+    "en": "Distorted",
+    "zh": "扭曲",
+    "desc": "Gravity around you is distorted",
+    "zhDesc": "你周围的重力被扭曲了",
+    "type": "debuff"
   },
   "165": {
-    "en": "Mana Flow",
-    "zh": "魔力涌动",
+    "en": "Dryad's Blessing",
+    "zh": "树妖祝福",
+    "desc": "The power of nature protects you",
+    "zhDesc": "自然之力保护你",
     "type": "buff"
   },
   "166": {
-    "en": "Shadow Dodge",
-    "zh": "暗影闪避",
-    "type": "buff"
+    "en": "Minecart",
+    "zh": "矿车",
+    "desc": "Riding in a minecart",
+    "zhDesc": "坐在矿车里",
+    "type": "mount"
   },
   "167": {
-    "en": "Ammo Box",
-    "zh": "弹药箱",
-    "type": "buff"
+    "en": "Minecart",
+    "zh": "矿车",
+    "desc": "Riding in a minecart",
+    "zhDesc": "坐在矿车里",
+    "type": "mount"
   },
   "168": {
-    "en": "Ammo Reservation",
-    "zh": "弹药保留",
-    "type": "buff"
+    "en": "Cute Fishron Mount",
+    "zh": "可爱猪鲨坐骑",
+    "desc": "Just don't make it crawl.",
+    "zhDesc": "只是别让它爬行。",
+    "type": "mount"
   },
   "169": {
-    "en": "Endurance",
-    "zh": "耐久",
-    "type": "buff"
+    "en": "Penetrated",
+    "zh": "穿透",
+    "desc": "Bleeding Out",
+    "zhDesc": "流血不止",
+    "type": "debuff"
   },
   "170": {
-    "en": "Rage",
-    "zh": "狂怒",
+    "en": "Solar Blaze",
+    "zh": "日光焰",
+    "desc": "Damage taken reduced by 30%, repel enemies when taking damage",
+    "zhDesc": "受到的伤害降低30%，受到伤害时击退敌人",
     "type": "buff"
   },
   "171": {
-    "en": "Inferno",
-    "zh": "地狱火",
+    "en": "Solar Blaze",
+    "zh": "日光焰",
+    "desc": "Damage taken reduced by 30%, repel enemies when taking damage",
+    "zhDesc": "受到的伤害降低30%，受到伤害时击退敌人",
     "type": "buff"
   },
   "172": {
-    "en": "Thorns",
-    "zh": "荆棘",
+    "en": "Solar Blaze",
+    "zh": "日光焰",
+    "desc": "Damage taken reduced by 30%, repel enemies when taking damage",
+    "zhDesc": "受到的伤害降低30%，受到伤害时击退敌人",
     "type": "buff"
   },
   "173": {
-    "en": "Titan Glove",
-    "zh": "泰坦手套",
+    "en": "Life Nebula",
+    "zh": "生命星云",
+    "desc": "Increased life regeneration",
+    "zhDesc": "提高生命再生",
     "type": "buff"
   },
   "174": {
-    "en": "Feral Claws",
-    "zh": "狂暴利爪",
+    "en": "Life Nebula",
+    "zh": "生命星云",
+    "desc": "Increased life regeneration",
+    "zhDesc": "提高生命再生",
     "type": "buff"
   },
   "175": {
-    "en": "Berserker's Gaze",
-    "zh": "狂战士凝视",
+    "en": "Life Nebula",
+    "zh": "生命星云",
+    "desc": "Increased life regeneration",
+    "zhDesc": "提高生命再生",
     "type": "buff"
   },
   "176": {
-    "en": "Warmth",
-    "zh": "温暖",
+    "en": "Mana Nebula",
+    "zh": "魔力星云",
+    "desc": "Increased mana regeneration",
+    "zhDesc": "提高魔力再生",
     "type": "buff"
   },
   "177": {
-    "en": "Invisibility",
-    "zh": "隐身",
+    "en": "Mana Nebula",
+    "zh": "魔力星云",
+    "desc": "Increased mana regeneration",
+    "zhDesc": "提高魔力再生",
     "type": "buff"
   },
   "178": {
-    "en": "Shine",
-    "zh": "光芒",
+    "en": "Mana Nebula",
+    "zh": "魔力星云",
+    "desc": "Increased mana regeneration",
+    "zhDesc": "提高魔力再生",
     "type": "buff"
   },
   "179": {
-    "en": "Night Owl",
-    "zh": "夜猫子",
+    "en": "Damage Nebula",
+    "zh": "伤害星云",
+    "desc": "15% increased damage",
+    "zhDesc": "伤害提高15%",
     "type": "buff"
   },
   "180": {
-    "en": "Battle",
-    "zh": "战斗",
+    "en": "Damage Nebula",
+    "zh": "伤害星云",
+    "desc": "30% increased damage",
+    "zhDesc": "伤害提高30%",
     "type": "buff"
   },
   "181": {
-    "en": "Dangersense",
-    "zh": "危险感知",
+    "en": "Damage Nebula",
+    "zh": "伤害星云",
+    "desc": "45% increased damage",
+    "zhDesc": "伤害提高45%",
     "type": "buff"
   },
   "182": {
-    "en": "Spelunker",
-    "zh": "探险者",
-    "type": "buff"
+    "en": "Stardust Cell",
+    "zh": "星尘细胞",
+    "desc": "The stardust cell will fight for you",
+    "zhDesc": "星尘细胞将为你而战",
+    "type": "summon"
   },
   "183": {
-    "en": "Gravitation",
-    "zh": "重力",
-    "type": "buff"
+    "en": "Celled",
+    "zh": "感染",
+    "desc": "being eaten by cells",
+    "zhDesc": "被细胞吃掉",
+    "type": "debuff"
   },
   "184": {
-    "en": "Thorns",
-    "zh": "荆棘",
-    "type": "buff"
+    "en": "Minecart",
+    "zh": "矿车",
+    "desc": "Riding in a minecart",
+    "zhDesc": "坐在矿车里",
+    "type": "mount"
   },
   "185": {
-    "en": "Water Walking",
-    "zh": "水上漂",
-    "type": "buff"
+    "en": "Minecart",
+    "zh": "矿车",
+    "desc": "Riding in a minecart",
+    "zhDesc": "坐在矿车里",
+    "type": "mount"
   },
   "186": {
-    "en": "Archery",
-    "zh": "箭术",
-    "type": "buff"
+    "en": "Dryad's Bane",
+    "zh": "树妖之祸",
+    "desc": "The power of nature compells you",
+    "zhDesc": "自然之力强迫你",
+    "type": "debuff"
   },
   "187": {
-    "en": "Hunter",
-    "zh": "猎人",
-    "type": "buff"
+    "en": "Stardust Guardian",
+    "zh": "星尘守护者",
+    "desc": "The stardust guardian will protect you",
+    "zhDesc": "星尘守护者将保护你",
+    "type": "summon"
   },
   "188": {
-    "en": "Obsidian Skin",
-    "zh": "黑曜石皮肤",
-    "type": "buff"
+    "en": "Stardust Dragon",
+    "zh": "星尘龙",
+    "desc": "The stardust dragon will protect you",
+    "zhDesc": "星尘龙将保护你",
+    "type": "summon"
   },
   "189": {
-    "en": "Regeneration",
-    "zh": "再生",
-    "type": "buff"
+    "en": "Daybroken",
+    "zh": "破晓",
+    "desc": "Incenerated by solar rays",
+    "zhDesc": "被太阳射线焚烧",
+    "type": "debuff"
   },
   "190": {
-    "en": "Swiftness",
-    "zh": "迅捷",
+    "en": "Suspicious Looking Eye",
+    "zh": "可疑眼球",
+    "desc": "A suspicious looking eye that provides light",
+    "zhDesc": "一个提供光芒的可疑眼球",
     "type": "buff"
   },
   "191": {
-    "en": "Gills",
-    "zh": "鱼鳃",
-    "type": "buff"
-  },
-  "192": {
-    "en": "Ironskin",
-    "zh": "铁皮",
-    "type": "buff"
+    "en": "Companion Cube",
+    "zh": "同伴方块",
+    "desc": "Will never threaten to stab you and, in fact, cannot speak",
+    "zhDesc": "永远不会威胁要刺伤你，实际上，也不会说话",
+    "type": "pet"
   },
   "193": {
-    "en": "Mana Regeneration",
-    "zh": "魔力再生",
-    "type": "buff"
+    "en": "Basilisk Mount",
+    "zh": "蜥蜴坐骑",
+    "desc": "Crash into anyone... and EVERYONE!",
+    "zhDesc": "撞上任何人...所有人！",
+    "type": "mount"
   },
   "194": {
-    "en": "Magic Power",
-    "zh": "魔法能量",
+    "en": "Mighty Wind",
+    "zh": "强风",
+    "desc": "The wind moves you around!",
+    "zhDesc": "风吹得你到处走！",
     "type": "buff"
   },
   "195": {
-    "en": "Featherfall",
-    "zh": "羽落",
-    "type": "buff"
+    "en": "Withered Armor",
+    "zh": "枯萎盔甲",
+    "desc": "Your armor is lowered!",
+    "zhDesc": "你的盔甲降低了！",
+    "type": "debuff"
   },
   "196": {
-    "en": "Invisibility",
-    "zh": "隐身",
-    "type": "buff"
+    "en": "Withered Weapon",
+    "zh": "枯萎武器",
+    "desc": "Your attacks are weaker!",
+    "zhDesc": "你的攻击变弱了！",
+    "type": "debuff"
   },
   "197": {
-    "en": "Shine",
-    "zh": "光芒",
-    "type": "buff"
+    "en": "Oozed",
+    "zh": "粘液",
+    "desc": "Movement is significantly reduced",
+    "zhDesc": "移动显著降低",
+    "type": "debuff"
   },
   "198": {
-    "en": "Night Owl",
-    "zh": "夜猫子",
+    "en": "Striking Moment",
+    "zh": "打击时刻",
+    "desc": "500% increased damage for next melee strike",
+    "zhDesc": "下一次近战攻击伤害提高500%",
     "type": "buff"
   },
   "199": {
-    "en": "Battle",
-    "zh": "战斗",
-    "type": "buff"
+    "en": "Creative Shock",
+    "zh": "创造震撼",
+    "desc": "You have lost the power of creation!",
+    "zhDesc": "你失去了创造的力量！",
+    "type": "debuff"
   },
   "200": {
-    "en": "Thorns",
-    "zh": "荆棘",
+    "en": "Propeller Gato",
+    "zh": "螺旋桨猫",
+    "desc": "A propeller gato is following you",
+    "zhDesc": "一只螺旋桨猫正在跟随你",
+    "type": "pet"
+  },
+  "201": {
+    "en": "Flickerwick",
+    "zh": "闪烁灯芯",
+    "desc": "A flickerwick is following you",
+    "zhDesc": "一个闪烁灯芯正在跟随你",
+    "type": "pet"
+  },
+  "202": {
+    "en": "Hoardagron",
+    "zh": "囤积龙",
+    "desc": "A hoardagron is following you",
+    "zhDesc": "一个囤积龙正在跟随你",
+    "type": "pet"
+  },
+  "203": {
+    "en": "Betsy's Curse",
+    "zh": "贝奇的诅咒",
+    "desc": "Defense is lowered",
+    "zhDesc": "防御降低",
+    "type": "debuff"
+  },
+  "204": {
+    "en": "Oiled",
+    "zh": "涂油",
+    "desc": "Taking more damage from being on fire",
+    "zhDesc": "着火时受到更多伤害",
+    "type": "debuff"
+  },
+  "205": {
+    "en": "Ballista Panic",
+    "zh": "弩炮恐慌",
+    "desc": "Your ballistas rapidly shoot in panic!",
+    "zhDesc": "你的弩炮惊慌失措地快速射击！",
     "type": "buff"
   }
 }

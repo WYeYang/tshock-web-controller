@@ -1,0 +1,42 @@
+[
+  {
+    "id": 1,
+    "error": "HTTP 429"
+  },
+  {
+    "id": 2,
+    "error": "HTTP 429"
+  },
+  {
+    "id": 3,
+    "error": "HTTP 429"
+  },
+  {
+    "id": 4,
+    "error": "HTTP 429"
+  },
+  {
+    "id": 5,
+    "error": "HTTP 429"
+  },
+  {
+    "id": 6,
+    "error": "HTTP 404"
+  },
+  {
+    "id": 7,
+    "error": "HTTP 429"
+  },
+  {
+    "id": 8,
+    "error": "HTTP 429"
+  },
+  {
+    "id": 9,
+    "error": "HTTP 404"
+  },
+  {
+    "id": 10,
+    "error": "HTTP 429"
+  }
+]

@@ -13,7 +13,9 @@ export interface PrefixData {
 export interface BuffData {
   en: string;
   zh: string;
-  type?: 'buff' | 'debuff' | 'pet';
+  desc?: string;
+  zhDesc?: string;
+  type?: 'buff' | 'debuff' | 'pet' | 'mount' | 'summon';
 }
 
 import itemsJson from './items.json' with { type: 'json' };
@@ -51,7 +53,7 @@ export function getBuffName(buffId: number): string | undefined {
   return data.zh || data.en;
 }
 
-export function getBuffType(buffId: number): 'buff' | 'debuff' | 'pet' | undefined {
+export function getBuffType(buffId: number): 'buff' | 'debuff' | 'pet' | 'mount' | 'summon' | undefined {
   const data = BUFF_DATA[buffId];
   if (!data) return undefined;
   return data.type;

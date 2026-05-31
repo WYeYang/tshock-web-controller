@@ -1,4 +1,4 @@
-import { ITEM_DATA, getItemIconUrl as getItemIconUrlFromData, getItemName, getPrefixName } from '../data';
+import { ITEM_DATA, BUFF_DATA, getItemIconUrl as getItemIconUrlFromData, getItemName, getPrefixName } from '../data';
 
 export interface ItemInfo {
   netId: number;
@@ -43,7 +43,7 @@ export function getItemTooltip(netId: number): string {
 }
 
 export function getBuffIconUrl(buffId: number): string {
-  return `https://terraria.wiki.gg/images/thumb/${getBuffIconPath(buffId)}/32px-${getBuffIconPath(buffId)}`;
+  return `https://terraria.wiki.gg/images/thumb/Buff_${buffId}.png/48px-Buff_${buffId}.png`;
 }
 
 export function getItemWikiUrl(netId: number): string {
@@ -51,9 +51,10 @@ export function getItemWikiUrl(netId: number): string {
 }
 
 export function getBuffWikiUrl(buffId: number): string {
+  const buffData = BUFF_DATA[buffId];
+  if (buffData && buffData.en) {
+    const wikiName = buffData.en.replace(/ /g, '_');
+    return `https://terraria.wiki.gg/wiki/${wikiName}`;
+  }
   return `https://terraria.wiki.gg/wiki/Buff_IDs#${buffId}`;
-}
-
-function getBuffIconPath(buffId: number): string {
-  return `Buff_${buffId}.png`;
 }
