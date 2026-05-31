@@ -1,4 +1,4 @@
-import type { ServerStatus, Player, CommandResult, ServerInfo, BanRecord } from '../types/tshock';
+import type { ServerStatus, Player, CommandResult, ServerInfo, BanRecord, Group, User } from '../types/tshock';
 import type { AppConfig } from '../types/config';
 
 const STORAGE_KEY = 'tshock-web-config';
@@ -259,11 +259,6 @@ export class TShockApi {
     return data.response || data;
   }
 
-  async getUserList(): Promise<any[]> {
-    const data: any = await this.request<any>('/v2/users/list');
-    return data.users || data.response || data || [];
-  }
-
   async executeCommand(cmd: string): Promise<CommandResult> {
     const data: any = await this.request<any>(`/v3/server/rawcmd?cmd=${encodeURIComponent(cmd)}`);
     
@@ -406,5 +401,41 @@ export class TShockApi {
   async loginUser(username: string, password: string): Promise<CommandResult> {
     const cmd = `/login ${username} ${password}`;
     return this.executeCommand(cmd);
+  }
+
+  async getGroups(): Promise<Group[]> {
+    const data: any = await this.request<any>('/v2/groups/list');
+    return data.groups || data.response || data || [];
+  }
+
+  async getGroup(groupName: string): Promise<Group> {
+    const data: any = await this.request<any>(`/v2/groups/read?group=${encodeURIComponent(groupName)}`);
+    return data.response || data;
+  }
+
+  async createGroup(groupName: string, parent?: string, permissions?: string[], chatcolor?: string): Promise<any> {
+    let endpoint = `/v2/groups/create?group=${encodeURIComponent(groupName)}`;
+    if (parent) endpoint += `&parent=${encodeURIComponent(parent)}`;
+    if (permissions && permissions.length > 0) endpoint += `&permissions=${encodeURIComponent(permissions.join(','))}`;
+    if (chatcolor) endpoint += `&chatcolor=${encodeURIComponent(chatcolor)}`;
+    return this.request<any>(endpoint);
+  }
+
+  async updateGroup(groupName: string, parent?: string, permissions?: string[], chatcolor?: string): Promise<any> {
+    let endpoint = `/v2/groups/update?group=${encodeURIComponent(groupName)}`;
+    if (parent) endpoint += `&parent=${encodeURIComponent(parent)}`;
+    if (permissions && permissions.length > 0) endpoint += `&permissions=${encodeURIComponent(permissions.join(','))}`;
+    if (chatcolor) endpoint += `&chatcolor=${encodeURIComponent(chatcolor)}`;
+    return this.request<any>(endpoint);
+  }
+
+  async deleteGroup(groupName: string): Promise<any> {
+    const endpoint = `/v2/groups/destroy?group=${encodeURIComponent(groupName)}`;
+    return this.request<any>(endpoint);
+  }
+
+  async getUserList(): Promise<User[]> {
+    const data: any = await this.request<any>('/v2/users/list');
+    return data.users || data.response || data || [];
   }
 }
