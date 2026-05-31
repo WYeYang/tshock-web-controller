@@ -272,8 +272,8 @@ export const HelpDocView = ({ onGoToConfig, onGoToDocs }: HelpDocViewProps) => {
               <p className="text-sm text-slate-400 mb-3">在 TShock 控制台或游戏中执行以下命令，为用户组添加必要权限：</p>
               <div className="space-y-2">
                 <div className="bg-slate-900/50 rounded p-3 border-2 border-cyan-500/40">
-                  <div className="font-mono text-green-400 text-sm mb-1">/group addperm owner tshock.rest</div>
-                  <p className="text-slate-300 text-xs">添加 REST API 基础访问权限</p>
+                  <div className="font-mono text-green-400 text-sm mb-1">/group addperm owner tshock.rest.*</div>
+                  <p className="text-slate-300 text-xs">添加所有 REST API 相关权限</p>
                   <p className="text-yellow-400 text-xs mt-2">重要：获取 Token 的用户必须在拥有此权限的组中</p>
                 </div>
               </div>

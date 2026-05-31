@@ -72,6 +72,24 @@ export interface ServerInfo {
   serverpassword: boolean;
 }
 
+export interface Group {
+  name: string;
+  parent: string;
+  permissions: string[];
+  chatcolor: string;
+  prefix?: string;
+  suffix?: string;
+}
+
+export interface User {
+  name: string;
+  group: string;
+  id?: number;
+  ip?: string;
+  uuid?: string;
+  registered?: string;
+}
+
 export interface ApiResponse<T> {
   status: string;
   response: T;

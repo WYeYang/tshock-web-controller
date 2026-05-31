@@ -1,18 +1,54 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useTShock } from '../hooks/useTShock';
-import type { Player, BanRecord } from '../types/tshock';
+import type { Player, BanRecord, Group } from '../types/tshock';
+import { GroupList } from './GroupList';
+import { GroupEditModal } from './GroupEditModal';
+import { CreateGroupModal } from './CreateGroupModal';
+import { DeleteGroupModal } from './DeleteGroupModal';
 
 interface ServerStatusViewProps {
   onGoToConfig?: () => void;
 }
 
 export function ServerStatusView({ onGoToConfig }: ServerStatusViewProps) {
-  const { loading, error, clearError, getServerInfo, getPlayers, kickPlayer, getBanList, unbanPlayer, getPlayerDetails, banMultipleIdentifiers, mutePlayer, unmutePlayer, teleportToPlayer, changeGroup, executeCommand } = useTShock();
+  const {
+    loading,
+    error,
+    clearError,
+    getServerInfo,
+    getPlayers,
+    kickPlayer,
+    getBanList,
+    unbanPlayer,
+    getPlayerDetails,
+    banMultipleIdentifiers,
+    mutePlayer,
+    unmutePlayer,
+    changeGroup,
+    executeCommand,
+    groups,
+    users,
+    loadingGroups,
+    fetchGroups,
+    fetchUsers,
+    fetchGroup,
+    createNewGroup,
+    updateExistingGroup,
+    deleteExistingGroup,
+  } = useTShock();
   const [serverInfo, setServerInfo] = useState<any>(null);
   const [players, setPlayers] = useState<Player[]>([]);
   const [banList, setBanList] = useState<BanRecord[]>([]);
-  const [activeTab, setActiveTab] = useState<'players' | 'bans'>('players');
+  const [activeTab, setActiveTab] = useState<'players' | 'bans' | 'groups'>('players');
+
+  // 用户组编辑相关状态
+  const [selectedGroupForEdit, setSelectedGroupForEdit] = useState<Group | null>(null);
+  const [groupEditModalOpen, setGroupEditModalOpen] = useState(false);
+  const [groupEditModalInitialTab, setGroupEditModalInitialTab] = useState<'basic' | 'permissions' | 'members'>('basic');
+  const [createGroupDialogOpen, setCreateGroupDialogOpen] = useState(false);
+  const [confirmDeleteGroup, setConfirmDeleteGroup] = useState<string | null>(null);
+
   const [selectedPlayer, setSelectedPlayer] = useState<Player | null>(null);
   const [playerDetail, setPlayerDetail] = useState<Player | null>(null);
   const [playerDetailModalOpen, setPlayerDetailModalOpen] = useState(false);
@@ -23,7 +59,7 @@ export function ServerStatusView({ onGoToConfig }: ServerStatusViewProps) {
   const reasonInputRef = useRef<HTMLInputElement>(null);
   const valueInputRef = useRef<HTMLInputElement>(null);
   const amountInputRef = useRef<HTMLInputElement>(null);
-  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null); // 定时器引用
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const fetchData = useCallback(async () => {
     try {
@@ -36,10 +72,18 @@ export function ServerStatusView({ onGoToConfig }: ServerStatusViewProps) {
     }
   }, [getServerInfo, getPlayers, getBanList]);
 
+  const fetchGroupsAndUsers = useCallback(async () => {
+    try {
+      await Promise.all([fetchGroups(), fetchUsers()]);
+    } catch (err) {
+      console.error('Failed to fetch groups or users:', err);
+    }
+  }, [fetchGroups, fetchUsers]);
+
   useEffect(() => {
     fetchData();
-    // 只有在没有弹窗打开时才设置定时器
-    if (!playerDetailModalOpen && !confirmDialog.isOpen) {
+    fetchGroupsAndUsers();
+    if (!playerDetailModalOpen && !confirmDialog.isOpen && !groupEditModalOpen && !createGroupDialogOpen && !confirmDeleteGroup) {
       intervalRef.current = setInterval(fetchData, 30000);
     }
     return () => {
@@ -47,25 +91,48 @@ export function ServerStatusView({ onGoToConfig }: ServerStatusViewProps) {
         clearInterval(intervalRef.current);
       }
     };
-  }, [fetchData]);
+  }, [fetchData, fetchGroupsAndUsers]);
 
-  // 监听弹窗状态变化，暂停或恢复定时器
   useEffect(() => {
-    if (playerDetailModalOpen || confirmDialog.isOpen) {
-      // 弹窗打开，暂停定时器
+    if (activeTab === 'groups') {
+      fetchGroupsAndUsers();
+    }
+  }, [activeTab, fetchGroupsAndUsers]);
+
+  useEffect(() => {
+    if (playerDetailModalOpen || confirmDialog.isOpen || groupEditModalOpen || createGroupDialogOpen || confirmDeleteGroup) {
       if (intervalRef.current) {
         clearInterval(intervalRef.current);
         intervalRef.current = null;
       }
     } else {
-      // 弹窗关闭，恢复定时器
       if (!intervalRef.current) {
         intervalRef.current = setInterval(fetchData, 30000);
       }
     }
-  }, [playerDetailModalOpen, confirmDialog.isOpen, fetchData]);
+  }, [playerDetailModalOpen, confirmDialog.isOpen, groupEditModalOpen, createGroupDialogOpen, confirmDeleteGroup, fetchData]);
 
   const showToast = (message: string, type: 'success' | 'error' | 'info') => setToast({ message, type });
+
+  // 用户组编辑相关函数
+  const openGroupEditModal = async (group: Group, initialTab?: 'basic' | 'permissions' | 'members') => {
+    try {
+      // 获取完整用户组详情，包含权限
+      const fullGroup = await fetchGroup(group.name);
+      setSelectedGroupForEdit({ ...fullGroup });
+      setGroupEditModalInitialTab(initialTab || 'basic');
+      setGroupEditModalOpen(true);
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : '获取用户组详情失败';
+      showToast(errorMessage, 'error');
+    }
+  };
+
+  const closeGroupEditModal = () => {
+    setGroupEditModalOpen(false);
+    setSelectedGroupForEdit(null);
+    setGroupEditModalInitialTab('basic');
+  };
 
   const openPlayerDetail = async (player: Player) => {
     setSelectedPlayer(player);
@@ -122,7 +189,7 @@ export function ServerStatusView({ onGoToConfig }: ServerStatusViewProps) {
         if (detail.ip) identifiers.push(`ip:${detail.ip}`);
         const banReason = reason || '违规封禁';
         const results = await banMultipleIdentifiers(identifiers, banReason);
-        const successCount = results.filter(r => r.success).length;
+        const successCount = results.filter((r: any) => r.success).length;
         showToast(`封禁成功！已处理 ${successCount}/${identifiers.length} 个标识符`, 'success');
       } else if (confirmDialog.type === 'unban' && confirmDialog.banRecord) {
         await unbanPlayer(confirmDialog.banRecord.ticket_number);
@@ -133,9 +200,6 @@ export function ServerStatusView({ onGoToConfig }: ServerStatusViewProps) {
       } else if (confirmDialog.type === 'unmute' && confirmDialog.player) {
         await unmutePlayer(confirmDialog.player.nickname);
         showToast(`已取消禁言玩家 ${confirmDialog.player.nickname}`, 'success');
-      } else if (confirmDialog.type === 'teleportTo' && confirmDialog.player) {
-        await teleportToPlayer(confirmDialog.player.nickname);
-        showToast(`已传送至玩家 ${confirmDialog.player.nickname}`, 'success');
       } else if (confirmDialog.type === 'changeGroup' && confirmDialog.player && inputValue) {
         await changeGroup(confirmDialog.player.nickname, inputValue);
         showToast(`已将玩家 ${confirmDialog.player.nickname} 的用户组修改为 ${inputValue}`, 'success');
@@ -531,6 +595,10 @@ export function ServerStatusView({ onGoToConfig }: ServerStatusViewProps) {
               封禁列表
               <span className={`px-2 py-0.5 rounded text-xs ${activeTab === 'bans' ? 'bg-red-500/30' : 'bg-slate-700/50'}`}>{banList.length}</span>
             </button>
+            <button onClick={() => setActiveTab('groups')} className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${activeTab === 'groups' ? 'bg-cyan-500/20 text-cyan-400' : 'text-slate-400 hover:text-white hover:bg-slate-700/50'}`}>
+              用户组管理
+              <span className={`px-2 py-0.5 rounded text-xs ${activeTab === 'groups' ? 'bg-cyan-500/30' : 'bg-slate-700/50'}`}>{groups.length}</span>
+            </button>
           </div>
 
           {activeTab === 'players' && (
@@ -555,7 +623,6 @@ export function ServerStatusView({ onGoToConfig }: ServerStatusViewProps) {
                         </div>
                         <div className="flex items-center gap-2 flex-shrink-0">
                           {player.active && <span className="px-2 py-0.5 bg-green-500/20 text-green-400 text-xs rounded-full">在线</span>}
-                          &gt;
                         </div>
                       </div>
                     </div>
@@ -603,12 +670,63 @@ export function ServerStatusView({ onGoToConfig }: ServerStatusViewProps) {
               )}
             </div>
           )}
+
+          {activeTab === 'groups' && (
+            <div>
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-white font-semibold">用户组列表</h3>
+                <button
+                  onClick={() => setCreateGroupDialogOpen(true)}
+                  className="px-4 py-2 bg-gradient-to-r from-cyan-500 to-blue-500 rounded-lg text-white text-sm font-medium hover:opacity-90 transition-all"
+                >
+                  + 创建新组
+                </button>
+              </div>
+
+              {loadingGroups && groups.length === 0 ? (
+                <div className="space-y-3">加载中...</div>
+              ) : groups.length > 0 ? (
+                <GroupList
+                  groups={groups}
+                  onEditGroup={openGroupEditModal}
+                  onDeleteGroup={(name) => setConfirmDeleteGroup(name)}
+                />
+              ) : (
+                <div className="text-center py-12">
+                  <p className="text-slate-500 text-lg">暂无用户组</p>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
 
       <PlayerDetailModalComp />
       <ConfirmDialogComp />
       <ToastComp />
+      <GroupEditModal
+        isOpen={groupEditModalOpen}
+        onClose={closeGroupEditModal}
+        group={selectedGroupForEdit}
+        users={users}
+        onUpdateGroup={updateExistingGroup}
+        onChangeUserGroup={changeGroup}
+        showToast={showToast}
+        refreshUsers={fetchUsers}
+        initialTab={groupEditModalInitialTab}
+      />
+      <CreateGroupModal
+        isOpen={createGroupDialogOpen}
+        onClose={() => setCreateGroupDialogOpen(false)}
+        onCreateGroup={createNewGroup}
+      />
+      <DeleteGroupModal
+        isOpen={!!confirmDeleteGroup}
+        onClose={() => setConfirmDeleteGroup(null)}
+        groupName={confirmDeleteGroup}
+        onDelete={deleteExistingGroup}
+        showToast={showToast}
+      />
     </div>
   );
 }
