@@ -1,11 +1,13 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useTShock } from '../hooks/useTShock';
-import type { Player, BanRecord, Group } from '../types/tshock';
+import type { Player, BanRecord, Group, InventoryItem } from '../types/tshock';
 import { GroupList } from './GroupList';
 import { GroupEditModal } from './GroupEditModal';
 import { CreateGroupModal } from './CreateGroupModal';
 import { DeleteGroupModal } from './DeleteGroupModal';
+import { ItemSlot } from './ItemSlot';
+import { getBuffIconUrl, getBuffWikiUrl } from '../utils/terraria';
 
 interface ServerStatusViewProps {
   onGoToConfig?: () => void;
@@ -377,10 +379,87 @@ export function ServerStatusView({ onGoToConfig }: ServerStatusViewProps) {
     );
   };
 
+  interface BuffSlotProps {
+    buffId: number;
+    timeLeft?: string;
+  }
+
+  const BuffSlot = ({ buffId, timeLeft }: BuffSlotProps) => {
+    if (buffId === 0) {
+      return (
+        <div className="w-10 h-10 bg-slate-800/50 border border-slate-700/50 rounded flex items-center justify-center">
+        </div>
+      );
+    }
+
+    return (
+      <a
+        href={getBuffWikiUrl(buffId)}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="w-10 h-10 bg-slate-800/70 border border-slate-700/70 rounded flex items-center justify-center relative hover:border-slate-500 transition-colors"
+      >
+        <img
+          src={getBuffIconUrl(buffId)}
+          alt={`Buff ${buffId}`}
+          className="w-8 h-8 object-contain"
+          loading="lazy"
+          onError={(e) => {
+            (e.target as HTMLImageElement).style.display = 'none';
+          }}
+        />
+        {timeLeft && (
+          <span className="absolute bottom-0 right-0 text-xs font-bold text-white bg-slate-900/80 px-1 rounded-tl">
+            {timeLeft}
+          </span>
+        )}
+      </a>
+    );
+  };
+
   const PlayerDetailModalComp = () => {
+    const [activeInventoryTab, setActiveInventoryTab] = useState<'inventory' | 'equipment' | 'dyes' | 'piggy' | 'safe' | 'forge'>('inventory');
+    
     if (!playerDetailModalOpen) return null;
     const displayPlayer = playerDetail || selectedPlayer;
     if (!displayPlayer) return null;
+
+    const tabs = [
+      { key: 'inventory', label: '背包' },
+      { key: 'equipment', label: '装备' },
+      { key: 'dyes', label: '染料' },
+      { key: 'piggy', label: '猪猪存钱罐' },
+      { key: 'safe', label: '保险箱' },
+      { key: 'forge', label: '熔炉' },
+    ];
+
+    const parseBuffString = (buffString: string): { buffId: number; timeLeft: string }[] => {
+      const buffs: { buffId: number; timeLeft: string }[] = [];
+      const lines = buffString.split('\n');
+      for (const line of lines) {
+        const match = line.match(/Buff (\d+):.*?(\d+ seconds?)?/i);
+        if (match) {
+          buffs.push({
+            buffId: parseInt(match[1]),
+            timeLeft: match[2] || ''
+          });
+        }
+      }
+      return buffs;
+    };
+
+    const renderItemGrid = (items: InventoryItem[], gridCols: number = 10) => {
+      return (
+        <div 
+          className="grid gap-1"
+          style={{ gridTemplateColumns: `repeat(${gridCols}, minmax(0, 1fr))` }}
+        >
+          {items.map((item, index) => (
+            <ItemSlot key={index} item={item} />
+          ))}
+        </div>
+      );
+    };
 
     return (
       <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 lg:pl-[280px]">
@@ -441,26 +520,60 @@ export function ServerStatusView({ onGoToConfig }: ServerStatusViewProps) {
                 </div>
               </div>
 
-              {displayPlayer.inventory && (
+              {displayPlayer.items && (
                 <div className="mb-4 sm:mb-6">
                   <h3 className="text-base sm:text-lg font-semibold text-white mb-3 sm:mb-4 flex items-center gap-2">
-                    背包
+                    物品
                   </h3>
+                  <div className="flex gap-1 overflow-x-auto pb-2 mb-3">
+                    {tabs.map((tab) => (
+                      <button
+                        key={tab.key}
+                        onClick={() => setActiveInventoryTab(tab.key as any)}
+                        className={`px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium whitespace-nowrap transition-all ${
+                          activeInventoryTab === tab.key
+                            ? 'bg-purple-500/20 text-purple-400'
+                            : 'text-slate-400 hover:text-white hover:bg-slate-700/50'
+                        }`}
+                      >
+                        {tab.label}
+                      </button>
+                    ))}
+                  </div>
                   <div className="bg-slate-800/30 p-3 sm:p-4 rounded-lg border border-slate-700/50">
-                    <p className="text-slate-300 whitespace-pre-wrap text-xs sm:text-sm">{displayPlayer.inventory}</p>
+                    {displayPlayer.items[activeInventoryTab] && displayPlayer.items[activeInventoryTab].length > 0 ? (
+                      renderItemGrid(displayPlayer.items[activeInventoryTab])
+                    ) : (
+                      <p className="text-slate-500 text-sm">暂无物品</p>
+                    )}
                   </div>
                 </div>
               )}
 
-              {displayPlayer.armor && (
-                <div className="mb-4 sm:mb-6">
-                  <h3 className="text-base sm:text-lg font-semibold text-white mb-3 sm:mb-4 flex items-center gap-2">
-                    装备
-                  </h3>
-                  <div className="bg-slate-800/30 p-3 sm:p-4 rounded-lg border border-slate-700/50">
-                    <p className="text-slate-300 whitespace-pre-wrap text-xs sm:text-sm">{displayPlayer.armor}</p>
-                  </div>
-                </div>
+              {!displayPlayer.items && (
+                <>
+                  {displayPlayer.inventory && (
+                    <div className="mb-4 sm:mb-6">
+                      <h3 className="text-base sm:text-lg font-semibold text-white mb-3 sm:mb-4 flex items-center gap-2">
+                        背包
+                      </h3>
+                      <div className="bg-slate-800/30 p-3 sm:p-4 rounded-lg border border-slate-700/50">
+                        <p className="text-slate-300 whitespace-pre-wrap text-xs sm:text-sm">{displayPlayer.inventory}</p>
+                      </div>
+                    </div>
+                  )}
+
+                  {displayPlayer.armor && (
+                    <div className="mb-4 sm:mb-6">
+                      <h3 className="text-base sm:text-lg font-semibold text-white mb-3 sm:mb-4 flex items-center gap-2">
+                        装备
+                      </h3>
+                      <div className="bg-slate-800/30 p-3 sm:p-4 rounded-lg border border-slate-700/50">
+                        <p className="text-slate-300 whitespace-pre-wrap text-xs sm:text-sm">{displayPlayer.armor}</p>
+                      </div>
+                    </div>
+                  )}
+                </>
               )}
 
               {displayPlayer.buffs && (
@@ -469,7 +582,19 @@ export function ServerStatusView({ onGoToConfig }: ServerStatusViewProps) {
                     增益效果
                   </h3>
                   <div className="bg-slate-800/30 p-3 sm:p-4 rounded-lg border border-slate-700/50">
-                    <p className="text-slate-300 whitespace-pre-wrap text-xs sm:text-sm">{displayPlayer.buffs}</p>
+                    {(() => {
+                      const buffs = parseBuffString(displayPlayer.buffs!);
+                      if (buffs.length > 0) {
+                        return (
+                          <div className="grid grid-cols-10 gap-1">
+                            {buffs.map((buff, index) => (
+                              <BuffSlot key={index} buffId={buff.buffId} timeLeft={buff.timeLeft} />
+                            ))}
+                          </div>
+                        );
+                      }
+                      return <p className="text-slate-300 whitespace-pre-wrap text-xs sm:text-sm">{displayPlayer.buffs}</p>;
+                    })()}
                   </div>
                 </div>
               )}
