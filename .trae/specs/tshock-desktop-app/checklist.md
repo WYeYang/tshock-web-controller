@@ -2,11 +2,12 @@
 
 ## Phase 1: 项目基础配置
 
-- [ ] Electron依赖已正确安装（package.json包含electron相关依赖）
+- [ ] Electron依赖已正确安装为devDependencies（package.json包含electron相关依赖）
 - [ ] electron-builder已配置并能正常运行
 - [ ] electron-store已安装并配置
 - [ ] tree-kill和chokidar依赖已安装
 - [ ] package.json包含electron开发脚本（dev/build）
+- [ ] **Web打包产物不包含Electron运行时**
 - [ ] Electron主进程文件结构正确
 - [ ] preload脚本正确配置
 - [ ] 主进程窗口创建逻辑正常

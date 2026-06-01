@@ -1,15 +1,17 @@
-export type ViewType = 'command' | 'server' | 'help' | 'docs' | 'config';
+export type ViewType = 'command' | 'server' | 'help' | 'docs' | 'config' | 'terminal' | 'config-editor';
 
 interface SidebarProps {
   currentView: ViewType;
   onViewChange: (view: ViewType) => void;
   isConfigured: boolean;
+  isDesktop?: boolean;
 }
 
 interface MenuItem {
   id: ViewType;
   label: string;
   icon: React.ReactNode;
+  desktopOnly?: boolean;
 }
 
 const menuItems: MenuItem[] = [
@@ -21,6 +23,16 @@ const menuItems: MenuItem[] = [
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
       </svg>
     ),
+  },
+  {
+    id: 'terminal',
+    label: '终端',
+    icon: (
+      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+      </svg>
+    ),
+    desktopOnly: true,
   },
   {
     id: 'server',
@@ -61,10 +73,16 @@ const menuItems: MenuItem[] = [
   },
 ];
 
-export const Sidebar = ({ currentView, onViewChange, isConfigured }: SidebarProps) => {
-  const visibleMenuItems = isConfigured 
-    ? menuItems 
-    : menuItems.filter(item => item.id === 'help' || item.id === 'docs' || item.id === 'config');
+export const Sidebar = ({ currentView, onViewChange, isConfigured, isDesktop = false }: SidebarProps) => {
+  const visibleMenuItems = menuItems.filter(item => {
+    if (item.desktopOnly && !isDesktop) {
+      return false;
+    }
+    if (isConfigured) {
+      return true;
+    }
+    return item.id === 'help' || item.id === 'docs' || item.id === 'config';
+  });
 
   return (
     <div className="w-[280px] h-full bg-slate-950/80 backdrop-blur-xl border-r border-slate-700/50 p-4 overflow-y-auto flex flex-col">

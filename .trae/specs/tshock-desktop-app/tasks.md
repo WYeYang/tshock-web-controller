@@ -10,14 +10,15 @@
 
 ### 任务 1.1: 安装Electron相关依赖
 
-- [ ] 安装Electron核心包和开发依赖
-- [ ] 安装electron-builder用于打包
-- [ ] 安装electron-store用于配置存储
-- [ ] 安装tree-kill用于进程管理
-- [ ] 安装chokidar用于文件监控
+- [ ] 安装Electron核心包作为devDependencies
+- [ ] 安装electron-builder作为devDependencies
+- [ ] 安装electron-store作为devDependencies
+- [ ] 安装tree-kill作为devDependencies
+- [ ] 安装chokidar作为devDependencies
 - [ ] 配置package.json中的electron脚本
+- [ ] 验证Web打包不包含Electron运行时
 
-**验证**: 运行`npm run electron:dev`能启动开发服务器
+**验证**: Web打包产物中不包含electron目录或相关运行时
 
 ---
 

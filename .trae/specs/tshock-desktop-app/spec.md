@@ -214,11 +214,76 @@ const isElectron = !!window.require || !!window.electronAPI;
 
 ### 依赖项
 
-- **Electron**: ^28.0.0（桌面应用框架）
-- **electron-builder**: ^24.0.0（打包工具）
-- **electron-store**: ^8.0.0（配置存储）
-- **tree-kill**: ^1.2.0（进程终止）
-- **chokidar**: ^3.5.0（文件监控）
+- **Electron**: ^28.0.0（仅开发依赖，打包时通过electron-builder独立处理）
+- **electron-builder**: ^24.0.0（仅开发依赖）
+- **electron-store**: ^8.0.0（仅主进程使用，不打入Web包）
+- **tree-kill**: ^1.2.0（仅主进程使用）
+- **chokidar**: ^3.5.0（仅主进程使用）
+
+### 依赖管理策略
+
+为确保Web打包不包含Electron运行时依赖，采用以下策略：
+
+1. **开发依赖分离**：Electron及其相关包仅作为devDependencies
+2. **条件导入**：渲染进程代码使用运行时检测，不在导入时引入Electron模块
+3. **代码分割**：Electron特定功能使用动态导入或条件执行
+4. **独立打包**：使用electron-builder的asar配置分离主进程和渲染进程
+
+```json
+// package.json 结构
+{
+  "dependencies": {
+    // Web端运行时依赖（不含Electron）
+  },
+  "devDependencies": {
+    // Electron相关（仅开发时使用）
+    "electron": "^28.0.0",
+    "electron-builder": "^24.0.0",
+    "electron-store": "^8.0.0",
+    "tree-kill": "^1.2.0",
+    "chokidar": "^3.5.0"
+  }
+}
+```
+
+### 条件导入示例
+
+```typescript
+// usePlatform.ts - 条件导入，不影响Web打包
+let electronAPI: any = null;
+
+if (typeof window !== 'undefined') {
+  // @ts-ignore - 仅在Electron环境中存在
+  electronAPI = window.electronAPI;
+}
+
+export const isElectron = !!electronAPI;
+```
+
+### electron-builder配置
+
+```json
+{
+  "appId": "com.tshock.web-controller",
+  "productName": "TShock Controller",
+  "directories": {
+    "output": "release"
+  },
+  "files": [
+    "dist/**/*",
+    "node_modules/electron-store/**/*",
+    "node_modules/tree-kill/**/*",
+    "node_modules/chokidar/**/*"
+  ],
+  "extraResources": [
+    {
+      "from": "electron/",
+      "to": "electron/",
+      "filter": ["**/*"]
+    }
+  ]
+}
+```
 
 ## 配置数据结构
 

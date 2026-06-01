@@ -7,15 +7,17 @@ import { HelpDocView } from './HelpDocView';
 import { DocView } from './DocView';
 import { ConfigView } from './ConfigView';
 import { useConfig } from '../hooks/useConfig';
+import { usePlatform } from '../hooks/usePlatform';
+import { TerminalView } from './TerminalView';
 
 export const Dashboard = () => {
   const { config } = useConfig();
+  const { isElectron } = usePlatform();
   const [currentView, setCurrentView] = useState<ViewType>('help');
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [previousConfigured, setPreviousConfigured] = useState(false);
   const [selectedDocId, setSelectedDocId] = useState<string | undefined>(undefined);
 
-  // 直接计算是否已配置
   const isConfigured = !!(config.tshock.serverUrl && config.tshock.token);
 
   useEffect(() => {
@@ -32,12 +34,14 @@ export const Dashboard = () => {
   }, [config.tshock.serverUrl, config.tshock.token, currentView]);
 
   const renderView = () => {
-    // 如果用户明确选择了配置面板，即使未配置也显示配置面板
     if (currentView === 'config') {
       return <ConfigView />;
     }
-    
-    // 如果未配置且不是在配置面板，显示帮助文档或文档中心
+
+    if (currentView === 'terminal' && isElectron) {
+      return <TerminalView />;
+    }
+
     if (!isConfigured) {
       if (currentView === 'help') {
         return <HelpDocView onGoToConfig={() => setCurrentView('config')} />;
@@ -46,8 +50,7 @@ export const Dashboard = () => {
       }
       return <HelpDocView onGoToConfig={() => setCurrentView('config')} />;
     }
-    
-    // 已配置时正常切换视图
+
     switch (currentView) {
       case 'command':
         return <CommandAssistantView />;
@@ -87,6 +90,7 @@ export const Dashboard = () => {
             setIsMobileSidebarOpen(false);
           }}
           isConfigured={isConfigured}
+          isDesktop={isElectron}
         />
       </div>
 
@@ -104,6 +108,7 @@ export const Dashboard = () => {
           </button>
           <h1 className="text-xl font-bold text-gradient">
             {currentView === 'command' && '命令助手'}
+            {currentView === 'terminal' && '终端'}
             {currentView === 'server' && '服务器状态'}
             {currentView === 'help' && '帮助文档'}
             {currentView === 'docs' && '文档中心'}

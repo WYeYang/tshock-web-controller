@@ -2,6 +2,7 @@ import { useState, useCallback } from 'react';
 import { TShockApi } from '../services/tshockApi';
 import { useConfig } from './useConfig';
 import type { ServerStatus, Player, CommandResult, ServerInfo, BanRecord, Group, User } from '../types/tshock';
+import { electronBridge, isElectronAvailable } from '../services/electronBridge';
 
 export const useTShock = () => {
   const { updateTshockConfig } = useConfig();
@@ -147,6 +148,15 @@ export const useTShock = () => {
         updateData.serverUrl = serverUrl;
       }
       updateTshockConfig(updateData);
+
+      if (isElectronAvailable) {
+        try {
+          await electronBridge.config.setToken(token);
+        } catch (electronErr) {
+          console.warn('Failed to save token to config.json:', electronErr);
+        }
+      }
+
       return token;
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : '获取Token失败';
