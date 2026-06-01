@@ -1,0 +1,89 @@
+{
+  "title": "TShock API curl 命令集合",
+  "version": "1.0.0",
+  "date": "2026-05-31",
+  "base_url": "http://localhost:7878",
+  "token": "F94D0AC988BD92C650C07E4570044B6D8B4859048233E8F4980429405906F724",
+  "curl_commands": [
+    {
+      "id": 1,
+      "name": "获取服务器状态",
+      "description": "获取服务器的当前状态信息",
+      "command": "curl -s \"http://localhost:7878/v2/server/status?token=F94D0AC988BD92C650C07E4570044B6D8B4859048233E8F4980429405906F724\" | jq \".\""
+    },
+    {
+      "id": 2,
+      "name": "获取用户列表",
+      "description": "获取所有注册用户的列表",
+      "command": "curl -s \"http://localhost:7878/v2/users/list?token=F94D0AC988BD92C650C07E4570044B6D8B4859048233E8F4980429405906F724\" | jq \".\""
+    },
+    {
+      "id": 3,
+      "name": "获取用户详情",
+      "description": "根据用户名获取用户详细信息",
+      "command": "curl -s \"http://localhost:7878/v2/users/read?user=wen&type=name&token=F94D0AC988BD92C650C07E4570044B6D8B4859048233E8F4980429405906F724\" | jq \".\""
+    },
+    {
+      "id": 4,
+      "name": "修改用户组",
+      "description": "将用户 wen 从 owner 组修改为 admin 组",
+      "command": "curl -s \"http://localhost:7878/v2/users/update?user=wen&type=name&group=admin&token=F94D0AC988BD92C650C07E4570044B6D8B4859048233E8F4980429405906F724\" | jq \".\""
+    },
+    {
+      "id": 5,
+      "name": "获取用户组列表",
+      "description": "获取所有用户组的列表",
+      "command": "curl -s \"http://localhost:7878/v2/groups/list?token=F94D0AC988BD92C650C07E4570044B6D8B4859048233E8F4980429405906F724\" | jq \".\""
+    },
+    {
+      "id": 6,
+      "name": "获取在线玩家列表",
+      "description": "获取当前在线的玩家列表",
+      "command": "curl -s \"http://localhost:7878/v2/players/list?token=F94D0AC988BD92C650C07E4570044B6D8B4859048233E8F4980429405906F724\" | jq \".\""
+    },
+    {
+      "id": 7,
+      "name": "获取玩家详细信息",
+      "description": "获取在线玩家的详细信息（包括背包）",
+      "command": "curl -s \"http://localhost:7878/v3/players/read?player=wen&token=F94D0AC988BD92C650C07E4570044B6D8B4859048233E8F4980429405906F724\" | jq \".\""
+    },
+    {
+      "id": 8,
+      "name": "创建用户",
+      "description": "创建新用户",
+      "command": "curl -s \"http://localhost:7878/v2/users/create?user=newuser&password=123456&group=default&token=F94D0AC988BD92C650C07E4570044B6D8B4859048233E8F4980429405906F724\" | jq \".\""
+    },
+    {
+      "id": 9,
+      "name": "踢出玩家",
+      "description": "踢出指定玩家",
+      "command": "curl -s \"http://localhost:7878/v2/players/kick?player=PlayerName&reason=违规&token=F94D0AC988BD92C650C07E4570044B6D8B4859048233E8F4980429405906F724\" | jq \".\""
+    },
+    {
+      "id": 10,
+      "name": "执行命令",
+      "description": "在服务器上执行命令",
+      "command": "curl -s \"http://localhost:7878/v3/server/rawcmd?cmd=/say Hello&token=F94D0AC988BD92C650C07E4570044B6D8B4859048233E8F4980429405906F724\" | jq \".\""
+    }
+  ],
+  "powershell_commands": [
+    {
+      "id": 1,
+      "name": "获取服务器状态",
+      "description": "使用 PowerShell 获取服务器状态",
+      "command": "$token = \"F94D0AC988BD92C650C07E4570044B6D8B4859048233E8F4980429405906F724\"; curl.exe -s \"http://localhost:7878/v2/server/status?token=$token\" | jq \".\""
+    },
+    {
+      "id": 2,
+      "name": "获取用户列表",
+      "description": "使用 PowerShell 获取用户列表",
+      "command": "$token = \"F94D0AC988BD92C650C07E4570044B6D8B4859048233E8F4980429405906F724\"; curl.exe -s \"http://localhost:7878/v2/users/list?token=$token\" | jq \".\""
+    }
+  ],
+  "notes": [
+    "所有命令中的 token 可以替换为你的实际 token",
+    "player 参数需要替换为实际玩家名称",
+    "group 参数需要替换为实际的用户组名称",
+    "使用 jq 命令可以格式化 JSON 输出"
+  ]
+}

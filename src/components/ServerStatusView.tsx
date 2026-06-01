@@ -6,6 +6,9 @@ import { GroupList } from './GroupList';
 import { GroupEditModal } from './GroupEditModal';
 import { CreateGroupModal } from './CreateGroupModal';
 import { DeleteGroupModal } from './DeleteGroupModal';
+import { PlayerDetailModal } from './PlayerDetailModal';
+import { ItemSelectorModal } from './ItemSelectorModal';
+import { ITEM_DATA } from '../data';
 
 interface ServerStatusViewProps {
   onGoToConfig?: () => void;
@@ -56,9 +59,11 @@ export function ServerStatusView({ onGoToConfig }: ServerStatusViewProps) {
   const [confirmDialog, setConfirmDialog] = useState<{ isOpen: boolean; type: string; player: Player | null; banRecord: BanRecord | null }>({ isOpen: false, type: 'kick', player: null, banRecord: null });
   const [actionLoading, setActionLoading] = useState(false);
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'info' } | null>(null);
+  const [itemSelectorOpen, setItemSelectorOpen] = useState(false);
+  const [inputValue, setInputValue] = useState('');
+  const [amountValue, setAmountValue] = useState('1');
   const reasonInputRef = useRef<HTMLInputElement>(null);
   const valueInputRef = useRef<HTMLInputElement>(null);
-  const amountInputRef = useRef<HTMLInputElement>(null);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const fetchData = useCallback(async () => {
@@ -164,10 +169,18 @@ export function ServerStatusView({ onGoToConfig }: ServerStatusViewProps) {
     setConfirmDialog({ isOpen: true, type: 'changeGroup', player, banRecord: null });
   };
   const handleGiveItem = (player: Player) => {
+    setInputValue('');
+    setAmountValue('1');
     setConfirmDialog({ isOpen: true, type: 'giveItem', player, banRecord: null });
   };
+
   const handleUnban = (banRecord: BanRecord) => {
     setConfirmDialog({ isOpen: true, type: 'unban', player: null, banRecord });
+  };
+
+  const handleSelectItem = (itemId: number) => {
+    const itemData = ITEM_DATA[itemId];
+    setInputValue(itemData?.zh || itemData?.en || itemId.toString());
   };
 
   const closeConfirmDialog = () => {
@@ -177,7 +190,7 @@ export function ServerStatusView({ onGoToConfig }: ServerStatusViewProps) {
   const confirmAction = async () => {
     setActionLoading(true);
     const reason = reasonInputRef.current?.value || '';
-    const inputValue = valueInputRef.current?.value || '';
+    const changeGroupValue = valueInputRef.current?.value || '';
     try {
       if (confirmDialog.type === 'kick' && confirmDialog.player) {
         await kickPlayer(confirmDialog.player.nickname, reason);
@@ -200,12 +213,11 @@ export function ServerStatusView({ onGoToConfig }: ServerStatusViewProps) {
       } else if (confirmDialog.type === 'unmute' && confirmDialog.player) {
         await unmutePlayer(confirmDialog.player.nickname);
         showToast(`已取消禁言玩家 ${confirmDialog.player.nickname}`, 'success');
-      } else if (confirmDialog.type === 'changeGroup' && confirmDialog.player && inputValue) {
-        await changeGroup(confirmDialog.player.nickname, inputValue);
-        showToast(`已将玩家 ${confirmDialog.player.nickname} 的用户组修改为 ${inputValue}`, 'success');
+      } else if (confirmDialog.type === 'changeGroup' && confirmDialog.player && changeGroupValue) {
+        await changeGroup(confirmDialog.player.nickname, changeGroupValue);
+        showToast(`已将玩家 ${confirmDialog.player.nickname} 的用户组修改为 ${changeGroupValue}`, 'success');
       } else if (confirmDialog.type === 'giveItem' && confirmDialog.player) {
-        const itemIdOrName = valueInputRef.current?.value?.trim() || '';
-        const amountValue = amountInputRef.current?.value || '1';
+        const itemIdOrName = inputValue.trim() || '';
         const amount = parseInt(amountValue) || 1;
         if (!itemIdOrName) {
           showToast('请输入物品ID或名称', 'error');
@@ -320,38 +332,61 @@ export function ServerStatusView({ onGoToConfig }: ServerStatusViewProps) {
             <div className="mb-4 sm:mb-6">
               {confirmDialog.type === 'giveItem' ? (
                 <div className="space-y-3">
-                  <div>
-                    <label className="block text-slate-400 text-xs sm:text-sm font-medium mb-2">物品ID/名称</label>
-                    <input
-                      ref={valueInputRef}
-                      type="text"
-                      placeholder="如 4956 或 铁剑"
-                      className="w-full px-3 py-2 sm:px-4 sm:py-3 bg-slate-800/50 border border-slate-700/50 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-purple-500/50 focus:ring-2 focus:ring-purple-500/20 transition-all text-sm sm:text-base"
-                      autoFocus
-                    />
+                    <div>
+                      <label className="block text-slate-400 text-xs sm:text-sm font-medium mb-2">物品ID/名称</label>
+                      <div className="flex gap-2">
+                        <input
+                          value={inputValue}
+                          onChange={(e) => setInputValue(e.target.value)}
+                          type="text"
+                          placeholder="如 4956 或 铁剑"
+                          className="flex-1 px-3 py-2 sm:px-4 sm:py-3 bg-slate-800/50 border border-slate-700/50 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-purple-500/50 focus:ring-2 focus:ring-purple-500/20 transition-all text-sm sm:text-base"
+                          autoFocus
+                        />
+                        <button onClick={(e) => { e.stopPropagation(); setItemSelectorOpen(true); }} className="px-3 py-2 bg-purple-500/20 hover:bg-purple-500/30 border border-purple-500/50 rounded-lg text-purple-400 font-medium transition-all flex-shrink-0">选择</button>
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-slate-400 text-xs sm:text-sm font-medium mb-2">数量</label>
+                      <input
+                        value={amountValue}
+                        onChange={(e) => setAmountValue(e.target.value)}
+                        type="number"
+                        placeholder="1"
+                        min="1"
+                        className="w-full px-3 py-2 sm:px-4 sm:py-3 bg-slate-800/50 border border-slate-700/50 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-purple-500/50 focus:ring-2 focus:ring-purple-500/20 transition-all text-sm sm:text-base"
+                      />
+                    </div>
                   </div>
-                  <div>
-                    <label className="block text-slate-400 text-xs sm:text-sm font-medium mb-2">数量</label>
-                    <input
-                      ref={amountInputRef}
-                      type="number"
-                      placeholder="1"
-                      defaultValue="1"
-                      min="1"
-                      className="w-full px-3 py-2 sm:px-4 sm:py-3 bg-slate-800/50 border border-slate-700/50 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-purple-500/50 focus:ring-2 focus:ring-purple-500/20 transition-all text-sm sm:text-base"
-                    />
-                  </div>
-                </div>
               ) : (
                 <>
                   <label className="block text-slate-400 text-xs sm:text-sm font-medium mb-2">{getInputPlaceholder()}</label>
-                  <input
-                    ref={valueInputRef}
-                    type="text"
-                    placeholder={getInputPlaceholder()}
-                    className="w-full px-3 py-2 sm:px-4 sm:py-3 bg-slate-800/50 border border-slate-700/50 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-purple-500/50 focus:ring-2 focus:ring-purple-500/20 transition-all text-sm sm:text-base"
-                    autoFocus
-                  />
+                  {confirmDialog.type === 'changeGroup' ? (
+                    <select
+                      ref={valueInputRef as any}
+                      onChange={(e) => {
+                        if (valueInputRef.current) {
+                          (valueInputRef.current as any).value = e.target.value;
+                        }
+                      }}
+                      className="w-full px-3 py-2 sm:px-4 sm:py-3 bg-slate-800/50 border border-slate-700/50 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-purple-500/50 focus:ring-2 focus:ring-purple-500/20 transition-all text-sm sm:text-base"
+                      autoFocus
+                    >
+                      {groups.map((group) => (
+                        <option key={group.name} value={group.name}>
+                          {group.name}
+                        </option>
+                      ))}
+                    </select>
+                  ) : (
+                    <input
+                      ref={valueInputRef}
+                      type="text"
+                      placeholder={getInputPlaceholder()}
+                      className="w-full px-3 py-2 sm:px-4 sm:py-3 bg-slate-800/50 border border-slate-700/50 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-purple-500/50 focus:ring-2 focus:ring-purple-500/20 transition-all text-sm sm:text-base"
+                      autoFocus
+                    />
+                  )}
                 </>
               )}
             </div>
@@ -377,145 +412,7 @@ export function ServerStatusView({ onGoToConfig }: ServerStatusViewProps) {
     );
   };
 
-  const PlayerDetailModalComp = () => {
-    if (!playerDetailModalOpen) return null;
-    const displayPlayer = playerDetail || selectedPlayer;
-    if (!displayPlayer) return null;
 
-    return (
-      <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 lg:pl-[280px]">
-        <div className="glass-card neon-border p-4 sm:p-6 max-w-full sm:max-w-2xl md:max-w-3xl lg:max-w-4xl w-full transform transition-all max-h-[90vh] overflow-y-auto">
-          <div className="flex items-center justify-between mb-4 sm:mb-6">
-            <div className="flex items-center gap-2 sm:gap-3">
-              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-br from-cyan-500/20 to-purple-600/20 flex items-center justify-center">
-                <span className="text-cyan-400 text-lg sm:text-xl">👤</span>
-              </div>
-              <div className="min-w-0 flex-1">
-                <h2 className="text-xl sm:text-2xl font-bold text-white truncate">{displayPlayer.nickname}</h2>
-                <p className="text-slate-400 text-xs sm:text-sm">玩家详情</p>
-              </div>
-            </div>
-            <button onClick={() => { setPlayerDetailModalOpen(false); setSelectedPlayer(null); setPlayerDetail(null); }} className="p-1 sm:p-2 rounded-lg hover:bg-slate-700/50 text-slate-400 hover:text-white transition-all flex-shrink-0">
-              ✕
-            </button>
-          </div>
-
-          {loadingDetail ? (
-            <div className="flex items-center justify-center py-8 sm:py-12">
-              <div className="animate-spin rounded-full h-10 w-10 sm:h-12 sm:w-12 border-b-2 border-cyan-500"></div>
-            </div>
-          ) : (
-            <>
-              <div className="mb-4 sm:mb-6">
-                <h3 className="text-base sm:text-lg font-semibold text-white mb-3 sm:mb-4 flex items-center gap-2">
-                  基本信息
-                </h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                  <div className="bg-slate-800/30 p-3 sm:p-4 rounded-lg border border-slate-700/50">
-                    <p className="text-slate-400 text-xs sm:text-sm mb-1">昵称</p>
-                    <p className="text-white font-medium text-sm sm:text-base truncate">{displayPlayer.nickname}</p>
-                  </div>
-                  <div className="bg-slate-800/30 p-3 sm:p-4 rounded-lg border border-slate-700/50">
-                    <p className="text-slate-400 text-xs sm:text-sm mb-1">用户名</p>
-                    <p className="text-white font-medium text-sm sm:text-base truncate">{displayPlayer.username || '未注册'}</p>
-                  </div>
-                  <div className="bg-slate-800/30 p-3 sm:p-4 rounded-lg border border-slate-700/50">
-                    <p className="text-slate-400 text-xs sm:text-sm mb-1">用户组</p>
-                    <p className="text-white font-medium text-sm sm:text-base truncate">{displayPlayer.group}</p>
-                  </div>
-
-                  <div className="bg-slate-800/30 p-3 sm:p-4 rounded-lg border border-slate-700/50">
-                    <p className="text-slate-400 text-xs sm:text-sm mb-1">IP地址</p>
-                    <p className="text-white font-medium text-sm sm:text-base truncate">{displayPlayer.ip || '未知'}</p>
-                  </div>
-                  <div className="bg-slate-800/30 p-3 sm:p-4 rounded-lg border border-slate-700/50">
-                    <p className="text-slate-400 text-xs sm:text-sm mb-1">禁言</p>
-                    <p className={`font-medium text-sm sm:text-base ${displayPlayer.muted ? 'text-red-400' : 'text-green-400'}`}>{displayPlayer.muted ? '是' : '否'}</p>
-                  </div>
-                  {displayPlayer.position && (
-                    <div className="bg-slate-800/30 p-3 sm:p-4 rounded-lg border border-slate-700/50 col-span-1 sm:col-span-2">
-                      <p className="text-slate-400 text-xs sm:text-sm mb-1">位置</p>
-                      <p className="text-white font-medium text-sm sm:text-base truncate">{displayPlayer.position}</p>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {displayPlayer.inventory && (
-                <div className="mb-4 sm:mb-6">
-                  <h3 className="text-base sm:text-lg font-semibold text-white mb-3 sm:mb-4 flex items-center gap-2">
-                    背包
-                  </h3>
-                  <div className="bg-slate-800/30 p-3 sm:p-4 rounded-lg border border-slate-700/50">
-                    <p className="text-slate-300 whitespace-pre-wrap text-xs sm:text-sm">{displayPlayer.inventory}</p>
-                  </div>
-                </div>
-              )}
-
-              {displayPlayer.armor && (
-                <div className="mb-4 sm:mb-6">
-                  <h3 className="text-base sm:text-lg font-semibold text-white mb-3 sm:mb-4 flex items-center gap-2">
-                    装备
-                  </h3>
-                  <div className="bg-slate-800/30 p-3 sm:p-4 rounded-lg border border-slate-700/50">
-                    <p className="text-slate-300 whitespace-pre-wrap text-xs sm:text-sm">{displayPlayer.armor}</p>
-                  </div>
-                </div>
-              )}
-
-              {displayPlayer.buffs && (
-                <div className="mb-4 sm:mb-6">
-                  <h3 className="text-base sm:text-lg font-semibold text-white mb-3 sm:mb-4 flex items-center gap-2">
-                    增益效果
-                  </h3>
-                  <div className="bg-slate-800/30 p-3 sm:p-4 rounded-lg border border-slate-700/50">
-                    <p className="text-slate-300 whitespace-pre-wrap text-xs sm:text-sm">{displayPlayer.buffs}</p>
-                  </div>
-                </div>
-              )}
-
-              <div>
-                <h3 className="text-base sm:text-lg font-semibold text-white mb-3 sm:mb-4 flex items-center gap-2">
-                  操作
-                </h3>
-                <div className="grid grid-cols-2 gap-2 sm:gap-3">
-                  {selectedPlayer && <button onClick={() => handleKick(selectedPlayer)} className="px-3 py-2 sm:px-4 sm:py-3 bg-yellow-500/20 hover:bg-yellow-500/30 border border-yellow-500/30 rounded-lg text-yellow-400 font-medium transition-all flex items-center justify-center gap-1 sm:gap-2 text-xs sm:text-sm">
-                    踢出
-                  </button>}
-                  {selectedPlayer && <button onClick={() => handleBan(selectedPlayer)} className="px-3 py-2 sm:px-4 sm:py-3 bg-red-500/20 hover:bg-red-500/30 border border-red-500/30 rounded-lg text-red-400 font-medium transition-all flex items-center justify-center gap-1 sm:gap-2 text-xs sm:text-sm">
-                    封禁
-                  </button>}
-                  {selectedPlayer && (displayPlayer.muted ? (
-                    <button onClick={() => handleUnmute(selectedPlayer)} className="px-3 py-2 sm:px-4 sm:py-3 bg-green-500/20 hover:bg-green-500/30 border border-green-500/30 rounded-lg text-green-400 font-medium transition-all flex items-center justify-center gap-1 sm:gap-2 text-xs sm:text-sm">
-                      取消禁言
-                    </button>
-                  ) : (
-                    <button onClick={() => handleMute(selectedPlayer)} className="px-3 py-2 sm:px-4 sm:py-3 bg-orange-500/20 hover:bg-orange-500/30 border border-orange-500/30 rounded-lg text-orange-400 font-medium transition-all flex items-center justify-center gap-1 sm:gap-2 text-xs sm:text-sm">
-                      禁言
-                    </button>
-                  ))}
-                  {selectedPlayer && (
-                    displayPlayer.username ? (
-                      <button onClick={() => handleChangeGroup(selectedPlayer)} className="px-3 py-2 sm:px-4 sm:py-3 bg-purple-500/20 hover:bg-purple-500/30 border border-purple-500/30 rounded-lg text-purple-400 font-medium transition-all flex items-center justify-center gap-1 sm:gap-2 text-xs sm:text-sm">
-                        修改用户组
-                      </button>
-                    ) : (
-                      <button disabled className="px-3 py-2 sm:px-4 sm:py-3 bg-slate-700/20 border border-slate-700/30 rounded-lg text-slate-500 font-medium cursor-not-allowed flex items-center justify-center gap-1 sm:gap-2 text-xs sm:text-sm">
-                        未注册无法修改分组
-                      </button>
-                    )
-                  )}
-                  {selectedPlayer && <button onClick={() => handleGiveItem(selectedPlayer)} className="px-3 py-2 sm:px-4 sm:py-3 bg-yellow-500/20 hover:bg-yellow-500/30 border border-yellow-500/30 rounded-lg text-yellow-400 font-medium transition-all flex items-center justify-center gap-1 sm:gap-2 text-xs sm:text-sm">
-                    给予物品
-                  </button>}
-                </div>
-              </div>
-            </>
-          )}
-        </div>
-      </div>
-    );
-  };
 
   return (
     <div className="flex flex-col h-full">
@@ -701,7 +598,19 @@ export function ServerStatusView({ onGoToConfig }: ServerStatusViewProps) {
         </div>
       </div>
 
-      <PlayerDetailModalComp />
+      <PlayerDetailModal 
+        isOpen={playerDetailModalOpen}
+        onClose={() => { setPlayerDetailModalOpen(false); setSelectedPlayer(null); setPlayerDetail(null); }}
+        player={selectedPlayer}
+        detail={playerDetail}
+        loadingDetail={loadingDetail}
+        onKick={handleKick}
+        onBan={handleBan}
+        onMute={handleMute}
+        onUnmute={handleUnmute}
+        onChangeGroup={handleChangeGroup}
+        onGiveItem={handleGiveItem}
+      />
       <ConfirmDialogComp />
       <ToastComp />
       <GroupEditModal
@@ -709,6 +618,7 @@ export function ServerStatusView({ onGoToConfig }: ServerStatusViewProps) {
         onClose={closeGroupEditModal}
         group={selectedGroupForEdit}
         users={users}
+        groups={groups}
         onUpdateGroup={updateExistingGroup}
         onChangeUserGroup={changeGroup}
         showToast={showToast}
@@ -719,6 +629,7 @@ export function ServerStatusView({ onGoToConfig }: ServerStatusViewProps) {
         isOpen={createGroupDialogOpen}
         onClose={() => setCreateGroupDialogOpen(false)}
         onCreateGroup={createNewGroup}
+        groups={groups}
       />
       <DeleteGroupModal
         isOpen={!!confirmDeleteGroup}
@@ -726,6 +637,11 @@ export function ServerStatusView({ onGoToConfig }: ServerStatusViewProps) {
         groupName={confirmDeleteGroup}
         onDelete={deleteExistingGroup}
         showToast={showToast}
+      />
+      <ItemSelectorModal
+        isOpen={itemSelectorOpen}
+        onClose={() => setItemSelectorOpen(false)}
+        onSelectItem={handleSelectItem}
       />
     </div>
   );

@@ -1,0 +1,20 @@
+{
+  "endpoint": "/v2/users/read",
+  "method": "GET",
+  "description": "获取单个用户详情",
+  "parameters": {
+    "user": "wen",
+    "type": "name",
+    "token": "F94D0AC988BD92C650C07E4570044B6D8B4859048233E8F4980429405906F724"
+  },
+  "full_url": "http://localhost:7878/v2/users/read?user=wen&type=name&token=F94D0AC988BD92C650C07E4570044B6D8B4859048233E8F4980429405906F724",
+  "response": {
+    "status": "200",
+    "group": "owner",
+    "id": "1",
+    "name": "wen"
+  },
+  "notes": {
+    "type": "查询类型，可选 name 或 id"
+  }
+}

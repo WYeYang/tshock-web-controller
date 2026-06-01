@@ -1,0 +1,130 @@
+// 参考wiki: https://terraria.wiki.gg/zh/wiki/%E4%BF%AE%E9%A5%B0%E8%AF%AD
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// 前缀ID与名称的对应关系（中英文）
+const prefixData = {
+  "1": { en: "Large", zh: "大", stats: { size: "+12%", tier: 1, value: "+25.44%" } },
+  "2": { en: "Massive", zh: "巨大", stats: { size: "+18%", tier: 1, value: "+39.24%" } },
+  "3": { en: "Dangerous", zh: "危险", stats: { damage: "+5%", crit: "+2%", size: "+5%", tier: 1, value: "+31.47%" } },
+  "4": { en: "Savage", zh: "野蛮", stats: { damage: "+7%", speed: "+6%", crit: "+3%", tier: 2, value: "+44.54%" } },
+  "5": { en: "Sharp", zh: "锋利", stats: { damage: "+15%", tier: 1, value: "+32.25%" } },
+  "6": { en: "Pointy", zh: "尖锐", stats: { damage: "+10%", tier: 1, value: "+21%" } },
+  "7": { en: "Tiny", zh: "微小", stats: { size: "-18%", tier: -1, value: "-32.76%" } },
+  "8": { en: "Terrible", zh: "糟糕", stats: { damage: "-15%", speed: "-15%", tier: -2, value: "-53.76%" } },
+  "9": { en: "Small", zh: "小", stats: { size: "-10%", tier: -1, value: "-19%" } },
+  "10": { en: "Dull", zh: "迟钝", stats: { damage: "-15%", tier: -1, value: "-27.75%" } },
+  "11": { en: "Unhappy", zh: "不快乐", stats: { damage: "-10%", speed: "-10%", knockback: "-10%", tier: -1, value: "-34.39%" } },
+  "12": { en: "Bulky", zh: "笨重", stats: { damage: "+5%", speed: "-15%", size: "+10%", knockback: "+10%", tier: 1, value: "+16.62%" } },
+  "13": { en: "Shameful", zh: "可耻", stats: { damage: "-10%", size: "+10%", knockback: "-20%", tier: -2, value: "-37.27%" } },
+  "14": { en: "Heavy", zh: "重", stats: { speed: "-10%", knockback: "+15%", tier: -1, value: "+7.12%" } },
+  "15": { en: "Light", zh: "轻", stats: { speed: "+15%", knockback: "-10%", tier: -1, value: "+7.12%" } },
+  "16": { en: "Sighted", zh: "瞄准", stats: {} },
+  "17": { en: "Rapid", zh: "急速", stats: { speed: "+10%", projectileSpeed: "+15%", tier: 2, value: "+60.02%" } },
+  "18": { en: "Hasty", zh: "草率", stats: {} },
+  "19": { en: "Intimidating", zh: "胁迫", stats: {} },
+  "20": { en: "Deadly (Ranged weapons)", zh: "致命（远程）", stats: { damage: "+10%", speed: "+5%", crit: "+2%", projectileSpeed: "+5%", knockback: "+5%", tier: 2, value: "+75.38%" } },
+  "21": { en: "Staunch", zh: "可靠", stats: { damage: "+10%", knockback: "+15%", tier: 2, value: "+60.02%" } },
+  "22": { en: "Awful", zh: "可怕", stats: { damage: "-15%", size: "-13%", knockback: "-15%", tier: -2, value: "-60.49%" } },
+  "23": { en: "Lethargic", zh: "迟钝", stats: { speed: "-20%", tier: -2, value: "-36%" } },
+  "24": { en: "Awkward", zh: "笨拙", stats: { manaCost: "+10%", tier: -1, value: "-19%" } },
+  "25": { en: "Powerful", zh: "强大", stats: { damage: "+15%", speed: "-10%", crit: "+1%", tier: 1, value: "+11.45%" } },
+  "26": { en: "Mystic", zh: "神秘", stats: { damage: "+10%", manaCost: "-15%", tier: 2, value: "+60.02%" } },
+  "27": { en: "Adept", zh: "娴熟", stats: { manaCost: "-15%", knockback: "+5%", tier: 2, value: "+92.83%" } },
+  "28": { en: "Masterful", zh: "精湛", stats: {} },
+  "29": { en: "Inept", zh: "无力", stats: { speed: "-15%", projectileSpeed: "-10%", tier: -2, value: "-41.48%" } },
+  "30": { en: "Ignorant", zh: "无知", stats: { damage: "-10%", manaCost: "+20%", tier: -2, value: "-48.16%" } },
+  "31": { en: "Deranged", zh: "错乱", stats: { damage: "-10%", manaCost: "-10%", knockback: "-10%", tier: -1, value: "-18.59%" } },
+  "32": { en: "Intense", zh: "强力", stats: { knockback: "+15%", tier: 1, value: "+32.25%" } },
+  "33": { en: "Taboo", zh: "禁忌", stats: { speed: "+10%", manaCost: "+10%", knockback: "+10%", tier: 1, value: "+18.59%" } },
+  "34": { en: "Celestial", zh: "天界", stats: { damage: "+10%", speed: "-10%", manaCost: "-10%", knockback: "+10%", tier: 1, value: "+43.5%" } },
+  "35": { en: "Furious", zh: "狂怒", stats: { damage: "+15%", manaCost: "+20%", knockback: "+15%", tier: 1, value: "+11.94%" } },
+  "36": { en: "Keen", zh: "锐利", stats: { crit: "+3%", tier: 1, value: "+12.36%" } },
+  "37": { en: "Superior", zh: "高端", stats: { damage: "+10%", crit: "+3%", knockback: "+10%", tier: 2, value: "+64.51%" } },
+  "38": { en: "Forceful", zh: "强劲", stats: { knockback: "+15%", tier: 1, value: "+32.25%" } },
+  "39": { en: "Broken", zh: "破损", stats: { damage: "-15%", tier: -1, value: "-27.75%" } },
+  "40": { en: "Damaged", zh: "损坏", stats: {} },
+  "41": { en: "Shoddy", zh: "粗劣", stats: { damage: "-10%", knockback: "-15%", tier: -2, value: "-41.48%" } },
+  "42": { en: "Quick", zh: "迅速", stats: { speed: "+15%", projectileSpeed: "+10%", tier: 2, value: "+60.02%" } },
+  "43": { en: "Deadly", zh: "致命", stats: { damage: "+10%", speed: "+10%", tier: 2, value: "+46.41%" } },
+  "44": { en: "Agile", zh: "灵巧", stats: { speed: "+5%", tier: 1, value: "+10.25%" } },
+  "45": { en: "Nimble", zh: "灵活", stats: { speed: "+10%", crit: "+3%", tier: 1, value: "+35.96%" } },
+  "46": { en: "Murderous", zh: "凶残", stats: { damage: "+10%", size: "+10%", knockback: "+10%", tier: 2, value: "+77.16%" } },
+  "47": { en: "Slow", zh: "缓慢", stats: { speed: "-15%", tier: -1, value: "-27.75%" } },
+  "48": { en: "Sluggish", zh: "虚弱", stats: { knockback: "-25%", tier: -2, value: "-43.75%" } },
+  "49": { en: "Lazy", zh: "懒惰", stats: {} },
+  "50": { en: "Annoying", zh: "讨厌", stats: { damage: "-15%", projectileSpeed: "-10%", knockback: "-10%", tier: -2, value: "-52.6%" } },
+  "51": { en: "Nasty", zh: "粗鲁", stats: { damage: "+5%", knockback: "+15%", tier: 2, value: "+45.81%" } },
+  "52": { en: "Manic", zh: "狂躁", stats: { damage: "-10%", speed: "+10%", manaCost: "-10%", tier: 1, value: "+18.59%" } },
+  "53": { en: "Hurtful", zh: "致伤", stats: { damage: "+10%", tier: 1, value: "+21%" } },
+  "54": { en: "Strong", zh: "强壮", stats: {} },
+  "55": { en: "Unpleasant", zh: "倒霉", stats: { speed: "-10%", size: "-10%", knockback: "-10%", tier: -2, value: "-46.86%" } },
+  "56": { en: "Weak", zh: "虚弱", stats: { knockback: "-20%", tier: -2, value: "-36%" } },
+  "57": { en: "Ruthless", zh: "无情", stats: { damage: "+18%", knockback: "-10%", tier: 1, value: "+12.78%" } },
+  "58": { en: "Frenzying", zh: "狂暴", stats: { damage: "+10%", knockback: "-10%", tier: -1, value: "-1.99%" } },
+  "59": { en: "Godly", zh: "神级", stats: { damage: "+15%", crit: "+5%", knockback: "+15%", tier: 2, value: "+111.63%" } },
+  "60": { en: "Demonic", zh: "恶魔", stats: { damage: "+15%", crit: "+5%", tier: 2, value: "+60.02%" } },
+  "61": { en: "Zealous", zh: "狂热", stats: { crit: "+5%", tier: 1, value: "+21%" } },
+  "62": { en: "Hard", zh: "暴躁", stats: { damage: "-5%", tagDamage: "+10", tier: 1, value: "+19.36%" } },
+  "63": { en: "Guarding", zh: "守卫", stats: {} },
+  "64": { en: "Armored", zh: "装甲", stats: {} },
+  "65": { en: "Warding", zh: "守护", stats: {} },
+  "66": { en: "Arcane", zh: "奥术", stats: {} },
+  "67": { en: "Precise", zh: "精准", stats: { damage: "+10%", crit: "+3%", tier: 1, value: "+35.96%" } },
+  "68": { en: "Lucky", zh: "幸运", stats: {} },
+  "69": { en: "Jagged", zh: "虬结", stats: { knockback: "+25%", tier: 2, value: "+56.25%" } },
+  "70": { en: "Spiked", zh: "尖刺", stats: {} },
+  "71": { en: "Angry", zh: "暴怒", stats: { damage: "-15%", speed: "+15%", tier: -1, value: "-4.45%" } },
+  "72": { en: "Menacing", zh: "威猛", stats: { damage: "+10%", manaCost: "+15%", tier: -1, value: "-12.58%" } },
+  "73": { en: "Brisk", zh: "迅捷", stats: { speed: "+10%", tier: 1, value: "+21%" } },
+  "74": { en: "Fleeting", zh: "飞逝", stats: {} },
+  "75": { en: "Hasty", zh: "草率", stats: {} },
+  "76": { en: "Quick", zh: "迅速", stats: {} },
+  "77": { en: "Wild", zh: "狂野", stats: {} },
+  "78": { en: "Rash", zh: "凶险", stats: { damage: "+5%", speed: "+10%", crit: "+2%", knockback: "-10%", tier: 1, value: "+16.87%" } },
+  "79": { en: "Intrepid", zh: "英勇", stats: { damage: "+15%", tagDamage: "+8", tier: 2, value: "+65.89%" } },
+  "80": { en: "Violent", zh: "狂暴", stats: {} },
+  "81": { en: "Legendary", zh: "传奇", stats: { damage: "+15%", speed: "+10%", crit: "+5%", size: "+10%", knockback: "+15%", tier: 2, value: "+209.85%" } },
+  "82": { en: "Unreal", zh: "虚幻", stats: { damage: "+15%", speed: "+10%", crit: "+5%", projectileSpeed: "+10%", knockback: "+15%", tier: 2, value: "+209.85%" } },
+  "83": { en: "Mythical", zh: "神话", stats: { damage: "+15%", speed: "+10%", crit: "+5%", manaCost: "-10%", knockback: "+15%", tier: 2, value: "+209.85%" } },
+  "84": { en: "Legendary (Terrarian variant)", zh: "传奇（泰拉瑞亚）", stats: { damage: "+17%", crit: "+8%", knockback: "+17%", tier: 2, value: "+152.15%" } },
+  "85": { en: "Fabled", zh: "传说", stats: { damage: "+15%", tagDamage: "+10", tagCrit: "+3", knockback: "+15%", tier: 2, value: "+174.81%" } },
+  "86": { en: "Loyal", zh: "忠诚", stats: { damage: "+10%", tagDamage: "+5", tagCrit: "+3", knockback: "+5%", tier: 2, value: "+83.16%" } },
+  "87": { en: "Worthy", zh: "值得", stats: {} },
+  "88": { en: "Focused", zh: "专注", stats: { damage: "+10%", tagCrit: "+3", tier: 1, value: "+43.76%" } },
+  "89": { en: "Patient", zh: "耐心", stats: { damage: "-5%", tagCrit: "+3", tier: -1, value: "+7.23%" } },
+  "90": { en: "Rabid", zh: "狂暴", stats: {} },
+  "91": { en: "Ill-Tempered", zh: "暴躁", stats: {} },
+  "92": { en: "Petty", zh: "吝啬", stats: { damage: "-30%", tier: -2, value: "-51%" } },
+  "93": { en: "Feeble", zh: "虚弱", stats: { knockback: "-20%", tier: -2, value: "-36%" } },
+  "94": { en: "Skittish", zh: "胆小", stats: { damage: "-15%", knockback: "-10%", tier: -2, value: "-41.48%" } },
+  "95": { en: "Eager", zh: "热切", stats: { tagDamage: "+25", tier: 2, value: "+89.06%" } },
+  "96": { en: "Ballistic", zh: "弹道", stats: { tagCrit: "+5", tier: 1, value: "+32.25%" } },
+  "97": { en: "Scraggling", zh: "稀疏", stats: {} }
+};
+
+// 整理数据格式
+const prefixes = {};
+for (const [id, data] of Object.entries(prefixData)) {
+  prefixes[id] = {
+    en: data.en,
+    zh: data.zh,
+    stats: data.stats
+  };
+}
+
+console.log(`生成 ${Object.keys(prefixes).length} 个前缀数据\n`);
+console.log('前缀列表:');
+for (const [id, info] of Object.entries(prefixes)) {
+  console.log(`  ${id.toString().padStart(2, ' ')}: ${(info.zh || info.en).padEnd(10, ' ')} (${info.en})`);
+}
+
+// 保存到文件
+const outputPath = path.join(__dirname, '../src/data/prefixes.json');
+fs.writeFileSync(outputPath, JSON.stringify(prefixes, null, 2));
+
+console.log(`\n✅ 已保存到: ${outputPath}`);

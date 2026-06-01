@@ -10,6 +10,7 @@ interface GroupEditModalProps {
   onClose: () => void;
   group: Group | null;
   users: User[];
+  groups: Group[];
   onUpdateGroup: (
     groupName: string,
     parent?: string,
@@ -27,6 +28,7 @@ export const GroupEditModal = ({
   onClose,
   group,
   users,
+  groups,
   onUpdateGroup,
   onChangeUserGroup,
   showToast,
@@ -177,13 +179,20 @@ export const GroupEditModal = ({
             <label className="block text-slate-400 text-xs font-medium mb-2">
               父组
             </label>
-            <input
-              type="text"
+            <select
               value={editParent}
               onChange={(e) => setEditParent(e.target.value)}
-              placeholder="输入父组名称"
               className="w-full px-3 py-2 bg-slate-800/50 border border-slate-700/50 rounded-lg text-white text-sm"
-            />
+            >
+              <option value="">无父组</option>
+              {groups
+                .filter((g) => g.name !== group?.name)
+                .map((g) => (
+                  <option key={g.name} value={g.name}>
+                    {g.name}
+                  </option>
+                ))}
+            </select>
           </div>
           <div className="sm:col-span-2">
             <label className="block text-slate-400 text-xs font-medium mb-2">

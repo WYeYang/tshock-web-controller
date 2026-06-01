@@ -1,0 +1,1022 @@
+[
+  {
+    "id": 1,
+    "en": "Obsidian Skin",
+    "desc": "Immune to lava"
+  },
+  {
+    "id": 2,
+    "en": "Regeneration",
+    "desc": "Provides life regeneration"
+  },
+  {
+    "id": 3,
+    "en": "Swiftness",
+    "desc": "25% increased movement speed"
+  },
+  {
+    "id": 4,
+    "en": "Gills",
+    "desc": "Breathe water instead of air"
+  },
+  {
+    "id": 5,
+    "en": "Ironskin",
+    "desc": "Increase defense by 8"
+  },
+  {
+    "id": 6,
+    "en": "Mana Regeneration",
+    "desc": "Increased mana regeneration"
+  },
+  {
+    "id": 7,
+    "en": "Magic Power",
+    "desc": "20% increased magic damage"
+  },
+  {
+    "id": 8,
+    "en": "Featherfall",
+    "desc": "Press UP or DOWN to control speed of descent"
+  },
+  {
+    "id": 9,
+    "en": "Spelunker",
+    "desc": "Shows the location of treasure and ore"
+  },
+  {
+    "id": 10,
+    "en": "Invisibility",
+    "desc": "Grants invisibility"
+  },
+  {
+    "id": 11,
+    "en": "Shine",
+    "desc": "Emitting light"
+  },
+  {
+    "id": 12,
+    "en": "Night Owl",
+    "desc": "Increased night vision"
+  },
+  {
+    "id": 13,
+    "en": "Battle",
+    "desc": "Increased enemy spawn rate"
+  },
+  {
+    "id": 14,
+    "en": "Thorns",
+    "desc": "Attackers also take damage"
+  },
+  {
+    "id": 15,
+    "en": "Water Walking",
+    "desc": "Press DOWN to enter water"
+  },
+  {
+    "id": 16,
+    "en": "Archery",
+    "desc": "20% increased arrow damage and speed"
+  },
+  {
+    "id": 17,
+    "en": "Hunter",
+    "desc": "Shows the location of enemies"
+  },
+  {
+    "id": 18,
+    "en": "Gravitation",
+    "desc": "Press UP to reverse gravity"
+  },
+  {
+    "id": 19,
+    "en": "Shadow Orb",
+    "desc": "A magical orb that provides light"
+  },
+  {
+    "id": 20,
+    "en": "Poisoned",
+    "desc": "Slowly losing life"
+  },
+  {
+    "id": 21,
+    "en": "Potion Sickness",
+    "desc": "Cannot consume anymore healing items"
+  },
+  {
+    "id": 22,
+    "en": "Darkness",
+    "desc": "Decreased light vision"
+  },
+  {
+    "id": 23,
+    "en": "Cursed",
+    "desc": "Cannot use any items"
+  },
+  {
+    "id": 24,
+    "en": "On Fire!",
+    "desc": "Slowly losing life"
+  },
+  {
+    "id": 25,
+    "en": "Tipsy",
+    "desc": "Increased melee abilities, lowered defense"
+  },
+  {
+    "id": 26,
+    "en": "Well Fed",
+    "desc": "Minor improvements to all stats"
+  },
+  {
+    "id": 27,
+    "en": "Fairy",
+    "desc": "A fairy is following you"
+  },
+  {
+    "id": 28,
+    "en": "Werewolf",
+    "desc": "Physical abilities are increased"
+  },
+  {
+    "id": 29,
+    "en": "Clairvoyance",
+    "desc": "Magic powers are increased"
+  },
+  {
+    "id": 30,
+    "en": "Bleeding",
+    "desc": "Cannot regenerate life"
+  },
+  {
+    "id": 31,
+    "en": "Confused",
+    "desc": "Movement is reversed"
+  },
+  {
+    "id": 32,
+    "en": "Slow",
+    "desc": "Movement speed is reduced"
+  },
+  {
+    "id": 33,
+    "en": "Weak",
+    "desc": "Physical abilities are decreased"
+  },
+  {
+    "id": 34,
+    "en": "Merfolk",
+    "desc": "Can breathe and move easily underwater"
+  },
+  {
+    "id": 35,
+    "en": "Silenced",
+    "desc": "Cannot use items that require mana"
+  },
+  {
+    "id": 36,
+    "en": "Broken Armor",
+    "desc": "Defense is cut in half"
+  },
+  {
+    "id": 37,
+    "en": "Horrified",
+    "desc": "You have seen something nasty, there is no escape."
+  },
+  {
+    "id": 38,
+    "en": "The Tongue",
+    "desc": "You are being sucked into the mouth"
+  },
+  {
+    "id": 39,
+    "en": "Cursed Inferno",
+    "desc": "Losing life"
+  },
+  {
+    "id": 40,
+    "en": "Pet Bunny",
+    "desc": "I think it wants your carrot"
+  },
+  {
+    "id": 41,
+    "en": "Baby Penguin",
+    "desc": "I think it wants your fish"
+  },
+  {
+    "id": 42,
+    "en": "Pet Turtle",
+    "desc": "Happy turtle time!"
+  },
+  {
+    "id": 43,
+    "en": "Paladin's Shield",
+    "desc": "25% of damage taken will be redirected to another player"
+  },
+  {
+    "id": 44,
+    "en": "Frostburn",
+    "desc": "It's either really hot or really cold. Either way it REALLY hurts"
+  },
+  {
+    "id": 45,
+    "en": "Baby Eater",
+    "desc": "A baby Eater of Souls is following you"
+  },
+  {
+    "id": 46,
+    "en": "Chilled",
+    "desc": "Your movement speed has been reduced"
+  },
+  {
+    "id": 47,
+    "en": "Frozen",
+    "desc": "You can't move!"
+  },
+  {
+    "id": 48,
+    "en": "Honey",
+    "desc": "Life regeneration is increased"
+  },
+  {
+    "id": 49,
+    "en": "Pygmies",
+    "desc": "The pygmies will fight for you"
+  },
+  {
+    "id": 50,
+    "en": "Baby Skeletron Head",
+    "desc": "Don't even ask..."
+  },
+  {
+    "id": 51,
+    "en": "Baby Hornet",
+    "desc": "It thinks you are its mother"
+  },
+  {
+    "id": 52,
+    "en": "Tiki Spirit",
+    "desc": "A friendly spirit is following you"
+  },
+  {
+    "id": 53,
+    "en": "Pet Lizard",
+    "desc": "Chillin' like a reptilian"
+  },
+  {
+    "id": 54,
+    "en": "Pet Parrot",
+    "desc": "Polly want's the cracker"
+  },
+  {
+    "id": 55,
+    "en": "Baby Truffle",
+    "desc": "Isn't this just soooo cute?"
+  },
+  {
+    "id": 56,
+    "en": "Pet Sapling",
+    "desc": "A little sapling is following you"
+  },
+  {
+    "id": 57,
+    "en": "Wisp",
+    "desc": "A wisp is following you"
+  },
+  {
+    "id": 58,
+    "en": "Rapid Healing",
+    "desc": "Life regeneration is greatly increased"
+  },
+  {
+    "id": 59,
+    "en": "Shadow Dodge",
+    "desc": "You will dodge the next attack"
+  },
+  {
+    "id": 60,
+    "en": "Leaf Crystal",
+    "desc": "Shoots crystal leaves at nearby enemies"
+  },
+  {
+    "id": 61,
+    "en": "Baby Dinosaur",
+    "desc": "A baby dinosaur is following you"
+  },
+  {
+    "id": 62,
+    "en": "Ice Barrier",
+    "desc": "Damage taken is reduced by 25%"
+  },
+  {
+    "id": 63,
+    "en": "Panic!",
+    "desc": "Movement speed is increased"
+  },
+  {
+    "id": 64,
+    "en": "Baby Slime",
+    "desc": "The baby slime will fight for you"
+  },
+  {
+    "id": 65,
+    "en": "Eyeball Spring",
+    "desc": "An eyeball spring is following you"
+  },
+  {
+    "id": 66,
+    "en": "Baby Snowman",
+    "desc": "A baby snowman is following you"
+  },
+  {
+    "id": 67,
+    "en": "Burning",
+    "desc": "Losing life and slowed movement"
+  },
+  {
+    "id": 68,
+    "en": "Suffocation",
+    "desc": "Losing life"
+  },
+  {
+    "id": 69,
+    "en": "Ichor",
+    "desc": "Reduced defense"
+  },
+  {
+    "id": 70,
+    "en": "Venom",
+    "desc": "Losing life"
+  },
+  {
+    "id": 71,
+    "en": "Weapon Imbue: Venom",
+    "desc": "Melee attacks inflict venom on your targets"
+  },
+  {
+    "id": 72,
+    "en": "Midas",
+    "desc": "Drop more money on death"
+  },
+  {
+    "id": 73,
+    "en": "Weapon Imbue: Cursed Flames",
+    "desc": "Melee attacks inflict enemies with cursed flames"
+  },
+  {
+    "id": 74,
+    "en": "Weapon Imbue: Fire",
+    "desc": "Melee attacks set enemies on fire"
+  },
+  {
+    "id": 75,
+    "en": "Weapon Imbue: Gold",
+    "desc": "Melee attacks make enemies drop more gold"
+  },
+  {
+    "id": 76,
+    "en": "Weapon Imbue: Ichor",
+    "desc": "Melee attacks decrease enemies defense"
+  },
+  {
+    "id": 77,
+    "en": "Weapon Imbue: Nanites",
+    "desc": "Melee attacks confuse enemies"
+  },
+  {
+    "id": 78,
+    "en": "Weapon Imbue: Confetti",
+    "desc": "Melee attacks cause confetti to appear"
+  },
+  {
+    "id": 79,
+    "en": "Weapon Imbue: Poison",
+    "desc": "Melee attacks poison enemies"
+  },
+  {
+    "id": 80,
+    "en": "Blackout",
+    "desc": "Light vision severely reduced"
+  },
+  {
+    "id": 81,
+    "en": "Pet Spider",
+    "desc": "A spider is following you"
+  },
+  {
+    "id": 82,
+    "en": "Squashling",
+    "desc": "A squashling is following you"
+  },
+  {
+    "id": 83,
+    "en": "Ravens",
+    "desc": "The ravens will attack your enemies"
+  },
+  {
+    "id": 84,
+    "en": "Black Cat",
+    "desc": "A black kitty is following you"
+  },
+  {
+    "id": 85,
+    "en": "Cursed Sapling",
+    "desc": "A cursed sapling is following you"
+  },
+  {
+    "id": 86,
+    "en": "Water Candle",
+    "desc": "Increased monster spawn rate"
+  },
+  {
+    "id": 87,
+    "en": "Cozy Fire",
+    "desc": "Life regen is slightly increased"
+  },
+  {
+    "id": 88,
+    "en": "Chaos State",
+    "desc": "Using the Rod of Discord will take life"
+  },
+  {
+    "id": 89,
+    "en": "Heart Lamp",
+    "desc": "Life regen is increased"
+  },
+  {
+    "id": 90,
+    "en": "Rudolph",
+    "desc": "Riding the red nosed reindeer"
+  },
+  {
+    "id": 91,
+    "en": "Puppy",
+    "desc": "A puppy is following you"
+  },
+  {
+    "id": 92,
+    "en": "Baby Grinch",
+    "desc": "A baby grinch is following you"
+  },
+  {
+    "id": 93,
+    "en": "Ammo Box",
+    "desc": "20% chance to not consume ammo"
+  },
+  {
+    "id": 94,
+    "en": "Mana Sickness",
+    "desc": "Magic damage reduced by"
+  },
+  {
+    "id": 95,
+    "en": "Beetle Endurance",
+    "desc": "Damage taken reduced by 15%"
+  },
+  {
+    "id": 96,
+    "en": "Beetle Endurance",
+    "desc": "Damage taken reduced by 30%"
+  },
+  {
+    "id": 97,
+    "en": "Beetle Endurance",
+    "desc": "Damage taken reduced by 45%"
+  },
+  {
+    "id": 98,
+    "en": "Beetle Might",
+    "desc": "Melee damage and speed increase by 10%"
+  },
+  {
+    "id": 99,
+    "en": "Beetle Might",
+    "desc": "Melee damage and speed increase by 20%"
+  },
+  {
+    "id": 100,
+    "en": "Beetle Might",
+    "desc": "Melee damage and speed increase by 30%"
+  },
+  {
+    "id": 101,
+    "en": "Fairy",
+    "desc": "A fairy is following you"
+  },
+  {
+    "id": 102,
+    "en": "Fairy",
+    "desc": "A fairy is following you"
+  },
+  {
+    "id": 103,
+    "en": "Wet",
+    "desc": "You are dripping water"
+  },
+  {
+    "id": 104,
+    "en": "Mining",
+    "desc": "25% increased mining speed"
+  },
+  {
+    "id": 105,
+    "en": "Heartreach",
+    "desc": "Increased heart pickup range"
+  },
+  {
+    "id": 106,
+    "en": "Calm",
+    "desc": "Reduced enemy aggression"
+  },
+  {
+    "id": 107,
+    "en": "Builder",
+    "desc": "Increased placement speed and range"
+  },
+  {
+    "id": 108,
+    "en": "Titan",
+    "desc": "Increased knockback"
+  },
+  {
+    "id": 109,
+    "en": "Flipper",
+    "desc": "Move like normal in water"
+  },
+  {
+    "id": 110,
+    "en": "Summoning",
+    "desc": "Increased max number of minions"
+  },
+  {
+    "id": 111,
+    "en": "Dangersense",
+    "desc": "You can see nearby hazards"
+  },
+  {
+    "id": 112,
+    "en": "Ammo Reservation",
+    "desc": "20% chance to not consume ammo"
+  },
+  {
+    "id": 113,
+    "en": "Lifeforce",
+    "desc": "20% increased max life"
+  },
+  {
+    "id": 114,
+    "en": "Endurance",
+    "desc": "10% reduced damage"
+  },
+  {
+    "id": 115,
+    "en": "Rage",
+    "desc": "10% increased critical chance"
+  },
+  {
+    "id": 116,
+    "en": "Inferno",
+    "desc": "Nearby enemies are ignited"
+  },
+  {
+    "id": 117,
+    "en": "Wrath",
+    "desc": "10% increased damage"
+  },
+  {
+    "id": 118,
+    "en": "Minecart",
+    "desc": "Riding in a minecart"
+  },
+  {
+    "id": 119,
+    "en": "Lovestruck",
+    "desc": "You are in love!"
+  },
+  {
+    "id": 120,
+    "en": "Stinky",
+    "desc": "You smell terrible"
+  },
+  {
+    "id": 121,
+    "en": "Fishing",
+    "desc": "Increased fishing level"
+  },
+  {
+    "id": 122,
+    "en": "Sonar",
+    "desc": "You can see what's biting your hook"
+  },
+  {
+    "id": 123,
+    "en": "Crate",
+    "desc": "Greater chance of fishing up a crate"
+  },
+  {
+    "id": 124,
+    "en": "Warmth",
+    "desc": "Reduced damage from cold sources"
+  },
+  {
+    "id": 125,
+    "en": "Hornet",
+    "desc": "The hornet will fight for you"
+  },
+  {
+    "id": 126,
+    "en": "Imp",
+    "desc": "The imp will fight for you"
+  },
+  {
+    "id": 127,
+    "en": "Zephyr Fish",
+    "desc": "It likes swimming around you"
+  },
+  {
+    "id": 128,
+    "en": "Bunny Mount",
+    "desc": "You are craving carrots"
+  },
+  {
+    "id": 129,
+    "en": "Pigron Mount",
+    "desc": "Now you see me...."
+  },
+  {
+    "id": 130,
+    "en": "Slime Mount",
+    "desc": "BOOOIIINNNG!"
+  },
+  {
+    "id": 131,
+    "en": "Turtle Mount",
+    "desc": "Slow if by land, zoom if by sea"
+  },
+  {
+    "id": 132,
+    "en": "Bee Mount",
+    "desc": "BzzzBzzBZZZZBzzz"
+  },
+  {
+    "id": 133,
+    "en": "Spider",
+    "desc": "The spider will fight for you"
+  },
+  {
+    "id": 134,
+    "en": "Twins",
+    "desc": "The twins will fight for you"
+  },
+  {
+    "id": 135,
+    "en": "Pirate",
+    "desc": "The pirate will fight for you"
+  },
+  {
+    "id": 136,
+    "en": "Mini Minotaur",
+    "desc": "How do you defeat a mini Minotaur?"
+  },
+  {
+    "id": 137,
+    "en": "Slime",
+    "desc": "You are slimy and sticky"
+  },
+  {
+    "id": 138,
+    "en": "Minecart",
+    "desc": "Riding in a minecart"
+  },
+  {
+    "id": 139,
+    "en": "Sharknado",
+    "desc": "The sharknado will fight for you"
+  },
+  {
+    "id": 140,
+    "en": "UFO",
+    "desc": "The UFO will fight for you"
+  },
+  {
+    "id": 141,
+    "en": "UFO Mount",
+    "desc": "It's a good thing you had a MAC"
+  },
+  {
+    "id": 142,
+    "en": "Drill Mount",
+    "desc": "Riding in a flying drill"
+  },
+  {
+    "id": 143,
+    "en": "Scutlix Mount",
+    "desc": "Pew Pew"
+  },
+  {
+    "id": 144,
+    "en": "Electrified",
+    "desc": "You cannot move"
+  },
+  {
+    "id": 145,
+    "en": "Moon Bite",
+    "desc": "You are unable to absorb healing effects"
+  },
+  {
+    "id": 146,
+    "en": "Happy!",
+    "desc": "Movement speed increased and monster spawns reduced"
+  },
+  {
+    "id": 147,
+    "en": "Banner",
+    "desc": "Increased damage and defense from the following:"
+  },
+  {
+    "id": 148,
+    "en": "Feral Bite",
+    "desc": "Increased damage, Decreased life regen, Causes status effects"
+  },
+  {
+    "id": 149,
+    "en": "Webbed",
+    "desc": "You are stuck"
+  },
+  {
+    "id": 150,
+    "en": "Bewitched",
+    "desc": "Increased max number of minions"
+  },
+  {
+    "id": 151,
+    "en": "Life Drain",
+    "desc": "Increased life regeneration"
+  },
+  {
+    "id": 152,
+    "en": "Magic Lantern",
+    "desc": "An enchanted lantern is lighting your way"
+  },
+  {
+    "id": 153,
+    "en": "Shadowflame",
+    "desc": "Losing life"
+  },
+  {
+    "id": 154,
+    "en": "Baby Face Monster",
+    "desc": "A baby face monster is following you"
+  },
+  {
+    "id": 155,
+    "en": "Crimson Heart",
+    "desc": "A magical heart that provides light"
+  },
+  {
+    "id": 156,
+    "en": "Stoned",
+    "desc": "You are completely petrified!"
+  },
+  {
+    "id": 157,
+    "en": "Peace Candle",
+    "desc": "Decreased monster spawn rate"
+  },
+  {
+    "id": 158,
+    "en": "Star in a Bottle",
+    "desc": "Increased mana regeneration"
+  },
+  {
+    "id": 159,
+    "en": "Sharpened",
+    "desc": "Melee weapons have armor penetration"
+  },
+  {
+    "id": 160,
+    "en": "Dazed",
+    "desc": "Movement is greatly slowed"
+  },
+  {
+    "id": 161,
+    "en": "Deadly Sphere",
+    "desc": "The Deadly Sphere will fight for you"
+  },
+  {
+    "id": 162,
+    "en": "Unicorn Mount",
+    "desc": "Charge ahead... fabulously!"
+  },
+  {
+    "id": 163,
+    "en": "Obstructed",
+    "desc": "You can't see!"
+  },
+  {
+    "id": 164,
+    "en": "Distorted",
+    "desc": "Gravity around you is distorted"
+  },
+  {
+    "id": 165,
+    "en": "Dryad's Blessing",
+    "desc": "The power of nature protects you"
+  },
+  {
+    "id": 166,
+    "en": "Minecart",
+    "desc": "Riding in a minecart"
+  },
+  {
+    "id": 167,
+    "en": "Minecart",
+    "desc": "Riding in a minecart"
+  },
+  {
+    "id": 168,
+    "en": "Cute Fishron Mount",
+    "desc": "Just don't make it crawl."
+  },
+  {
+    "id": 169,
+    "en": "Penetrated",
+    "desc": "Bleeding Out"
+  },
+  {
+    "id": 170,
+    "en": "Solar Blaze",
+    "desc": "Damage taken reduced by 30%, repel enemies when taking damage"
+  },
+  {
+    "id": 171,
+    "en": "Solar Blaze",
+    "desc": "Damage taken reduced by 30%, repel enemies when taking damage"
+  },
+  {
+    "id": 172,
+    "en": "Solar Blaze",
+    "desc": "Damage taken reduced by 30%, repel enemies when taking damage"
+  },
+  {
+    "id": 173,
+    "en": "Life Nebula",
+    "desc": "Increased life regeneration"
+  },
+  {
+    "id": 174,
+    "en": "Life Nebula",
+    "desc": "Increased life regeneration"
+  },
+  {
+    "id": 175,
+    "en": "Life Nebula",
+    "desc": "Increased life regeneration"
+  },
+  {
+    "id": 176,
+    "en": "Mana Nebula",
+    "desc": "Increased mana regeneration"
+  },
+  {
+    "id": 177,
+    "en": "Mana Nebula",
+    "desc": "Increased mana regeneration"
+  },
+  {
+    "id": 178,
+    "en": "Mana Nebula",
+    "desc": "Increased mana regeneration"
+  },
+  {
+    "id": 179,
+    "en": "Damage Nebula",
+    "desc": "15% increased damage"
+  },
+  {
+    "id": 180,
+    "en": "Damage Nebula",
+    "desc": "30% increased damage"
+  },
+  {
+    "id": 181,
+    "en": "Damage Nebula",
+    "desc": "45% increased damage"
+  },
+  {
+    "id": 182,
+    "en": "Stardust Cell",
+    "desc": "The stardust cell will fight for you"
+  },
+  {
+    "id": 183,
+    "en": "Celled",
+    "desc": "being eaten by cells"
+  },
+  {
+    "id": 184,
+    "en": "Minecart",
+    "desc": "Riding in a minecart"
+  },
+  {
+    "id": 185,
+    "en": "Minecart",
+    "desc": "Riding in a minecart"
+  },
+  {
+    "id": 186,
+    "en": "Dryad's Bane",
+    "desc": "The power of nature compells you"
+  },
+  {
+    "id": 187,
+    "en": "Stardust Guardian",
+    "desc": "The stardust guardian will protect you"
+  },
+  {
+    "id": 188,
+    "en": "Stardust Dragon",
+    "desc": "The stardust dragon will protect you"
+  },
+  {
+    "id": 189,
+    "en": "Daybroken",
+    "desc": "Incenerated by solar rays"
+  },
+  {
+    "id": 190,
+    "en": "Suspicious Looking Eye",
+    "desc": "A suspicious looking eye that provides light"
+  },
+  {
+    "id": 191,
+    "en": "Companion Cube",
+    "desc": "Will never threaten to stab you and, in fact, cannot speak"
+  },
+  {
+    "id": 193,
+    "en": "Basilisk Mount",
+    "desc": "Crash into anyone... and EVERYONE!"
+  },
+  {
+    "id": 194,
+    "en": "Mighty Wind",
+    "desc": "The wind moves you around!"
+  },
+  {
+    "id": 195,
+    "en": "Withered Armor",
+    "desc": "Your armor is lowered!"
+  },
+  {
+    "id": 196,
+    "en": "Withered Weapon",
+    "desc": "Your attacks are weaker!"
+  },
+  {
+    "id": 197,
+    "en": "Oozed",
+    "desc": "Movement is significantly reduced"
+  },
+  {
+    "id": 198,
+    "en": "Striking Moment",
+    "desc": "500% increased damage for next melee strike"
+  },
+  {
+    "id": 199,
+    "en": "Creative Shock",
+    "desc": "You have lost the power of creation!"
+  },
+  {
+    "id": 200,
+    "en": "Propeller Gato",
+    "desc": "A propeller gato is following you"
+  },
+  {
+    "id": 201,
+    "en": "Flickerwick",
+    "desc": "A flickerwick is following you"
+  },
+  {
+    "id": 202,
+    "en": "Hoardagron",
+    "desc": "A hoardagron is following you"
+  },
+  {
+    "id": 203,
+    "en": "Betsy's Curse",
+    "desc": "Defense is lowered"
+  },
+  {
+    "id": 204,
+    "en": "Oiled",
+    "desc": "Taking more damage from being on fire"
+  },
+  {
+    "id": 205,
+    "en": "Ballista Panic",
+    "desc": "Your ballistas rapidly shoot in panic!"
+  }
+]
