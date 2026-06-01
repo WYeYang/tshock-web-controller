@@ -1,13 +1,15 @@
 
 import { useState } from 'react';
+import type { Group } from '../types/tshock';
 
 interface CreateGroupModalProps {
   isOpen: boolean;
   onClose: () => void;
   onCreateGroup: (name: string, parent?: string, permissions?: string[], chatcolor?: string) => Promise<void>;
+  groups: Group[];
 }
 
-export const CreateGroupModal = ({ isOpen, onClose, onCreateGroup }: CreateGroupModalProps) => {
+export const CreateGroupModal = ({ isOpen, onClose, onCreateGroup, groups }: CreateGroupModalProps) => {
   const [name, setName] = useState('');
   const [parent, setParent] = useState('');
   const [chatcolor, setChatcolor] = useState('');
@@ -62,13 +64,18 @@ export const CreateGroupModal = ({ isOpen, onClose, onCreateGroup }: CreateGroup
             <label className="block text-slate-400 text-xs sm:text-sm font-medium mb-2">
               父组（可选）
             </label>
-            <input
-              type="text"
+            <select
               value={parent}
               onChange={(e) => setParent(e.target.value)}
-              placeholder="输入父组名称"
               className="w-full px-3 py-2 sm:px-4 sm:py-3 bg-slate-800/50 border border-slate-700/50 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-purple-500/50 focus:ring-2 focus:ring-purple-500/20 transition-all text-sm sm:text-base"
-            />
+            >
+              <option value="">无父组</option>
+              {groups.map((group) => (
+                <option key={group.name} value={group.name}>
+                  {group.name}
+                </option>
+              ))}
+            </select>
           </div>
           <div>
             <label className="block text-slate-400 text-xs sm:text-sm font-medium mb-2">

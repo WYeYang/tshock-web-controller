@@ -361,13 +361,32 @@ export function ServerStatusView({ onGoToConfig }: ServerStatusViewProps) {
               ) : (
                 <>
                   <label className="block text-slate-400 text-xs sm:text-sm font-medium mb-2">{getInputPlaceholder()}</label>
-                  <input
-                    ref={valueInputRef}
-                    type="text"
-                    placeholder={getInputPlaceholder()}
-                    className="w-full px-3 py-2 sm:px-4 sm:py-3 bg-slate-800/50 border border-slate-700/50 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-purple-500/50 focus:ring-2 focus:ring-purple-500/20 transition-all text-sm sm:text-base"
-                    autoFocus
-                  />
+                  {confirmDialog.type === 'changeGroup' ? (
+                    <select
+                      ref={valueInputRef as any}
+                      onChange={(e) => {
+                        if (valueInputRef.current) {
+                          (valueInputRef.current as any).value = e.target.value;
+                        }
+                      }}
+                      className="w-full px-3 py-2 sm:px-4 sm:py-3 bg-slate-800/50 border border-slate-700/50 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-purple-500/50 focus:ring-2 focus:ring-purple-500/20 transition-all text-sm sm:text-base"
+                      autoFocus
+                    >
+                      {groups.map((group) => (
+                        <option key={group.name} value={group.name}>
+                          {group.name}
+                        </option>
+                      ))}
+                    </select>
+                  ) : (
+                    <input
+                      ref={valueInputRef}
+                      type="text"
+                      placeholder={getInputPlaceholder()}
+                      className="w-full px-3 py-2 sm:px-4 sm:py-3 bg-slate-800/50 border border-slate-700/50 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-purple-500/50 focus:ring-2 focus:ring-purple-500/20 transition-all text-sm sm:text-base"
+                      autoFocus
+                    />
+                  )}
                 </>
               )}
             </div>
@@ -599,6 +618,7 @@ export function ServerStatusView({ onGoToConfig }: ServerStatusViewProps) {
         onClose={closeGroupEditModal}
         group={selectedGroupForEdit}
         users={users}
+        groups={groups}
         onUpdateGroup={updateExistingGroup}
         onChangeUserGroup={changeGroup}
         showToast={showToast}
@@ -609,6 +629,7 @@ export function ServerStatusView({ onGoToConfig }: ServerStatusViewProps) {
         isOpen={createGroupDialogOpen}
         onClose={() => setCreateGroupDialogOpen(false)}
         onCreateGroup={createNewGroup}
+        groups={groups}
       />
       <DeleteGroupModal
         isOpen={!!confirmDeleteGroup}
