@@ -63,7 +63,7 @@ export const PlayerDetailModal = ({
   const renderItemGrid = (items: InventoryItem[], gridCols: number = 10) => {
     return (
       <div 
-        className="grid gap-1"
+        className="grid gap-1 justify-items-center items-start gap-1 sm:gap-2 grid-cols-[repeat(auto-fill,minmax(36px,1fr))]"
         style={{ gridTemplateColumns: `repeat(${gridCols}, minmax(0, 1fr))` }}
       >
         {items.map((item, index) => (
@@ -152,7 +152,7 @@ export const PlayerDetailModal = ({
                       </button>
                     ))}
                   </div>
-                  <div className="bg-slate-800/30 p-3 sm:p-4 rounded-lg border border-slate-700/50 h-[300px] overflow-y-auto">
+                  <div className="bg-slate-800/30 p-3 sm:p-4 rounded-lg border border-slate-700/50 h-[315px] overflow-y-auto">
                     {displayPlayer.items[activeInventoryTab] && displayPlayer.items[activeInventoryTab].length > 0 ? (
                       renderItemGrid(displayPlayer.items[activeInventoryTab])
                     ) : (
@@ -169,7 +169,7 @@ export const PlayerDetailModal = ({
                       <h3 className="text-sm font-semibold text-white mb-2 flex items-center gap-2">
                         背包
                       </h3>
-                      <div className="bg-slate-800/30 p-2 rounded-lg border border-slate-700/50 h-[300px] overflow-y-auto">
+                      <div className="bg-slate-800/30 p-2 rounded-lg border border-slate-700/50 h-[315px] overflow-y-auto">
                         <p className="text-slate-300 whitespace-pre-wrap text-xs">{displayPlayer.inventory}</p>
                       </div>
                     </div>
@@ -180,7 +180,7 @@ export const PlayerDetailModal = ({
                       <h3 className="text-sm font-semibold text-white mb-2 flex items-center gap-2">
                         装备
                       </h3>
-                      <div className="bg-slate-800/30 p-2 rounded-lg border border-slate-700/50 h-[300px] overflow-y-auto">
+                      <div className="bg-slate-800/30 p-2 rounded-lg border border-slate-700/50 h-[315px] overflow-y-auto">
                         <p className="text-slate-300 whitespace-pre-wrap text-xs">{displayPlayer.armor}</p>
                       </div>
                     </div>

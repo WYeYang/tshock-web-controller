@@ -91,10 +91,10 @@ export const ItemSelectorModal = ({ isOpen, onClose, onSelectItem }: ItemSelecto
         </div>
 
         <div className="bg-slate-800/30 p-3 sm:p-4 rounded-lg border border-slate-700/50 overflow-hidden flex-shrink-0">
-          <div className="h-[428px] overflow-y-auto">
+          <div className="h-[450px]">
             {currentPageItems.length > 0 ? (
               <div 
-                className="grid gap-1"
+                className="grid gap-1 sm:gap-2 w-full h-full overflow-y-auto grid-cols-10 grid-rows-8 auto-rows-fr items-center justify-items-center content-start"
                 style={{ gridTemplateColumns: 'repeat(10, minmax(0, 1fr))' }}
               >
                 {currentPageItems.map((item) => (
