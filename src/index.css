@@ -26,6 +26,13 @@
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
   }
 
+  /* 强制 placeholder 颜色为灰色 */
+  input::placeholder,
+  textarea::placeholder {
+    color: #64748b !important; /* slate-500 */
+    opacity: 1 !important;
+  }
+
   /* Hide scrollbars */
   *::-webkit-scrollbar {
     display: none;

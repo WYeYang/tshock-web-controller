@@ -1,8 +1,9 @@
 import { app, BrowserWindow, ipcMain, Menu, Tray, dialog, nativeImage } from 'electron';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { spawn } from 'child_process';
 import Store from 'electron-store';
-import { setupTshockIpc } from './ipc/tshock.js';
+import { setupTshockIpc, stopShellOnQuit } from './ipc/tshock.js';
 import { setupConfigIpc } from './ipc/config.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -39,12 +40,11 @@ function createWindow() {
     minWidth: 800,
     minHeight: 600,
     webPreferences: {
-      preload: path.join(__dirname, 'preload.js'),
+      preload: path.join(__dirname, 'preload.cjs'),
       contextIsolation: true,
       nodeIntegration: false,
       sandbox: false
     },
-    icon: path.join(__dirname, '../public/icons.svg'),
     show: false,
     backgroundColor: '#0f172a'
   });
@@ -58,10 +58,25 @@ function createWindow() {
     store.set('window', { width, height });
   });
 
-  mainWindow.on('close', (event) => {
-    if (store.get('app.minimizeToTray') && tray) {
+  mainWindow.on('close', async (event) => {
+    if (!app.isQuitting && store.get('app.minimizeToTray') && tray) {
       event.preventDefault();
       mainWindow.hide();
+    } else if (!app.isQuitting) {
+      event.preventDefault();
+      app.isQuitting = true;
+      
+      try {
+        await stopShellOnQuit();
+      } catch (error) {
+        console.error('Error stopping shell on window close:', error);
+      }
+      
+      if (tray) {
+        tray.destroy();
+      }
+      
+      app.quit();
     }
   });
 
@@ -80,11 +95,8 @@ function createWindow() {
 }
 
 function createTray() {
-  const iconPath = path.join(__dirname, '../public/icons.svg');
-
   try {
-    const icon = nativeImage.createFromPath(iconPath);
-    tray = new Tray(icon.isEmpty() ? nativeImage.createEmpty() : icon);
+    tray = new Tray(nativeImage.createEmpty());
 
     const contextMenu = Menu.buildFromTemplate([
       {
@@ -262,8 +274,11 @@ app.on('window-all-closed', () => {
   }
 });
 
-app.on('before-quit', () => {
-  if (tray) {
-    tray.destroy();
+app.on('will-quit', (event) => {
+  if (!app.isQuitting) {
+    event.preventDefault();
+    app.isQuitting = true;
+    // 清理逻辑已经在 window close 事件中处理
+    // 这里只是确保不会重复清理
   }
 });

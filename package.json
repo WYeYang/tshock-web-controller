@@ -10,7 +10,7 @@
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "electron:dev": "npm run build && electron .",
+    "electron:dev": "concurrently -k \"vite\" \"electron .\"",
     "electron:start": "electron .",
     "electron:build": "npm run build && electron-builder",
     "electron:build:win": "npm run build && electron-builder --win",
@@ -36,6 +36,7 @@
     "autoprefixer": "^10.5.0",
     "cheerio": "^1.2.0",
     "chokidar": "^3.6.0",
+    "concurrently": "^10.0.1",
     "electron": "^28.3.3",
     "electron-builder": "^24.13.3",
     "electron-store": "^8.2.0",
@@ -65,36 +66,49 @@
       {
         "from": "public/",
         "to": "public/",
-        "filter": ["**/*"]
+        "filter": [
+          "**/*"
+        ]
+      },
+      {
+        "from": "resources/",
+        "to": "resources/",
+        "filter": [
+          "**/*"
+        ]
       }
     ],
     "win": {
       "target": [
         {
           "target": "nsis",
-          "arch": ["x64"]
+          "arch": [
+            "x64"
+          ]
         }
-      ],
-      "icon": "public/icons.svg"
+      ]
     },
     "mac": {
       "target": [
         {
           "target": "dmg",
-          "arch": ["x64", "arm64"]
+          "arch": [
+            "x64",
+            "arm64"
+          ]
         }
       ],
-      "icon": "public/icons.svg",
       "category": "public.app-category.utilities"
     },
     "linux": {
       "target": [
         {
           "target": "AppImage",
-          "arch": ["x64"]
+          "arch": [
+            "x64"
+          ]
         }
       ],
-      "icon": "public/icons.svg",
       "category": "Utility"
     },
     "nsis": {

@@ -5,16 +5,12 @@ import { usePlatform } from '../hooks/usePlatform';
 interface TShockConfig {
   RestApiEnabled?: boolean;
   RestApiPort?: number;
-  Token?: string;
-  EnableTokenLoginAuthentication?: boolean;
   [key: string]: any;
 }
 
 const CONFIG_FIELDS = [
   { key: 'RestApiEnabled', label: '启用 REST API', type: 'boolean' },
   { key: 'RestApiPort', label: 'REST API 端口', type: 'number' },
-  { key: 'Token', label: 'Token', type: 'string' },
-  { key: 'EnableTokenLoginAuthentication', label: '启用 Token 登录认证', type: 'boolean' },
 ];
 
 export const ConfigEditor = () => {
@@ -27,8 +23,6 @@ export const ConfigEditor = () => {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [hasChanges, setHasChanges] = useState(false);
-  const [newToken, setNewToken] = useState<string>('');
-  const [showToken, setShowToken] = useState(false);
 
   const loadConfig = useCallback(async () => {
     if (!isElectron) return;
@@ -125,31 +119,6 @@ export const ConfigEditor = () => {
     setHasChanges(false);
   };
 
-  const handleGenerateToken = async () => {
-    if (!isElectron) return;
-
-    try {
-      const token = await electronBridge.config.generateToken();
-      setNewToken(token);
-      setConfig(prev => ({
-        ...prev,
-        Token: token
-      }));
-    } catch (err) {
-      console.error('Failed to generate token:', err);
-    }
-  };
-
-  const handleApplyNewToken = () => {
-    if (newToken) {
-      setConfig(prev => ({
-        ...prev,
-        Token: newToken
-      }));
-      setNewToken('');
-    }
-  };
-
   if (!isElectron) {
     return (
       <div className="flex flex-col h-full items-center justify-center p-8">
@@ -184,7 +153,7 @@ export const ConfigEditor = () => {
         </div>
         <div className="flex items-center gap-2">
           {hasChanges && (
-            <span className="text-yellow-400 text-sm">有未保存的更改</span>
+            <span className="text-yellow-400 text-sm">有未保存的修改</span>
           )}
           <button
             onClick={loadConfig}
@@ -265,32 +234,6 @@ export const ConfigEditor = () => {
                           <option value="true">是</option>
                           <option value="false">否</option>
                         </select>
-                      ) : field.key === 'Token' ? (
-                        <div className="relative">
-                          <input
-                            type={showToken ? 'text' : 'password'}
-                            value={config[field.key] || ''}
-                            onChange={(e) => handleFieldChange(field.key, e.target.value, field.type)}
-                            placeholder="输入 Token"
-                            className="w-full px-4 py-3 pr-12 bg-slate-900/50 border border-cyan-500/30 rounded-lg text-white font-mono placeholder-slate-500 focus:outline-none focus:border-cyan-400 transition-all"
-                          />
-                          <button
-                            type="button"
-                            onClick={() => setShowToken(!showToken)}
-                            className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-cyan-400 transition-colors"
-                          >
-                            {showToken ? (
-                              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7-1.274 4.057-5.064 7-9.543 7-4.477 0-8.268-2.943-9.542-7z" />
-                              </svg>
-                            ) : (
-                              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.543 7-1.274 4.057-5.064 7-9.543 7-4.477 0-8.268-2.943-9.542-7z" />
-                              </svg>
-                            )}
-                          </button>
-                        </div>
                       ) : (
                         <input
                           type={field.type}
@@ -302,38 +245,6 @@ export const ConfigEditor = () => {
                       )}
                     </div>
                   ))}
-
-                  <div className="mt-6 pt-6 border-t border-slate-700/50">
-                    <div className="flex items-center gap-4">
-                      <button
-                        onClick={handleGenerateToken}
-                        className="px-4 py-2 bg-gradient-to-r from-cyan-500 to-purple-500 rounded-lg text-white font-medium hover:opacity-90 transition-all"
-                      >
-                        生成新 Token
-                      </button>
-                      {newToken && (
-                        <div className="flex-1 flex gap-2">
-                          <input
-                            type="text"
-                            value={newToken}
-                            onChange={(e) => setNewToken(e.target.value)}
-                            placeholder="生成的新 Token"
-                            className="flex-1 px-3 py-2 bg-slate-900/50 border border-slate-600 rounded-lg text-white font-mono text-sm"
-                            readOnly
-                          />
-                          <button
-                            onClick={handleApplyNewToken}
-                            className="px-3 py-2 bg-green-600 hover:bg-green-500 rounded-lg text-white text-sm transition-all"
-                          >
-                            应用
-                          </button>
-                        </div>
-                      )}
-                    </div>
-                    <p className="text-slate-500 text-sm mt-2">
-                      点击"生成新 Token"创建一个随机 Token，然后点击"应用"将其填入配置。
-                    </p>
-                  </div>
                 </div>
               </div>
             </div>
@@ -344,7 +255,7 @@ export const ConfigEditor = () => {
                 disabled={!hasChanges || isSaving}
                 className="px-6 py-3 bg-slate-800 hover:bg-slate-700 border border-slate-600 rounded-lg text-white transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                重置更改
+                重置修改
               </button>
               <button
                 onClick={handleSave}

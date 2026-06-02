@@ -12,6 +12,9 @@ export interface ElectronAPI {
     stop: () => Promise<any>;
     send: (command: string) => Promise<any>;
     getStatus: () => Promise<any>;
+    setup: (tshockDir: string) => Promise<any>;
+    sync: () => Promise<any>;
+    clear: () => Promise<any>;
     onOutput: (callback: (data: any) => void) => () => void;
     onStatusChange: (callback: (status: any) => void) => () => void;
     onStartRequest: (callback: () => void) => () => void;
@@ -24,6 +27,7 @@ export interface ElectronAPI {
     generateToken: () => Promise<any>;
     getPath: () => Promise<any>;
     setPath: (path: string) => Promise<any>;
+    setWorkingDir: (workingDir: string) => Promise<any>;
     validatePath: (path: string) => Promise<any>;
     onTshockPathUpdated: (callback: (path: string) => void) => () => void;
     onSaved: (callback: (success: boolean, error?: string) => void) => () => void;
@@ -34,6 +38,9 @@ export interface ElectronAPI {
     getStore: (key: string) => Promise<any>;
     setStore: (key: string, value: any) => Promise<boolean>;
     selectFile: (options: any) => Promise<any>;
+    extractBuiltinTShock: () => Promise<any>;
+    getBuiltinTShockInfo: () => Promise<any>;
+    clearConfig: () => Promise<any>;
   };
 }
 
@@ -57,6 +64,21 @@ export const electronBridge = {
     getStatus: async () => {
       if (!electronAPI) throw new Error('Electron API not available');
       return await electronAPI.terminal.getStatus();
+    },
+
+    setup: async (tshockDir: string) => {
+      if (!electronAPI) throw new Error('Electron API not available');
+      return await electronAPI.terminal.setup(tshockDir);
+    },
+
+    sync: async () => {
+      if (!electronAPI) throw new Error('Electron API not available');
+      return await electronAPI.terminal.sync();
+    },
+
+    clear: async () => {
+      if (!electronAPI) throw new Error('Electron API not available');
+      return await electronAPI.terminal.clear();
     },
 
     onOutput: (callback: (data: TerminalOutput) => void) => {
@@ -119,6 +141,11 @@ export const electronBridge = {
       return await electronAPI.config.setPath(configPath);
     },
 
+    setWorkingDir: async (workingDir: string) => {
+      if (!electronAPI) throw new Error('Electron API not available');
+      return await electronAPI.config.setWorkingDir(workingDir);
+    },
+
     validatePath: async (filePath: string) => {
       if (!electronAPI) throw new Error('Electron API not available');
       return await electronAPI.config.validatePath(filePath);
@@ -163,6 +190,21 @@ export const electronBridge = {
     selectFile: async (options: any) => {
       if (!electronAPI) return null;
       return await electronAPI.app.selectFile(options);
+    },
+
+    extractBuiltinTShock: async () => {
+      if (!electronAPI) throw new Error('Electron API not available');
+      return await electronAPI.app.extractBuiltinTShock();
+    },
+
+    getBuiltinTShockInfo: async () => {
+      if (!electronAPI) return null;
+      return await electronAPI.app.getBuiltinTShockInfo();
+    },
+
+    clearConfig: async () => {
+      if (!electronAPI) throw new Error('Electron API not available');
+      return await electronAPI.app.clearConfig();
     }
   }
 };
@@ -174,7 +216,8 @@ export interface TerminalOutput {
 }
 
 export interface TerminalStatus {
-  status: 'stopped' | 'starting' | 'running' | 'stopping' | 'error';
+  status: 'stopped' | 'starting' | 'running' | 'stopping' | 'error' | 'setup';
+  mode?: 'setup' | 'server';
   error?: string;
   timestamp: number;
 }

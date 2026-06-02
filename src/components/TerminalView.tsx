@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { electronBridge, type TerminalOutput, type TerminalStatus } from '../services/electronBridge';
 import { usePlatform } from '../hooks/usePlatform';
 
-type TerminalStatusType = 'stopped' | 'starting' | 'running' | 'stopping' | 'error';
+type TerminalStatusType = 'stopped' | 'starting' | 'running' | 'stopping' | 'error' | 'setup' | 'idle';
 
 export const TerminalView = () => {
   const { isElectron, selectFile } = usePlatform();
@@ -248,8 +248,10 @@ export const TerminalView = () => {
     switch (status) {
       case 'running': return 'text-green-400';
       case 'starting':
-      case 'stopping': return 'text-yellow-400';
+      case 'stopping':
+      case 'setup': return 'text-yellow-400';
       case 'error': return 'text-red-400';
+      case 'idle': return 'text-blue-400';
       default: return 'text-slate-400';
     }
   };
@@ -260,6 +262,8 @@ export const TerminalView = () => {
       case 'starting': return '启动中...';
       case 'stopping': return '停止中...';
       case 'error': return '错误';
+      case 'setup': return '配置中...';
+      case 'idle': return '空闲';
       default: return '已停止';
     }
   };
@@ -391,12 +395,12 @@ export const TerminalView = () => {
                 onChange={(e) => setInputValue(e.target.value)}
                 onKeyDown={handleKeyPress}
                 placeholder="输入命令..."
-                disabled={status !== 'running'}
+                disabled={status !== 'running' && status !== 'idle'}
                 className="flex-1 px-3 py-2 bg-slate-800/50 border border-slate-600 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-green-500 transition-all disabled:opacity-50"
               />
               <button
                 onClick={handleSendCommand}
-                disabled={!inputValue.trim() || status !== 'running'}
+                disabled={!inputValue.trim() || (status !== 'running' && status !== 'idle')}
                 className="px-4 py-2 bg-gradient-to-r from-green-500 to-emerald-500 rounded-lg text-white font-medium hover:opacity-90 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 发送
@@ -416,14 +420,14 @@ export const TerminalView = () => {
             <div className="space-y-2">
               <button
                 onClick={handleStart}
-                disabled={isLoading || status === 'running' || status === 'starting'}
+                disabled={isLoading || status === 'running' || status === 'starting' || status === 'setup'}
                 className="w-full py-3 bg-gradient-to-r from-green-500 to-emerald-500 rounded-lg text-white font-bold hover:opacity-90 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {status === 'starting' ? '启动中...' : '启动服务器'}
               </button>
               <button
                 onClick={handleStop}
-                disabled={isLoading || status === 'stopped' || status === 'stopping'}
+                disabled={isLoading || status === 'stopped'}
                 className="w-full py-3 bg-gradient-to-r from-red-500 to-rose-500 rounded-lg text-white font-bold hover:opacity-90 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {status === 'stopping' ? '停止中...' : '停止服务器'}

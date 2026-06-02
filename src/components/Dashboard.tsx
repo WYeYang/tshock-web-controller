@@ -9,6 +9,7 @@ import { ConfigView } from './ConfigView';
 import { useConfig } from '../hooks/useConfig';
 import { usePlatform } from '../hooks/usePlatform';
 import { TerminalView } from './TerminalView';
+import { SetupWizard } from './SetupWizard';
 
 export const Dashboard = () => {
   const { config } = useConfig();
@@ -17,6 +18,7 @@ export const Dashboard = () => {
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [previousConfigured, setPreviousConfigured] = useState(false);
   const [selectedDocId, setSelectedDocId] = useState<string | undefined>(undefined);
+  const [showSetupWizard, setShowSetupWizard] = useState(false);
 
   const isConfigured = !!(config.tshock.serverUrl && config.tshock.token);
 
@@ -32,6 +34,13 @@ export const Dashboard = () => {
     // 保存上一次的配置状态
     setPreviousConfigured(isConfigured);
   }, [config.tshock.serverUrl, config.tshock.token, currentView]);
+
+  // 检测桌面模式且未配置时显示设置向导
+  useEffect(() => {
+    if (isElectron && !isConfigured) {
+      setShowSetupWizard(true);
+    }
+  }, [isElectron, isConfigured]);
 
   const renderView = () => {
     if (currentView === 'config') {
@@ -69,6 +78,16 @@ export const Dashboard = () => {
     <div className="flex h-screen bg-slate-950 overflow-hidden">
       <div className="absolute inset-0 cyber-grid"></div>
       <div className="absolute inset-0 bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950"></div>
+
+      {/* Setup Wizard Modal */}
+      {showSetupWizard && isElectron && (
+        <SetupWizard
+          onComplete={() => {
+            setShowSetupWizard(false);
+            setCurrentView('command');
+          }}
+        />
+      )}
 
       {/* Mobile sidebar overlay */}
       {isMobileSidebarOpen && (

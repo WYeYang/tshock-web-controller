@@ -1,8 +1,6 @@
 import { useState } from 'react';
 import { useConfig } from '../hooks/useConfig';
 import { useTShock } from '../hooks/useTShock';
-import { usePlatform } from '../hooks/usePlatform';
-import { electronBridge } from '../services/electronBridge';
 
 const maskToken = (token: string): string => {
   if (!token) return '';
@@ -15,14 +13,11 @@ const maskToken = (token: string): string => {
 export const ConfigPanel = () => {
   const { config, updateTshockConfig, updateLLMConfig, save } = useConfig();
   const { loading, fetchAndSaveToken, clearError } = useTShock();
-  const { isElectron, selectFile } = usePlatform();
   const [showSuccess, setShowSuccess] = useState(false);
   const [tokenMessage, setTokenMessage] = useState<string | null>(null);
   const [showRegenerate, setShowRegenerate] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showApiKey, setShowApiKey] = useState(false);
-  const [tshockPath, setTshockPath] = useState<string>('');
-  const [isSyncingToken, setIsSyncingToken] = useState(false);
 
   const handleSave = () => {
     save(config);
@@ -65,58 +60,6 @@ export const ConfigPanel = () => {
     setShowRegenerate(true);
   };
 
-  const handleSelectTshockPath = async () => {
-    if (!isElectron) return;
-
-    try {
-      const result = await selectFile({
-        properties: ['openFile'],
-        filters: [
-          { name: 'Executables', extensions: ['exe', 'app', ''] },
-          { name: 'All Files', extensions: ['*'] }
-        ]
-      });
-
-      if (result && !result.canceled && result.filePaths.length > 0) {
-        const selectedPath = result.filePaths[0];
-        setTshockPath(selectedPath);
-
-        await electronBridge.app.setStore('tshock', {
-          executablePath: selectedPath,
-          workingDir: selectedPath.substring(0, selectedPath.lastIndexOf(selectedPath.includes('\\') ? '\\' : '/'))
-        });
-
-        setTokenMessage('✓ TShock 路径已设置');
-        setTimeout(() => setTokenMessage(null), 3000);
-      }
-    } catch (err) {
-      console.error('Failed to select file:', err);
-    }
-  };
-
-  const handleAutoConfigToken = async () => {
-    if (!isElectron || !config.tshock.token) {
-      setTokenMessage('请先获取 Token');
-      return;
-    }
-
-    setIsSyncingToken(true);
-
-    try {
-      const result = await electronBridge.config.setToken(config.tshock.token);
-      if (result.success) {
-        setTokenMessage('✓ Token 已自动配置到 config.json');
-      } else {
-        setTokenMessage(`✗ 配置失败: ${result.error}`);
-      }
-    } catch (err) {
-      setTokenMessage(`✗ 配置失败: ${err instanceof Error ? err.message : '未知错误'}`);
-    } finally {
-      setIsSyncingToken(false);
-      setTimeout(() => setTokenMessage(null), 5000);
-    }
-  };
-
   const hasToken = !!config.tshock.token;
 
   return (
@@ -145,37 +88,6 @@ export const ConfigPanel = () => {
             </div>
             
             <div className="space-y-4">
-              {isElectron && (
-                <>
-                  <div>
-                    <label className="block text-cyan-400 font-medium mb-2">TShock 可执行文件路径</label>
-                    <div className="flex gap-2">
-                      <input
-                        type="text"
-                        value={tshockPath || config.tshock.serverUrl}
-                        onChange={(e) => setTshockPath(e.target.value)}
-                        placeholder="选择或输入 TShock 服务器路径"
-                        className="flex-1 px-4 py-3 bg-slate-900/50 border border-cyan-500/30 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20 transition-all"
-                      />
-                      <button
-                        onClick={handleSelectTshockPath}
-                        className="px-4 py-3 bg-slate-800 hover:bg-slate-700 border border-slate-600 rounded-lg text-white transition-all whitespace-nowrap"
-                      >
-                        浏览...
-                      </button>
-                    </div>
-                    <p className="text-slate-500 text-sm mt-1">桌面端专用：设置本地 TShock 服务器路径</p>
-                  </div>
-
-                  <div className="flex items-center gap-3 p-3 bg-green-500/10 border border-green-500/20 rounded-lg">
-                    <svg className="w-5 h-5 text-green-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    <p className="text-green-300 text-sm">桌面模式已启用，可以使用终端和配置文件编辑功能</p>
-                  </div>
-                </>
-              )}
-
               <div>
                 <label className="block text-cyan-400 font-medium mb-2">服务器地址</label>
                 <input
@@ -203,17 +115,6 @@ export const ConfigPanel = () => {
                         重新生成
                       </button>
                     </div>
-                    {isElectron && (
-                      <div className="mt-3 pt-3 border-t border-cyan-500/20">
-                        <button
-                          onClick={handleAutoConfigToken}
-                          disabled={isSyncingToken}
-                          className="w-full py-2 bg-gradient-to-r from-green-500/20 to-emerald-500/20 hover:from-green-500/30 hover:to-emerald-500/30 border border-green-500/30 rounded-lg text-green-400 font-medium transition-all disabled:opacity-50"
-                        >
-                          {isSyncingToken ? '配置中...' : '一键配置 Token 到 config.json'}
-                        </button>
-                      </div>
-                    )}
                   </div>
                 </>
               ) : (
