@@ -149,7 +149,7 @@ export const useTShock = () => {
       }
       updateTshockConfig(updateData);
 
-      if (isElectronAvailable) {
+      if (isElectronAvailable()) {
         try {
           await electronBridge.config.setToken(token);
         } catch (electronErr) {

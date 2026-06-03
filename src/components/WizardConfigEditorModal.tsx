@@ -77,6 +77,7 @@ export const WizardConfigEditorModal = ({ isOpen, onConfirm }: WizardConfigEdito
   }, [isElectron]);
 
   useEffect(() => {
+    console.log('WizardConfigEditorModal - isOpen changed:', isOpen);
     if (isOpen) {
       loadConfig();
     }

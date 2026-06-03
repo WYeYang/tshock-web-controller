@@ -1,20 +1,37 @@
-let electronAPI: any = null;
-
-if (typeof window !== 'undefined') {
-  electronAPI = (window as any).electronAPI || null;
+// 更健壮的electronBridge实现
+function getElectronAPI(): any {
+  if (typeof window === 'undefined') {
+    console.log('electronBridge - window is undefined (SSR)');
+    return null;
+  }
+  
+  const api = (window as any).electronAPI;
+  if (!api) {
+    console.log('electronBridge - electronAPI not found on window');
+    console.log('electronBridge - window keys:', Object.keys(window).filter(k => k.includes('electron')));
+  }
+  return api;
 }
 
-export const isElectronAvailable = !!electronAPI;
+export function isElectronAvailable(): boolean {
+  if (typeof window === 'undefined') return false;
+  const result = !!(window as any).electronAPI;
+  console.log('electronBridge - isElectronAvailable:', result);
+  return result;
+}
 
 export interface ElectronAPI {
   terminal: {
     start: () => Promise<any>;
     stop: () => Promise<any>;
     send: (command: string) => Promise<any>;
+    sendRaw: (data: string) => Promise<any>;
+    resize: (cols: number, rows: number) => Promise<any>;
     getStatus: () => Promise<any>;
     setup: (tshockDir: string) => Promise<any>;
     sync: () => Promise<any>;
     clear: () => Promise<any>;
+    extractBuiltin: () => Promise<any>;
     onOutput: (callback: (data: any) => void) => () => void;
     onStatusChange: (callback: (status: any) => void) => () => void;
     onStartRequest: (callback: () => void) => () => void;
@@ -26,9 +43,10 @@ export interface ElectronAPI {
     setToken: (token: string) => Promise<any>;
     generateToken: () => Promise<any>;
     getPath: () => Promise<any>;
-    setPath: (path: string) => Promise<any>;
+    setPath: (configPath: string) => Promise<any>;
     setWorkingDir: (workingDir: string) => Promise<any>;
-    validatePath: (path: string) => Promise<any>;
+    validatePath: (filePath: string) => Promise<any>;
+    getExtractPaths: () => Promise<any>;
     onTshockPathUpdated: (callback: (path: string) => void) => () => void;
     onSaved: (callback: (success: boolean, error?: string) => void) => () => void;
   };
@@ -47,164 +65,229 @@ export interface ElectronAPI {
 export const electronBridge = {
   terminal: {
     start: async () => {
-      if (!electronAPI) throw new Error('Electron API not available');
-      return await electronAPI.terminal.start();
+      const api = getElectronAPI();
+      if (!api) throw new Error('Electron API not available');
+      return await api.terminal.start();
     },
 
     stop: async () => {
-      if (!electronAPI) throw new Error('Electron API not available');
-      return await electronAPI.terminal.stop();
+      const api = getElectronAPI();
+      if (!api) throw new Error('Electron API not available');
+      return await api.terminal.stop();
     },
 
     send: async (command: string) => {
-      if (!electronAPI) throw new Error('Electron API not available');
-      return await electronAPI.terminal.send(command);
+      const api = getElectronAPI();
+      if (!api) throw new Error('Electron API not available');
+      return await api.terminal.send(command);
+    },
+
+    sendRaw: async (data: string) => {
+      const api = getElectronAPI();
+      if (!api) throw new Error('Electron API not available');
+      return await api.terminal.sendRaw(data);
+    },
+
+    resize: async (cols: number, rows: number) => {
+      const api = getElectronAPI();
+      if (!api) throw new Error('Electron API not available');
+      return await api.terminal.resize(cols, rows);
     },
 
     getStatus: async () => {
-      if (!electronAPI) throw new Error('Electron API not available');
-      return await electronAPI.terminal.getStatus();
+      const api = getElectronAPI();
+      if (!api) throw new Error('Electron API not available');
+      return await api.terminal.getStatus();
     },
 
     setup: async (tshockDir: string) => {
-      if (!electronAPI) throw new Error('Electron API not available');
-      return await electronAPI.terminal.setup(tshockDir);
+      const api = getElectronAPI();
+      if (!api) throw new Error('Electron API not available');
+      return await api.terminal.setup(tshockDir);
     },
 
     sync: async () => {
-      if (!electronAPI) throw new Error('Electron API not available');
-      return await electronAPI.terminal.sync();
+      const api = getElectronAPI();
+      if (!api) throw new Error('Electron API not available');
+      return await api.terminal.sync();
     },
 
     clear: async () => {
-      if (!electronAPI) throw new Error('Electron API not available');
-      return await electronAPI.terminal.clear();
+      const api = getElectronAPI();
+      if (!api) throw new Error('Electron API not available');
+      return await api.terminal.clear();
     },
 
-    onOutput: (callback: (data: TerminalOutput) => void) => {
-      if (!electronAPI) {
-        return () => {};
-      }
-      return electronAPI.terminal.onOutput(callback);
+    extractBuiltin: async () => {
+      const api = getElectronAPI();
+      if (!api) throw new Error('Electron API not available');
+      return await api.terminal.extractBuiltin();
     },
 
-    onStatusChange: (callback: (status: TerminalStatus) => void) => {
-      if (!electronAPI) {
+    onOutput: (callback: (data: any) => void) => {
+      const api = getElectronAPI();
+      if (!api) {
         return () => {};
       }
-      return electronAPI.terminal.onStatusChange(callback);
+      return api.terminal.onOutput(callback);
+    },
+
+    onStatusChange: (callback: (status: any) => void) => {
+      const api = getElectronAPI();
+      if (!api) {
+        return () => {};
+      }
+      return api.terminal.onStatusChange(callback);
     },
 
     onStartRequest: (callback: () => void) => {
-      if (!electronAPI) {
+      const api = getElectronAPI();
+      if (!api) {
         return () => {};
       }
-      return electronAPI.terminal.onStartRequest(callback);
+      return api.terminal.onStartRequest(callback);
     },
 
     onStopRequest: (callback: () => void) => {
-      if (!electronAPI) {
+      const api = getElectronAPI();
+      if (!api) {
         return () => {};
       }
-      return electronAPI.terminal.onStopRequest(callback);
+      return api.terminal.onStopRequest(callback);
     }
   },
 
   config: {
     read: async () => {
-      if (!electronAPI) throw new Error('Electron API not available');
-      return await electronAPI.config.read();
+      const api = getElectronAPI();
+      if (!api) throw new Error('Electron API not available');
+      return await api.config.read();
     },
 
     write: async (data: any) => {
-      if (!electronAPI) throw new Error('Electron API not available');
-      return await electronAPI.config.write(data);
+      const api = getElectronAPI();
+      if (!api) throw new Error('Electron API not available');
+      return await api.config.write(data);
     },
 
     setToken: async (token: string) => {
-      if (!electronAPI) throw new Error('Electron API not available');
-      return await electronAPI.config.setToken(token);
+      const api = getElectronAPI();
+      if (!api) throw new Error('Electron API not available');
+      return await api.config.setToken(token);
     },
 
     generateToken: async () => {
-      if (!electronAPI) throw new Error('Electron API not available');
-      return await electronAPI.config.generateToken();
+      const api = getElectronAPI();
+      if (!api) throw new Error('Electron API not available');
+      return await api.config.generateToken();
     },
 
     getPath: async () => {
-      if (!electronAPI) throw new Error('Electron API not available');
-      return await electronAPI.config.getPath();
+      const api = getElectronAPI();
+      if (!api) throw new Error('Electron API not available');
+      return await api.config.getPath();
     },
 
     setPath: async (configPath: string) => {
-      if (!electronAPI) throw new Error('Electron API not available');
-      return await electronAPI.config.setPath(configPath);
+      const api = getElectronAPI();
+      if (!api) throw new Error('Electron API not available');
+      return await api.config.setPath(configPath);
     },
 
     setWorkingDir: async (workingDir: string) => {
-      if (!electronAPI) throw new Error('Electron API not available');
-      return await electronAPI.config.setWorkingDir(workingDir);
+      const api = getElectronAPI();
+      if (!api) throw new Error('Electron API not available');
+      return await api.config.setWorkingDir(workingDir);
     },
 
     validatePath: async (filePath: string) => {
-      if (!electronAPI) throw new Error('Electron API not available');
-      return await electronAPI.config.validatePath(filePath);
+      const api = getElectronAPI();
+      if (!api) throw new Error('Electron API not available');
+      return await api.config.validatePath(filePath);
+    },
+
+    getExtractPaths: async () => {
+      const api = getElectronAPI();
+      if (!api) throw new Error('Electron API not available');
+      return await api.config.getExtractPaths();
     },
 
     onTshockPathUpdated: (callback: (path: string) => void) => {
-      if (!electronAPI) {
+      const api = getElectronAPI();
+      if (!api) {
         return () => {};
       }
-      return electronAPI.config.onTshockPathUpdated(callback);
+      return api.config.onTshockPathUpdated(callback);
     },
 
     onSaved: (callback: (success: boolean, error?: string) => void) => {
-      if (!electronAPI) {
+      const api = getElectronAPI();
+      if (!api) {
         return () => {};
       }
-      return electronAPI.config.onSaved(callback);
+      return api.config.onSaved(callback);
     }
   },
 
   app: {
     getVersion: async () => {
-      if (!electronAPI) return null;
-      return await electronAPI.app.getVersion();
+      const api = getElectronAPI();
+      if (!api) return null;
+      return await api.app.getVersion();
     },
 
     getPlatform: async () => {
-      if (!electronAPI) return null;
-      return await electronAPI.app.getPlatform();
+      const api = getElectronAPI();
+      if (!api) return null;
+      return await api.app.getPlatform();
     },
 
     getStore: async (key: string) => {
-      if (!electronAPI) return null;
-      return await electronAPI.app.getStore(key);
+      const api = getElectronAPI();
+      if (!api) return null;
+      return await api.app.getStore(key);
     },
 
     setStore: async (key: string, value: any) => {
-      if (!electronAPI) return false;
-      return await electronAPI.app.setStore(key, value);
+      const api = getElectronAPI();
+      if (!api) return false;
+      return await api.app.setStore(key, value);
     },
 
     selectFile: async (options: any) => {
-      if (!electronAPI) return null;
-      return await electronAPI.app.selectFile(options);
+      const api = getElectronAPI();
+      if (!api) return null;
+      return await api.app.selectFile(options);
     },
 
     extractBuiltinTShock: async () => {
-      if (!electronAPI) throw new Error('Electron API not available');
-      return await electronAPI.app.extractBuiltinTShock();
+      console.log('electronBridge - extractBuiltinTShock called');
+      const api = getElectronAPI();
+      if (!api) {
+        console.error('electronBridge - API not available for extractBuiltinTShock');
+        throw new Error('Electron API not available');
+      }
+      console.log('electronBridge - API available, calling api.app.extractBuiltinTShock');
+      console.log('electronBridge - api.app keys:', Object.keys(api.app));
+      return await api.app.extractBuiltinTShock();
     },
 
     getBuiltinTShockInfo: async () => {
-      if (!electronAPI) return null;
-      return await electronAPI.app.getBuiltinTShockInfo();
+      console.log('electronBridge - getBuiltinTShockInfo called');
+      const api = getElectronAPI();
+      if (!api) {
+        console.log('electronBridge - API not available, returning null');
+        return null;
+      }
+      console.log('electronBridge - API available');
+      console.log('electronBridge - api.app keys:', Object.keys(api.app));
+      return await api.app.getBuiltinTShockInfo();
     },
 
     clearConfig: async () => {
-      if (!electronAPI) throw new Error('Electron API not available');
-      return await electronAPI.app.clearConfig();
+      const api = getElectronAPI();
+      if (!api) throw new Error('Electron API not available');
+      return await api.app.clearConfig();
     }
   }
 };

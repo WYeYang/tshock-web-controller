@@ -14,8 +14,21 @@ export const TerminalView = () => {
   const [configPath, setConfigPath] = useState<string>('');
   const [isLoading, setIsLoading] = useState(false);
   const [hasPathError, setHasPathError] = useState(false);
+  const [hasSelection, setHasSelection] = useState(false);
   const outputRef = useRef<HTMLDivElement>(null);
   const isInitialMount = useRef(true);
+
+  const copySelection = async () => {
+    try {
+      const selection = window.getSelection();
+      if (selection && selection.toString()) {
+        await navigator.clipboard.writeText(selection.toString());
+        setHasSelection(false);
+      }
+    } catch (err) {
+      console.error('Failed to copy:', err);
+    }
+  };
 
   const scrollToBottom = useCallback(() => {
     if (outputRef.current) {
@@ -31,6 +44,27 @@ export const TerminalView = () => {
 
   useEffect(() => {
     isInitialMount.current = false;
+  }, []);
+
+  // 监听选中变化
+  useEffect(() => {
+    const handleSelectionChange = () => {
+      const selection = window.getSelection();
+      const hasSel = selection && selection.toString().trim().length > 0;
+      setHasSelection(!!hasSel);
+    };
+
+    const handleMouseUp = () => setTimeout(handleSelectionChange, 10);
+    const handleKeyUp = () => setTimeout(handleSelectionChange, 10);
+
+    document.addEventListener('selectionchange', handleSelectionChange);
+    document.addEventListener('mouseup', handleMouseUp);
+    document.addEventListener('keyup', handleKeyUp);
+    return () => {
+      document.removeEventListener('selectionchange', handleSelectionChange);
+      document.removeEventListener('mouseup', handleMouseUp);
+      document.removeEventListener('keyup', handleKeyUp);
+    };
   }, []);
 
   useEffect(() => {
@@ -236,6 +270,21 @@ export const TerminalView = () => {
     setOutputs([]);
   };
 
+  const handleCopyOutput = async () => {
+    if (outputs.length === 0) return;
+    
+    const text = outputs.map(output => 
+      `[${formatTime(output.timestamp)}] ${output.data}`
+    ).join('\n');
+    
+    try {
+      await navigator.clipboard.writeText(text);
+      alert('已复制到剪贴板');
+    } catch (err) {
+      console.error('复制失败:', err);
+    }
+  };
+
   const formatTime = (timestamp: number) => {
     return new Date(timestamp).toLocaleTimeString('zh-CN', {
       hour: '2-digit',
@@ -306,6 +355,16 @@ export const TerminalView = () => {
             </span>
           </div>
           <button
+            onClick={handleCopyOutput}
+            className="flex items-center gap-2 px-3 py-2 bg-slate-800/50 hover:bg-slate-700/50 rounded-lg text-slate-400 hover:text-white transition-all text-sm"
+            title="复制全部输出"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+            </svg>
+            复制
+          </button>
+          <button
             onClick={handleClearOutput}
             className="flex items-center gap-2 px-3 py-2 bg-slate-800/50 hover:bg-slate-700/50 rounded-lg text-slate-400 hover:text-white transition-all text-sm"
             title="清除输出"
@@ -353,7 +412,7 @@ export const TerminalView = () => {
       </div>
 
       <div className="flex-1 flex gap-4 p-4 overflow-hidden">
-        <div className="flex-1 flex flex-col glass-card neon-border overflow-hidden">
+        <div className="flex-1 flex flex-col glass-card neon-border overflow-hidden relative">
           <div className="flex items-center justify-between p-3 border-b border-slate-700/50 bg-slate-900/30">
             <div className="flex items-center gap-2">
               <div className="w-2 h-2 rounded-full bg-green-500"></div>
@@ -362,9 +421,19 @@ export const TerminalView = () => {
             <span className="text-slate-500 text-xs">{outputs.length} 条消息</span>
           </div>
 
+          {hasSelection && (
+            <button
+              onClick={copySelection}
+              className="absolute top-14 right-4 z-10 px-3 py-1 bg-gray-800 hover:bg-gray-700 border border-gray-600 rounded text-white text-sm transition-colors"
+            >
+              复制选中
+            </button>
+          )}
+
           <div
             ref={outputRef}
-            className="flex-1 overflow-y-auto p-3 bg-slate-950/50 font-mono text-sm"
+            className="flex-1 overflow-y-auto p-3 bg-slate-950/50 font-mono text-sm select-text"
+            style={{ userSelect: 'text' }}
           >
             {outputs.length === 0 ? (
               <div className="text-slate-500 text-center py-8">

@@ -221,6 +221,21 @@ function getBuiltinTShockZipPath() {
   return path.join(resourcesPath, 'TShock-6.1.0-for-Terraria-1.4.5.6-win-x64-Release.zip');
 }
 
+function getExtractScriptPath() {
+  if (!app.isPackaged) {
+    return path.join(process.cwd(), 'scripts', 'extract-tshock.js');
+  }
+  return path.join(process.resourcesPath, 'app', 'scripts', 'extract-tshock.js');
+}
+
+function getExtractTargetDir() {
+  if (!app.isPackaged) {
+    return path.join(process.cwd(), 'TShock');
+  }
+  const appDir = path.dirname(app.getPath('exe'));
+  return path.join(appDir, 'TShock');
+}
+
 function extractBuiltinTShock() {
   return new Promise(async (resolve, reject) => {
     try {
@@ -380,6 +395,14 @@ export function setupConfigIpc(window, electronStore) {
 
   ipcMain.handle('config:generate-token', () => {
     return generateToken();
+  });
+
+  ipcMain.handle('config:get-extract-paths', () => {
+    return {
+      scriptPath: getExtractScriptPath(),
+      zipPath: getBuiltinTShockZipPath(),
+      targetDir: getExtractTargetDir()
+    };
   });
 
   ipcMain.handle('config:get-path', () => {

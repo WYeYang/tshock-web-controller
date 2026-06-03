@@ -5,6 +5,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
     start: () => ipcRenderer.invoke('terminal:start'),
     stop: () => ipcRenderer.invoke('terminal:stop'),
     send: (command) => ipcRenderer.invoke('terminal:send', command),
+    sendRaw: (data) => ipcRenderer.invoke('terminal:sendRaw', data),
+    resize: (cols, rows) => ipcRenderer.invoke('terminal:resize', cols, rows),
     getStatus: () => ipcRenderer.invoke('terminal:status'),
     setup: (tshockDir) => ipcRenderer.invoke('terminal:setup', tshockDir),
     switchToServer: () => ipcRenderer.invoke('terminal:switch-to-server'),
@@ -41,6 +43,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
     setPath: (configPath) => ipcRenderer.invoke('config:set-path', configPath),
     setWorkingDir: (workingDir) => ipcRenderer.invoke('config:set-working-dir', workingDir),
     validatePath: (filePath) => ipcRenderer.invoke('config:validate-path', filePath),
+    getExtractPaths: () => ipcRenderer.invoke('config:get-extract-paths'),
     onTshockPathUpdated: (callback) => {
       const subscription = (event, path) => callback(path);
       ipcRenderer.on('config:tshock-path-updated', subscription);

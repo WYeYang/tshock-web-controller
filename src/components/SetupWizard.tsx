@@ -1,8 +1,9 @@
-import { useState, useCallback, useEffect, useRef } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { electronBridge, isElectronAvailable } from '../services/electronBridge';
 import { useConfig } from '../hooks/useConfig';
 import { usePlatform } from '../hooks/usePlatform';
 import { WizardConfigEditorModal } from './WizardConfigEditorModal';
+import { TerminalUI } from './TerminalUI';
 
 interface SetupWizardProps {
   onComplete: () => void;
@@ -13,112 +14,203 @@ export const SetupWizard = ({ onComplete }: SetupWizardProps) => {
   const [tshockDir, setTshockDir] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [logs, setLogs] = useState<string[]>([]);
   const { updateTshockConfig } = useConfig();
   const { selectFile } = usePlatform();
   const [builtinInfo, setBuiltinInfo] = useState<any>(null);
-  const logContainerRef = useRef<HTMLDivElement>(null);
   const [showConfigEditor, setShowConfigEditor] = useState(false);
+  const [detectedOptions, setDetectedOptions] = useState<string[]>([]);
+  const [pendingInput, setPendingInput] = useState<{prompt: string, type: 'text' | 'password'} | null>(null);
+  const [inputValue, setInputValue] = useState('');
+  const [showSkipButton, setShowSkipButton] = useState(false);
+  const [skipMode, setSkipMode] = useState(false);
+  const [worldSize, setWorldSize] = useState<number | null>(null);
+  const [serverReady, setServerReady] = useState(false);
+  const [adminUsername, setAdminUsername] = useState('');
+  const [adminPassword, setAdminPassword] = useState('');
+  const [setupComplete, setSetupComplete] = useState(false);
 
-  // 在组件加载时清理旧配置
+  // 默认值配置
+  const DEFAULT_VALUES = {
+    port: '7777',
+    maxPlayers: '8',
+    worldName: '',
+    password: '',
+    autoAccept: 'y'
+  };
+
+  // 在组件加载时清理旧配置并获取内置 TShock 信息，并且在第一步就启动终端
   useEffect(() => {
-    if (isElectronAvailable) {
-      electronBridge.app.clearConfig().then(result => {
-        console.log('SetupWizard - 旧配置清理结果:', result);
-      });
-    }
-  }, []);
-
-  const scrollToBottom = useCallback(() => {
-    if (logContainerRef.current) {
-      logContainerRef.current.scrollTop = logContainerRef.current.scrollHeight;
-    }
-  }, []);
-
-  useEffect(() => {
-    scrollToBottom();
-  }, [logs, scrollToBottom]);
-
-  const addLog = useCallback((message: string) => {
-    const timestampedMessage = `[${new Date().toLocaleTimeString()}] ${message}`;
-    setLogs(prev => [...prev, timestampedMessage]);
-  }, []);
-
-  useEffect(() => {
-    if (isElectronAvailable) {
-      electronBridge.terminal.sync();
+    if (isElectronAvailable()) {
+      electronBridge.app.clearConfig();
       electronBridge.app.getBuiltinTShockInfo().then(info => {
         setBuiltinInfo(info);
+      }).catch(err => {
+        setBuiltinInfo({ exists: false });
+      });
+
+      // 在第一步就启动终端
+      electronBridge.terminal.start().catch(err => {
+        console.error('SetupWizard - 启动终端失败:', err);
       });
     }
   }, []);
 
-  const handleUseBuiltinTShock = async () => {
-    if (!isElectronAvailable) return;
-
-    setLoading(true);
-    addLog('正在解压内置 TShock 版本...');
-
-    try {
-      const result = await electronBridge.app.extractBuiltinTShock();
-      
-      if (result.success) {
-        addLog('✓ 解压完成');
-        setTshockDir(result.path);
-        
-        // 现在 extractBuiltinTShock 已经自动设置好所有路径了
-        addLog(`✓ 设置工作目录: ${result.path}`);
-        
-        // 获取配置路径用于验证
-        const configPath = await electronBridge.config.getPath();
-        const installerPath = `${result.path}\\TShock.Installer.exe`;
-        const pathResult = await electronBridge.config.validatePath(installerPath);
-        
-        if (pathResult.valid) {
-          addLog('✓ 找到 TShock.Installer.exe');
-          
-          const configValidation = await electronBridge.config.validatePath(configPath);
-          
-          if (configValidation.valid) {
-            addLog('✓ 找到现有 config.json');
-            addLog('跳过生成配置，直接配置 REST API...');
-            setStep(3);
-            await handleConfigureRest();
-          } else {
-            addLog('未找到现有 config.json，将先生成配置...');
-            setStep(2);
-          }
-        } else {
-          setError('解压后未找到 TShock.Installer.exe');
+  // 检测选项
+  const detectOptions = (text: string): string[] => {
+    const options: string[] = [];
+    
+    // 检测 [Y/N] 格式
+    const yesNoMatch = text.match(/\[([YNyn])\]/g);
+    if (yesNoMatch) {
+      yesNoMatch.forEach(match => {
+        const letter = match[1].toUpperCase();
+        if (!options.includes(letter)) {
+          options.push(letter);
         }
-      } else {
-        setError(result.error || '解压失败');
-        addLog('✗ 解压失败');
-      }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : '解压 TShock 失败');
-      addLog(`✗ 解压失败: ${err instanceof Error ? err.message : '未知错误'}`);
-    } finally {
-      setLoading(false);
+      });
     }
+    
+    // 检测 [数字] 格式
+    const numberMatch = text.match(/\[(\d+)\]/g);
+    if (numberMatch) {
+      numberMatch.forEach(match => {
+        const num = match.slice(1, -1);
+        if (!options.includes(num)) {
+          options.push(num);
+        }
+      });
+    }
+    
+    // 检测不带方括号的纯数字选项（世界列表）
+    const pureNumberMatch = text.match(/^\s*(\d+)\s+/gm);
+    if (pureNumberMatch) {
+      pureNumberMatch.forEach(match => {
+        const num = match.trim();
+        if (!options.includes(num)) {
+          options.push(num);
+        }
+      });
+    }
+    
+    // 检测特殊选项 n（新建世界）和 d（删除世界）
+    if (text.includes('n\t\t新建世界') && !options.includes('n')) {
+      options.push('n');
+    }
+    if (text.includes('d <number>') && !options.includes('d')) {
+      options.push('d');
+    }
+    
+    return options;
+  };
+
+  // 检测文本输入
+  const detectTextInput = (text: string): {prompt: string, type: 'text' | 'password'} | null => {
+    const lowerText = text.toLowerCase();
+    
+    if (/password|密码/.test(lowerText)) {
+      return { prompt: '请输入密码:', type: 'password' };
+    }
+    
+    if (/port|端口/.test(lowerText)) {
+      return { prompt: '请输入端口:', type: 'text' };
+    }
+    
+    if (/name|名称/.test(lowerText)) {
+      return { prompt: '请输入名称:', type: 'text' };
+    }
+    
+    if (/players|玩家/.test(lowerText)) {
+      return { prompt: '请输入最大玩家数:', type: 'text' };
+    }
+    
+    return null;
+  };
+
+  // 处理选项点击
+  const handleOptionClick = async (option: string) => {
+    if (!isElectronAvailable()) return;
+    await electronBridge.terminal.send(option + '\r\n');
+    setDetectedOptions([]);
+  };
+
+  // 处理文本输入提交
+  const handleSubmitInput = async () => {
+    if (!isElectronAvailable() || !inputValue) return;
+    await electronBridge.terminal.send(inputValue + '\r\n');
+    setInputValue('');
+    setPendingInput(null);
   };
 
   useEffect(() => {
     if (!isElectronAvailable) return;
 
     const unsubscribe = electronBridge.terminal.onOutput((data) => {
-      addLog(data.data);
+      // 检测选项
+      const options = detectOptions(data.data);
+      if (options.length > 0) {
+        setDetectedOptions(options);
+        setShowSkipButton(true);
+      }
+      
+      // 检测文本输入
+      const textInput = detectTextInput(data.data);
+      if (textInput) {
+        setPendingInput(textInput);
+        setShowSkipButton(true);
+      }
+      
+      // 检测服务器就绪
+      if (data.data.includes('Listening on') || 
+          data.data.includes('Server started, waiting for connections')) {
+        setServerReady(true);
+      }
+      
+      // 检测解压完成
+      if (data.data.includes('Extraction complete')) {
+        // 自动设置工作目录
+        if (tshockDir) {
+          electronBridge.config.setWorkingDir(tshockDir);
+        }
+        setStep(2);
+        setLoading(false);
+      }
+      
+      // 检测解压失败
+      if (data.data.includes('ERROR:') || data.data.includes('解压失败')) {
+        setLoading(false);
+      }
     });
 
     return unsubscribe;
-  }, [addLog]);
+  }, []);
+
+  const handleUseBuiltinTshock = async () => {
+    if (!isElectronAvailable()) return;
+
+    setLoading(true);
+    try {
+      // 获取路径
+      const paths = await electronBridge.config.getExtractPaths();
+      
+      // 临时保存路径
+      setTshockDir(paths.targetDir);
+      
+      // 构建命令（单个单词带参数）
+      const command = `unzip "${paths.zipPath}" "${paths.targetDir}"`;
+      
+      // 发送到终端
+      await electronBridge.terminal.send(command + '\r\n');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : '解压 TShock 失败');
+      setLoading(false);
+    }
+  };
 
   const handleSelectDirectory = async () => {
-    if (!isElectronAvailable) return;
+    if (!isElectronAvailable()) return;
 
     try {
       setError('');
-      addLog('正在打开目录选择对话框...');
       const result = await selectFile({
         properties: ['openDirectory'],
         title: '选择 TShock 安装目录'
@@ -127,77 +219,38 @@ export const SetupWizard = ({ onComplete }: SetupWizardProps) => {
       if (result && !result.canceled && result.filePaths.length > 0) {
         const selectedPath = result.filePaths[0];
         setTshockDir(selectedPath);
-        addLog(`已选择目录: ${selectedPath}`);
         
         try {
-          // 使用新的 setWorkingDir 方法来设置所有路径
-          const setResult = await electronBridge.config.setWorkingDir(selectedPath);
-          
-          if (!setResult.success) {
-            throw new Error(setResult.error);
-          }
-          
-          addLog(`✓ 设置工作目录: ${selectedPath}`);
-          
-          const installerPath = `${selectedPath}\\TShock.Installer.exe`;
-          const pathResult = await electronBridge.config.validatePath(installerPath);
-          
-          if (!pathResult.valid) {
-            setError('未在所选目录中找到 TShock.Installer.exe');
-            addLog('✗ 未找到 TShock.Installer.exe');
-            return;
-          }
-
-          addLog('✓ 找到 TShock.Installer.exe');
-          
-          const configValidation = await electronBridge.config.validatePath(setResult.configPath);
-          
-          if (configValidation.valid) {
-            addLog('✓ 找到现有 config.json');
-            addLog('跳过生成配置，直接配置 REST API...');
-            setStep(3);
-            await handleConfigureRest();
-          } else {
-            addLog('未找到现有 config.json，将先生成配置...');
-            setStep(2);
-          }
+          await electronBridge.config.setWorkingDir(selectedPath);
+          setStep(3);
+          await handleConfigureRest();
         } catch (err) {
           setError('验证目录失败');
-          addLog(`✗ 验证失败: ${err instanceof Error ? err.message : '未知错误'}`);
         }
       } else {
         setError('未选择目录');
-        addLog('✗ 用户取消了选择');
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : '选择目录失败');
-      addLog(`✗ 选择目录失败: ${err instanceof Error ? err.message : '未知错误'}`);
     }
   };
 
   const handleRunInstaller = async () => {
-    if (!isElectronAvailable || !tshockDir) return;
+    if (!isElectronAvailable() || !tshockDir) return;
 
     setLoading(true);
-    addLog('正在运行 TShock.Installer.exe 生成配置...');
 
     try {
       const result = await electronBridge.terminal.setup(tshockDir);
 
       if (result.success) {
-        addLog('✓ 配置生成完成');
         setStep(3);
-        addLog('准备打开配置编辑器...');
-        // 设置所有路径，然后打开编辑器
-        await electronBridge.config.setWorkingDir(tshockDir);
         setShowConfigEditor(true);
       } else {
         setError(result.error || 'Installer 执行失败');
-        addLog('✗ Installer 执行失败');
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : '运行 Installer 失败');
-      addLog(`✗ 运行失败: ${err instanceof Error ? err.message : '未知错误'}`);
     } finally {
       setLoading(false);
     }
@@ -205,13 +258,11 @@ export const SetupWizard = ({ onComplete }: SetupWizardProps) => {
 
   const handleConfigConfirm = async (config: any) => {
     setLoading(true);
-    addLog('正在保存配置...');
 
     try {
       const writeResult = await electronBridge.config.write(config);
       
       if (writeResult.success) {
-        addLog('✓ 配置保存完成');
         await electronBridge.app.setStore('tshock.workingDir', tshockDir);
         updateTshockConfig({
           serverUrl: 'http://localhost:7878',
@@ -219,17 +270,13 @@ export const SetupWizard = ({ onComplete }: SetupWizardProps) => {
           username: '',
           password: ''
         });
-        addLog('✓ 基础配置已保存');
         setShowConfigEditor(false);
         setStep(4);
-        await handleStartTshock();
       } else {
         setError('保存配置失败');
-        addLog('✗ 保存配置失败');
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : '保存配置失败');
-      addLog(`✗ 保存失败: ${err instanceof Error ? err.message : '未知错误'}`);
     } finally {
       setLoading(false);
     }
@@ -237,64 +284,41 @@ export const SetupWizard = ({ onComplete }: SetupWizardProps) => {
 
   const handleConfigureRest = async () => {
     setLoading(true);
-    addLog('准备打开配置编辑器...');
 
     try {
       await electronBridge.config.setWorkingDir(tshockDir);
       setShowConfigEditor(true);
     } catch (err) {
       setError(err instanceof Error ? err.message : '打开配置编辑器失败');
-      addLog(`✗ 打开失败: ${err instanceof Error ? err.message : '未知错误'}`);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleStartTshock = async () => {
-    if (!isElectronAvailable) return;
-
-    setLoading(true);
-    addLog('正在启动 TShock 服务器...');
+  const handleCreateAdmin = async () => {
+    if (!isElectronAvailable() || !adminUsername || !adminPassword) return;
 
     try {
-      const unsubscribeStatus = electronBridge.terminal.onStatusChange((status) => {
-        if (status.status === 'running') {
-          addLog('✓ TShock 服务器已启动');
-        }
-      });
-
-      const result = await electronBridge.terminal.start();
-
-      if (result.success) {
-        addLog('等待服务器初始化...');
-        await new Promise(resolve => setTimeout(resolve, 3000));
-
-        unsubscribeStatus();
-
-        setStep(5);
-        
-        addLog('');
-        addLog('========================================');
-        addLog('✓ 设置完成！即将跳转到命令助手...');
-        addLog('请在命令助手中登录服务器获取 Token');
-        addLog('========================================');
-        setTimeout(onComplete, 1500);
-      } else {
-        setError(result.error || '启动 TShock 失败');
-        addLog('✗ 启动 TShock 失败');
-        unsubscribeStatus();
-      }
+      const command = `/auth ${adminUsername} ${adminPassword}`;
+      await electronBridge.terminal.send(command + '\r\n');
     } catch (err) {
-      setError(err instanceof Error ? err.message : '启动 TShock 失败');
-      addLog(`✗ 启动失败: ${err instanceof Error ? err.message : '未知错误'}`);
-    } finally {
-      setLoading(false);
+      // 静默失败
     }
+  };
+
+  const handleSetupComplete = async () => {
+    setSetupComplete(true);
+    
+    if (adminUsername && adminPassword) {
+      await handleCreateAdmin();
+    }
+    
+    setTimeout(onComplete, 2000);
   };
 
   return (
     <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/80 backdrop-blur-sm">
-      <div className="w-full max-w-2xl mx-4 bg-slate-900/95 backdrop-blur-xl border border-cyan-500/30 rounded-2xl shadow-2xl shadow-cyan-500/10">
+      <div className="w-full max-w-4xl mx-4 bg-slate-900/95 backdrop-blur-xl border border-cyan-500/30 rounded-2xl shadow-2xl shadow-cyan-500/10">
         <div className="p-6 border-b border-slate-700/50">
           <h2 className="text-2xl font-bold text-white flex items-center gap-3">
             <span className="text-3xl">🚀</span>
@@ -305,7 +329,7 @@ export const SetupWizard = ({ onComplete }: SetupWizardProps) => {
 
         <div className="px-6 py-4 border-b border-slate-700/50">
           <div className="flex items-center justify-between">
-            {['选择目录', '生成配置', '配置 REST', '启动服务器', '完成'].map((label, index) => {
+            {['选择目录', '生成配置', '配置 REST', '启动服务器'].map((label, index) => {
               const stepNum = index + 1;
               const isActive = step === stepNum;
               const isCompleted = step > stepNum;
@@ -328,7 +352,7 @@ export const SetupWizard = ({ onComplete }: SetupWizardProps) => {
                   `}>
                     {label}
                   </span>
-                  {index < 4 && (
+                  {index < 3 && (
                     <div className={`
                       w-8 sm:w-16 h-0.5 mx-2
                       ${isCompleted ? 'bg-green-500' : 'bg-slate-700'}
@@ -341,30 +365,48 @@ export const SetupWizard = ({ onComplete }: SetupWizardProps) => {
         </div>
 
         <div className="p-6">
-          <div
-            ref={logContainerRef}
-            className="bg-slate-950/50 border border-slate-700/50 rounded-lg p-4 mb-4 h-64 overflow-y-auto font-mono text-sm"
-          >
-            {logs.length === 0 ? (
-              <div className="text-slate-500">等待开始...</div>
-            ) : (
-              logs.map((log, index) => (
-                <div 
-                  key={index} 
-                  className={`
-                    mb-1
-                    ${log.includes('✓') ? 'text-green-400' : ''}
-                    ${log.includes('✗') ? 'text-red-400' : ''}
-                    ${log.includes('⚠') ? 'text-yellow-400' : ''}
-                    ${log.includes('========') ? 'text-cyan-400 font-bold' : ''}
-                    ${!log.includes('✓') && !log.includes('✗') && !log.includes('⚠') && !log.includes('====') ? 'text-slate-300' : ''}
-                  `}
-                >
-                  {log}
-                </div>
-              ))
-            )}
+          {/* Terminal Display - 现在在所有步骤都显示 */}
+          <div className="mb-4">
+            <TerminalUI visible={true} />
           </div>
+
+          {/* 检测到的选项按钮 */}
+          {detectedOptions.length > 0 && (
+            <div className="mb-4 flex gap-2 flex-wrap">
+              <span className="text-slate-400 text-sm">选项:</span>
+              {detectedOptions.map((option, index) => (
+                <button
+                  key={index}
+                  onClick={() => handleOptionClick(option)}
+                  className="px-3 py-1 bg-cyan-600 hover:bg-cyan-500 text-white rounded text-sm transition-all"
+                >
+                  {option}
+                </button>
+              ))}
+            </div>
+          )}
+
+          {/* 文本输入提示 */}
+          {pendingInput && (
+            <div className="mb-4 flex gap-2 items-center">
+              <span className="text-slate-400 text-sm">{pendingInput.prompt}</span>
+              <input
+                type={pendingInput.type}
+                value={inputValue}
+                onChange={(e) => setInputValue(e.target.value)}
+                onKeyPress={(e) => e.key === 'Enter' && handleSubmitInput()}
+                className="flex-1 px-3 py-1 bg-slate-900 border border-slate-600 rounded text-white text-sm"
+                placeholder={pendingInput.type === 'password' ? '输入密码...' : '输入...'}
+                autoFocus
+              />
+              <button
+                onClick={handleSubmitInput}
+                className="px-3 py-1 bg-green-600 hover:bg-green-500 text-white rounded text-sm transition-all"
+              >
+                确定
+              </button>
+            </div>
+          )}
 
           {error && (
             <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-4 mb-4">
@@ -379,7 +421,7 @@ export const SetupWizard = ({ onComplete }: SetupWizardProps) => {
             {step === 1 && (
               <>
                 <button
-                  onClick={handleUseBuiltinTShock}
+                  onClick={handleUseBuiltinTshock}
                   disabled={loading || !builtinInfo?.exists}
                   className="px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-400 hover:to-emerald-400 text-white font-medium rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-green-500/25 flex flex-col items-center"
                 >
@@ -413,15 +455,51 @@ export const SetupWizard = ({ onComplete }: SetupWizardProps) => {
               </div>
             )}
 
-            {step === 4 && (
-              <div className="text-cyan-400 text-sm">
-                正在启动服务器...
+            {/* 管理员账号创建（步骤4之前） */}
+            {step === 3 && !showConfigEditor && (
+              <div className="mb-4 space-y-3 bg-slate-800/30 p-4 rounded-lg border border-slate-700/50">
+                <div className="text-cyan-400 text-sm font-medium">可选：创建管理员账号</div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-slate-400 text-xs mb-1">管理员用户名</label>
+                    <input
+                      type="text"
+                      value={adminUsername}
+                      onChange={(e) => setAdminUsername(e.target.value)}
+                      placeholder="输入用户名"
+                      className="w-full px-3 py-2 bg-slate-900 border border-slate-600 rounded text-white text-sm"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-slate-400 text-xs mb-1">管理员密码</label>
+                    <input
+                      type="password"
+                      value={adminPassword}
+                      onChange={(e) => setAdminPassword(e.target.value)}
+                      placeholder="输入密码"
+                      className="w-full px-3 py-2 bg-slate-900 border border-slate-600 rounded text-white text-sm"
+                    />
+                  </div>
+                </div>
+                <div className="text-slate-500 text-xs">
+                  服务器启动后将自动创建管理员账号
+                </div>
               </div>
             )}
 
-            {step === 5 && !error && (
-              <div className="text-green-400 text-sm font-medium animate-pulse">
-                ✓ 配置完成！
+            {step === 4 && (
+              <div className="space-y-3">
+                <div className="text-cyan-400 text-sm font-medium">
+                  ✓ 终端已启动，请在下方终端中直接输入命令启动
+                </div>
+                
+                <button
+                  onClick={handleSetupComplete}
+                  disabled={setupComplete}
+                  className="px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-400 hover:to-emerald-400 text-white font-medium rounded-lg transition-all disabled:opacity-50 shadow-lg shadow-green-500/25"
+                >
+                  {setupComplete ? '完成中...' : '✓ 完成设置'}
+                </button>
               </div>
             )}
           </div>

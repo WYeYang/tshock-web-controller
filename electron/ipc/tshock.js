@@ -1,8 +1,10 @@
-import { spawn } from 'child_process';
+import * as pty from 'node-pty';
 import treeKill from 'tree-kill';
 import path from 'path';
 import fs from 'fs';
 import { ipcMain } from 'electron';
+import { registry, parseCommandArgs } from './commands.js';
+import { UnzipCommandHandler } from './command-handlers/unzip.js';
 
 let shellProcess = null;
 let mainWindow = null;
@@ -62,38 +64,23 @@ function startShell(workingDir) {
     try {
       const shell = process.platform === 'win32' ? 'cmd.exe' : 'bash';
       const spawnOptions = {
+        name: 'xterm-color',
+        cols: 120,
+        rows: 50,
         cwd: workingDir,
-        stdio: ['pipe', 'pipe', 'pipe'],
-        detached: false,
         env: { ...process.env }
       };
-      
-      if (process.platform === 'win32') {
-        spawnOptions.windowsHide = true;
-      }
 
-      shellProcess = spawn(shell, [], spawnOptions);
+      shellProcess = pty.spawn(shell, [], spawnOptions);
 
-      shellProcess.stdout.on('data', (data) => {
-        sendOutput('stdout', data.toString());
+      shellProcess.onData((data) => {
+        sendOutput('stdout', data);
       });
 
-      shellProcess.stderr.on('data', (data) => {
-        sendOutput('stderr', data.toString());
-      });
-
-      shellProcess.on('error', (error) => {
-        updateStatus(TShockStatus.ERROR, error.message);
-        sendOutput('error', `Shell error: ${error.message}`);
-        shellProcess = null;
-        processMode = null;
-        reject(error);
-      });
-
-      shellProcess.on('exit', (code, signal) => {
+      shellProcess.onExit(({ exitCode, signal }) => {
         const message = signal
           ? `Shell terminated by signal: ${signal}`
-          : `Shell exited with code: ${code}`;
+          : `Shell exited with code: ${exitCode}`;
         sendOutput('exit', message);
         updateStatus(TShockStatus.STOPPED);
         shellProcess = null;
@@ -117,15 +104,49 @@ function sendToShell(command) {
       return;
     }
 
-    if (shellProcess.stdin.destroyed) {
-      reject(new Error('Shell stdin is not available'));
+    try {
+      const cmdWithoutNewline = command.replace(/[\r\n]+$/, '');
+
+      // 先把命令写入终端显示
+      shellProcess.write(cmdWithoutNewline + '\r\n');
+
+      // 解析命令
+      const args = parseCommandArgs(cmdWithoutNewline);
+      const commandName = args[0];
+      const commandArgs = args.slice(1);
+
+      console.log('[sendToShell] Command:', commandName, 'Args:', commandArgs);
+
+      // 查找并执行注册的命令处理器
+      const handler = registry.findCommand(commandName);
+      if (handler) {
+        console.log('[sendToShell] Found command handler:', commandName);
+        (async () => {
+          const success = await handler.execute(commandArgs);
+          resolve({ success, command: cmdWithoutNewline });
+        })();
+        return;
+      }
+
+      // 其他命令直接透传给终端
+      resolve({ success: true, command });
+    } catch (error) {
+      console.error('[sendToShell] Error:', error);
+      reject(error);
+    }
+  });
+}
+
+function sendRawToShell(data) {
+  return new Promise((resolve, reject) => {
+    if (!shellProcess) {
+      reject(new Error('Shell not started'));
       return;
     }
 
     try {
-      shellProcess.stdin.write(command + '\n');
-      sendOutput('command', command);
-      resolve({ success: true, command });
+      shellProcess.write(data);
+      resolve({ success: true });
     } catch (error) {
       reject(error);
     }
@@ -146,7 +167,7 @@ function getTshockExecutable(workingDir) {
     if (fs.existsSync(installerPath)) {
       return installerPath;
     }
-    
+
     const serverPath = path.join(useDir, 'TerrariaServer.exe');
     if (fs.existsSync(serverPath)) {
       return serverPath;
@@ -220,11 +241,11 @@ function startTshock() {
 
       let command = `"${executablePath}"`;
       const basename = path.basename(executablePath).toLowerCase();
-      
+
       if (basename.includes('installer')) {
         command += ' -boot';
       }
-      
+
       command += ` -config "${path.join(workingDir, 'tshock', 'config.json')}"`;
       command += ' -port 7777 -maxplayers 8';
 
@@ -256,6 +277,12 @@ function stopShell() {
 
     const pid = shellProcess.pid;
 
+    try {
+      shellProcess.kill();
+    } catch (e) {
+      console.error('Error killing shell:', e);
+    }
+
     treeKill(pid, 'SIGTERM', (err) => {
       if (err) {
         console.error('Error killing shell:', err);
@@ -272,13 +299,11 @@ function stopShell() {
         });
       } else {
         setTimeout(() => {
-          if (!shellProcess || shellProcess.exitCode !== null) {
-            updateStatus(TShockStatus.STOPPED);
-            shellProcess = null;
-            processMode = null;
-            resolve({ success: true, message: 'Shell stopped gracefully' });
-          }
-        }, 2000);
+          updateStatus(TShockStatus.STOPPED);
+          shellProcess = null;
+          processMode = null;
+          resolve({ success: true, message: 'Shell stopped gracefully' });
+        }, 1000);
       }
     });
   });
@@ -300,6 +325,14 @@ export function stopShellOnQuit() {
 export function setupTshockIpc(window, electronStore) {
   mainWindow = window;
   store = electronStore;
+
+  const unzipHandler = new UnzipCommandHandler({
+    sendOutput: (data) => sendOutput('stdout', data),
+    store,
+    fs,
+    path
+  });
+  registry.registerCommand('unzip', unzipHandler);
 
   ipcMain.handle('terminal:start', async () => {
     try {
@@ -325,6 +358,14 @@ export function setupTshockIpc(window, electronStore) {
     }
   });
 
+  ipcMain.handle('terminal:sendRaw', async (event, data) => {
+    try {
+      return await sendRawToShell(data);
+    } catch (error) {
+      return { success: false, error: error.message };
+    }
+  });
+
   ipcMain.handle('terminal:status', () => {
     return getStatus();
   });
@@ -345,5 +386,16 @@ export function setupTshockIpc(window, electronStore) {
   ipcMain.handle('terminal:clear', () => {
     outputBuffer = [];
     return { success: true };
+  });
+
+  ipcMain.handle('terminal:resize', async (event, cols, rows) => {
+    try {
+      if (shellProcess) {
+        shellProcess.resize(cols, rows);
+      }
+      return { success: true };
+    } catch (error) {
+      return { success: false, error: error.message };
+    }
   });
 }
