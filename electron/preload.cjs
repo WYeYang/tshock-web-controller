@@ -37,22 +37,12 @@ contextBridge.exposeInMainWorld('electronAPI', {
   config: {
     read: () => ipcRenderer.invoke('config:read'),
     write: (data) => ipcRenderer.invoke('config:write', data),
-    setToken: (token) => ipcRenderer.invoke('config:set-token', token),
-    generateToken: () => ipcRenderer.invoke('config:generate-token'),
     getPath: () => ipcRenderer.invoke('config:get-path'),
-    setPath: (configPath) => ipcRenderer.invoke('config:set-path', configPath),
-    setWorkingDir: (workingDir) => ipcRenderer.invoke('config:set-working-dir', workingDir),
-    validatePath: (filePath) => ipcRenderer.invoke('config:validate-path', filePath),
     getExtractPaths: () => ipcRenderer.invoke('config:get-extract-paths'),
     onTshockPathUpdated: (callback) => {
       const subscription = (event, path) => callback(path);
       ipcRenderer.on('config:tshock-path-updated', subscription);
       return () => ipcRenderer.removeListener('config:tshock-path-updated', subscription);
-    },
-    onSaved: (callback) => {
-      const subscription = (event, success, error) => callback(success, error);
-      ipcRenderer.on('config:saved', subscription);
-      return () => ipcRenderer.removeListener('config:saved', subscription);
     }
   },
 
@@ -62,9 +52,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
     getStore: (key) => ipcRenderer.invoke('app:get-store', key),
     setStore: (key, value) => ipcRenderer.invoke('app:set-store', key, value),
     selectFile: (options) => ipcRenderer.invoke('dialog:select-file', options),
-    extractBuiltinTShock: () => ipcRenderer.invoke('app:extract-builtin-tshock'),
-    getBuiltinTShockInfo: () => ipcRenderer.invoke('app:get-builtin-tshock-info'),
-    clearConfig: () => ipcRenderer.invoke('app:clear-config')
+    getBuiltinTShockInfo: () => ipcRenderer.invoke('app:get-builtin-tshock-info')
   }
 });
 

@@ -5,10 +5,10 @@ import fs from 'fs';
 import { ipcMain } from 'electron';
 import { registry, parseCommandArgs } from './commands.js';
 import { UnzipCommandHandler } from './command-handlers/unzip.js';
+import { getTShockRootDir, getExecutablePath, getConfigPath } from './config.js';
 
 let shellProcess = null;
 let mainWindow = null;
-let store = null;
 let outputBuffer = [];
 const MAX_BUFFER = 2000;
 
@@ -59,7 +59,7 @@ function syncOutputBuffer() {
   }
 }
 
-function startShell(workingDir) {
+function startShell() {
   return new Promise((resolve, reject) => {
     try {
       const shell = process.platform === 'win32' ? 'cmd.exe' : 'bash';
@@ -67,7 +67,7 @@ function startShell(workingDir) {
         name: 'xterm-color',
         cols: 120,
         rows: 50,
-        cwd: workingDir,
+        cwd: getTShockRootDir(),
         env: { ...process.env }
       };
 
@@ -106,21 +106,24 @@ function sendToShell(command) {
 
     try {
       const cmdWithoutNewline = command.replace(/[\r\n]+$/, '');
+      console.log('[sendToShell] 原始命令:', cmdWithoutNewline);
 
       // 先把命令写入终端显示
       shellProcess.write(cmdWithoutNewline + '\r\n');
 
       // 解析命令
       const args = parseCommandArgs(cmdWithoutNewline);
+      console.log('[sendToShell] 解析后的参数:', args);
+      
       const commandName = args[0];
       const commandArgs = args.slice(1);
 
-      console.log('[sendToShell] Command:', commandName, 'Args:', commandArgs);
+      console.log('[sendToShell] 命令名:', commandName, '命令参数:', commandArgs);
 
       // 查找并执行注册的命令处理器
       const handler = registry.findCommand(commandName);
       if (handler) {
-        console.log('[sendToShell] Found command handler:', commandName);
+        console.log('[sendToShell] 找到命令处理器:', commandName);
         (async () => {
           const success = await handler.execute(commandArgs);
           resolve({ success, command: cmdWithoutNewline });
@@ -153,53 +156,20 @@ function sendRawToShell(data) {
   });
 }
 
-function getTshockExecutable(workingDir) {
-  const configuredPath = store.get('tshock.executablePath');
-  if (configuredPath && fs.existsSync(configuredPath)) {
-    return configuredPath;
-  }
-
-  const useDir = workingDir || store.get('tshock.workingDir') || process.cwd();
-  const platform = process.platform;
-
-  if (platform === 'win32') {
-    const installerPath = path.join(useDir, 'TShock.Installer.exe');
-    if (fs.existsSync(installerPath)) {
-      return installerPath;
-    }
-
-    const serverPath = path.join(useDir, 'TerrariaServer.exe');
-    if (fs.existsSync(serverPath)) {
-      return serverPath;
-    }
-
-    const tshockServerPath = path.join(useDir, 'tshock', 'TerrariaServer.exe');
-    if (fs.existsSync(tshockServerPath)) {
-      return tshockServerPath;
-    }
-
-    return installerPath;
-  } else {
-    const serverPath = path.join(useDir, 'tshock', 'TerrariaServer');
-    if (fs.existsSync(serverPath)) {
-      return serverPath;
-    }
-    return path.join(useDir, 'TerrariaServer');
-  }
-}
-
-function setupTshock(tshockDir) {
+function setupTshock() {
   return new Promise(async (resolve, reject) => {
     try {
       if (!shellProcess) {
-        await startShell(tshockDir);
+        await startShell();
       }
 
       updateStatus(TShockStatus.SETUP);
       processMode = 'setup';
       sendOutput('info', 'Starting configuration generation...');
 
+      const tshockDir = getTShockRootDir();
       const installerPath = path.join(tshockDir, 'TShock.Installer.exe');
+      
       if (!fs.existsSync(installerPath)) {
         updateStatus(TShockStatus.ERROR, `TShock.Installer.exe not found at: ${installerPath}`);
         reject(new Error(`TShock.Installer.exe not found at: ${installerPath}`));
@@ -223,16 +193,15 @@ function setupTshock(tshockDir) {
 function startTshock() {
   return new Promise(async (resolve, reject) => {
     try {
-      const workingDir = store.get('tshock.workingDir') || process.cwd();
       if (!shellProcess) {
-        await startShell(workingDir);
+        await startShell();
       }
 
       updateStatus(TShockStatus.STARTING);
       processMode = 'server';
       sendOutput('info', 'Starting TShock server...');
 
-      const executablePath = getTshockExecutable(workingDir);
+      const executablePath = getExecutablePath();
       if (!fs.existsSync(executablePath)) {
         updateStatus(TShockStatus.ERROR, `Executable not found: ${executablePath}`);
         reject(new Error(`TShock executable not found at: ${executablePath}`));
@@ -246,7 +215,7 @@ function startTshock() {
         command += ' -boot';
       }
 
-      command += ` -config "${path.join(workingDir, 'tshock', 'config.json')}"`;
+      command += ` -config "${getConfigPath()}"`;
       command += ' -port 7777 -maxplayers 8';
 
       await sendToShell(command);
@@ -324,11 +293,9 @@ export function stopShellOnQuit() {
 
 export function setupTshockIpc(window, electronStore) {
   mainWindow = window;
-  store = electronStore;
 
   const unzipHandler = new UnzipCommandHandler({
     sendOutput: (data) => sendOutput('stdout', data),
-    store,
     fs,
     path
   });
@@ -370,9 +337,9 @@ export function setupTshockIpc(window, electronStore) {
     return getStatus();
   });
 
-  ipcMain.handle('terminal:setup', async (event, tshockDir) => {
+  ipcMain.handle('terminal:setup', async () => {
     try {
-      return await setupTshock(tshockDir);
+      return await setupTshock();
     } catch (error) {
       return { success: false, error: error.message };
     }

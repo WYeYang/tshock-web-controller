@@ -1,17 +1,18 @@
 import AdmZip from 'adm-zip';
 
 export class UnzipCommandHandler {
-  constructor({ sendOutput, store, fs, path }) {
+  constructor({ sendOutput, fs, path }) {
     this.name = 'unzip';
     this.description = 'unzip files';
     this.sendOutput = sendOutput;
-    this.store = store;
     this.fs = fs;
     this.path = path;
   }
 
   async execute(args) {
     try {
+      console.log('[UnzipCommandHandler] 接收到的参数:', args);
+      
       if (args.length < 2) {
         this.sendOutput('Error: Usage unzip <zipFile> <targetDir>\r\n');
         return false;
@@ -19,6 +20,9 @@ export class UnzipCommandHandler {
 
       const zipPath = args[0];
       const targetDir = args[1];
+      
+      console.log('[UnzipCommandHandler] zipPath:', zipPath);
+      console.log('[UnzipCommandHandler] targetDir:', targetDir);
 
       this.sendOutput('Starting extraction...\r\n');
       this.sendOutput(`Zip path: ${zipPath}\r\n`);
@@ -54,21 +58,6 @@ export class UnzipCommandHandler {
       zip.extractAllTo(targetDir, true);
 
       this.sendOutput('Extraction complete!\r\n');
-
-      if (this.store) {
-        const configPath = this.path.join(targetDir, 'tshock', 'config.json');
-        const installerPath = this.path.join(targetDir, 'TShock.Installer.exe');
-        const serverPath = this.path.join(targetDir, 'TerrariaServer.exe');
-
-        this.store.set('tshock.workingDir', targetDir);
-        this.store.set('tshock.configPath', configPath);
-
-        if (this.fs.existsSync(installerPath)) {
-          this.store.set('tshock.executablePath', installerPath);
-        } else if (this.fs.existsSync(serverPath)) {
-          this.store.set('tshock.executablePath', serverPath);
-        }
-      }
 
       return true;
     } catch (error) {

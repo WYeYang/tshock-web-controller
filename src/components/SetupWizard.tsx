@@ -11,7 +11,6 @@ interface SetupWizardProps {
 
 export const SetupWizard = ({ onComplete }: SetupWizardProps) => {
   const [step, setStep] = useState(1);
-  const [tshockDir, setTshockDir] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const { updateTshockConfig } = useConfig();
@@ -38,10 +37,9 @@ export const SetupWizard = ({ onComplete }: SetupWizardProps) => {
     autoAccept: 'y'
   };
 
-  // 在组件加载时清理旧配置并获取内置 TShock 信息，并且在第一步就启动终端
+  // 在组件加载时获取内置 TShock 信息，并且在第一步就启动终端
   useEffect(() => {
     if (isElectronAvailable()) {
-      electronBridge.app.clearConfig();
       electronBridge.app.getBuiltinTShockInfo().then(info => {
         setBuiltinInfo(info);
       }).catch(err => {
@@ -166,11 +164,7 @@ export const SetupWizard = ({ onComplete }: SetupWizardProps) => {
       }
       
       // 检测解压完成
-      if (data.data.includes('Extraction complete')) {
-        // 自动设置工作目录
-        if (tshockDir) {
-          electronBridge.config.setWorkingDir(tshockDir);
-        }
+      if (data.data.includes('✓ 解压完成') || data.data.includes('Extraction complete')) {
         setStep(2);
         setLoading(false);
       }
@@ -192,11 +186,12 @@ export const SetupWizard = ({ onComplete }: SetupWizardProps) => {
       // 获取路径
       const paths = await electronBridge.config.getExtractPaths();
       
-      // 临时保存路径
-      setTshockDir(paths.targetDir);
+      console.log('[SetupWizard] 获取到的路径:', paths);
       
       // 构建命令（单个单词带参数）
       const command = `unzip "${paths.zipPath}" "${paths.targetDir}"`;
+      
+      console.log('[SetupWizard] 发送的命令:', command);
       
       // 发送到终端
       await electronBridge.terminal.send(command + '\r\n');
@@ -217,16 +212,8 @@ export const SetupWizard = ({ onComplete }: SetupWizardProps) => {
       });
 
       if (result && !result.canceled && result.filePaths.length > 0) {
-        const selectedPath = result.filePaths[0];
-        setTshockDir(selectedPath);
-        
-        try {
-          await electronBridge.config.setWorkingDir(selectedPath);
-          setStep(3);
-          await handleConfigureRest();
-        } catch (err) {
-          setError('验证目录失败');
-        }
+        setStep(2);
+        await handleConfigureRest();
       } else {
         setError('未选择目录');
       }
@@ -236,12 +223,12 @@ export const SetupWizard = ({ onComplete }: SetupWizardProps) => {
   };
 
   const handleRunInstaller = async () => {
-    if (!isElectronAvailable() || !tshockDir) return;
+    if (!isElectronAvailable()) return;
 
     setLoading(true);
 
     try {
-      const result = await electronBridge.terminal.setup(tshockDir);
+      const result = await electronBridge.terminal.setup();
 
       if (result.success) {
         setStep(3);
@@ -263,7 +250,6 @@ export const SetupWizard = ({ onComplete }: SetupWizardProps) => {
       const writeResult = await electronBridge.config.write(config);
       
       if (writeResult.success) {
-        await electronBridge.app.setStore('tshock.workingDir', tshockDir);
         updateTshockConfig({
           serverUrl: 'http://localhost:7878',
           token: '',
@@ -286,7 +272,6 @@ export const SetupWizard = ({ onComplete }: SetupWizardProps) => {
     setLoading(true);
 
     try {
-      await electronBridge.config.setWorkingDir(tshockDir);
       setShowConfigEditor(true);
     } catch (err) {
       setError(err instanceof Error ? err.message : '打开配置编辑器失败');

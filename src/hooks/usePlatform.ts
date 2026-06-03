@@ -16,13 +16,9 @@ interface ElectronAPI {
   config: {
     read: () => Promise<any>;
     write: (data: any) => Promise<any>;
-    setToken: (token: string) => Promise<any>;
-    generateToken: () => Promise<any>;
     getPath: () => Promise<any>;
-    setPath: (path: string) => Promise<any>;
-    validatePath: (path: string) => Promise<any>;
+    getExtractPaths: () => Promise<any>;
     onTshockPathUpdated: (callback: (path: string) => void) => () => void;
-    onSaved: (callback: (success: boolean, error?: string) => void) => () => void;
   };
   app: {
     getVersion: () => Promise<string>;
@@ -30,6 +26,7 @@ interface ElectronAPI {
     getStore: (key: string) => Promise<any>;
     setStore: (key: string, value: any) => Promise<boolean>;
     selectFile: (options: any) => Promise<any>;
+    getBuiltinTShockInfo: () => Promise<any>;
   };
 }
 

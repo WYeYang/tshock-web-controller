@@ -151,7 +151,27 @@ export const useTShock = () => {
 
       if (isElectronAvailable()) {
         try {
-          await electronBridge.config.setToken(token);
+          // 读取现有配置并更新 token
+          const readResult = await electronBridge.config.read();
+          let config;
+          
+          if (readResult.success === false) {
+            // 文件不存在，创建新配置
+            config = { Settings: {} };
+          } else {
+            config = readResult.config || readResult;
+          }
+          
+          if (!config.Settings) {
+            config.Settings = {};
+          }
+          
+          config.Settings.Token = token;
+          config.Settings.EnableTokenLoginAuthentication = true;
+          config.Settings.RestApiEnabled = true;
+          config.Settings.RestApiPort = 7878;
+          
+          await electronBridge.config.write(config);
         } catch (electronErr) {
           console.warn('Failed to save token to config.json:', electronErr);
         }

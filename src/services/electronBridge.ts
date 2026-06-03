@@ -40,15 +40,9 @@ export interface ElectronAPI {
   config: {
     read: () => Promise<any>;
     write: (data: any) => Promise<any>;
-    setToken: (token: string) => Promise<any>;
-    generateToken: () => Promise<any>;
     getPath: () => Promise<any>;
-    setPath: (configPath: string) => Promise<any>;
-    setWorkingDir: (workingDir: string) => Promise<any>;
-    validatePath: (filePath: string) => Promise<any>;
     getExtractPaths: () => Promise<any>;
     onTshockPathUpdated: (callback: (path: string) => void) => () => void;
-    onSaved: (callback: (success: boolean, error?: string) => void) => () => void;
   };
   app: {
     getVersion: () => Promise<string>;
@@ -56,9 +50,7 @@ export interface ElectronAPI {
     getStore: (key: string) => Promise<any>;
     setStore: (key: string, value: any) => Promise<boolean>;
     selectFile: (options: any) => Promise<any>;
-    extractBuiltinTShock: () => Promise<any>;
     getBuiltinTShockInfo: () => Promise<any>;
-    clearConfig: () => Promise<any>;
   };
 }
 
@@ -170,40 +162,10 @@ export const electronBridge = {
       return await api.config.write(data);
     },
 
-    setToken: async (token: string) => {
-      const api = getElectronAPI();
-      if (!api) throw new Error('Electron API not available');
-      return await api.config.setToken(token);
-    },
-
-    generateToken: async () => {
-      const api = getElectronAPI();
-      if (!api) throw new Error('Electron API not available');
-      return await api.config.generateToken();
-    },
-
     getPath: async () => {
       const api = getElectronAPI();
       if (!api) throw new Error('Electron API not available');
       return await api.config.getPath();
-    },
-
-    setPath: async (configPath: string) => {
-      const api = getElectronAPI();
-      if (!api) throw new Error('Electron API not available');
-      return await api.config.setPath(configPath);
-    },
-
-    setWorkingDir: async (workingDir: string) => {
-      const api = getElectronAPI();
-      if (!api) throw new Error('Electron API not available');
-      return await api.config.setWorkingDir(workingDir);
-    },
-
-    validatePath: async (filePath: string) => {
-      const api = getElectronAPI();
-      if (!api) throw new Error('Electron API not available');
-      return await api.config.validatePath(filePath);
     },
 
     getExtractPaths: async () => {
@@ -218,14 +180,6 @@ export const electronBridge = {
         return () => {};
       }
       return api.config.onTshockPathUpdated(callback);
-    },
-
-    onSaved: (callback: (success: boolean, error?: string) => void) => {
-      const api = getElectronAPI();
-      if (!api) {
-        return () => {};
-      }
-      return api.config.onSaved(callback);
     }
   },
 
@@ -260,18 +214,6 @@ export const electronBridge = {
       return await api.app.selectFile(options);
     },
 
-    extractBuiltinTShock: async () => {
-      console.log('electronBridge - extractBuiltinTShock called');
-      const api = getElectronAPI();
-      if (!api) {
-        console.error('electronBridge - API not available for extractBuiltinTShock');
-        throw new Error('Electron API not available');
-      }
-      console.log('electronBridge - API available, calling api.app.extractBuiltinTShock');
-      console.log('electronBridge - api.app keys:', Object.keys(api.app));
-      return await api.app.extractBuiltinTShock();
-    },
-
     getBuiltinTShockInfo: async () => {
       console.log('electronBridge - getBuiltinTShockInfo called');
       const api = getElectronAPI();
@@ -282,12 +224,6 @@ export const electronBridge = {
       console.log('electronBridge - API available');
       console.log('electronBridge - api.app keys:', Object.keys(api.app));
       return await api.app.getBuiltinTShockInfo();
-    },
-
-    clearConfig: async () => {
-      const api = getElectronAPI();
-      if (!api) throw new Error('Electron API not available');
-      return await api.app.clearConfig();
     }
   }
 };

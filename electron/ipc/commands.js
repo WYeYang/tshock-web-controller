@@ -69,16 +69,25 @@ function parseCommandArgs(cmd) {
   const args = [];
   let current = '';
   let inQuote = null;
+  
+  console.log('[parseCommandArgs] 输入:', cmd);
 
   for (let i = 0; i < cmd.length; i++) {
     const char = cmd[i];
 
     if (char === '"' || char === "'") {
       if (inQuote === char) {
+        // 关闭引号，将当前累积的字符串加入参数
+        if (current) {
+          args.push(current);
+          current = '';
+        }
         inQuote = null;
       } else if (!inQuote) {
+        // 开始新的引号
         inQuote = char;
       } else {
+        // 在另一种引号内，直接添加字符
         current += char;
       }
     } else if (char === ' ' && !inQuote) {
@@ -95,6 +104,7 @@ function parseCommandArgs(cmd) {
     args.push(current);
   }
 
+  console.log('[parseCommandArgs] 解析结果:', args);
   return args;
 }
 

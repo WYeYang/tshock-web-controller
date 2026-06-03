@@ -54,23 +54,6 @@ export const ConfigEditor = () => {
 
   useEffect(() => {
     loadConfig();
-
-    if (!isElectron) return;
-
-    const unsubscribe = electronBridge.config.onSaved((success, errorMsg) => {
-      if (success) {
-        setSuccess('配置保存成功！');
-        setHasChanges(false);
-        setTimeout(() => setSuccess(null), 3000);
-      } else {
-        setError(errorMsg || '保存失败');
-      }
-      setIsSaving(false);
-    });
-
-    return () => {
-      unsubscribe();
-    };
   }, [isElectron, loadConfig]);
 
   useEffect(() => {
@@ -105,6 +88,10 @@ export const ConfigEditor = () => {
       const result = await electronBridge.config.write(config);
       if (!result.success) {
         setError(result.error || '保存失败');
+      } else {
+        setSuccess('配置保存成功！');
+        setHasChanges(false);
+        setTimeout(() => setSuccess(null), 3000);
       }
     } catch (err) {
       const errorMsg = err instanceof Error ? err.message : '保存失败';

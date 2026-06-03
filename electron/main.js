@@ -235,7 +235,7 @@ app.whenReady().then(() => {
   createMenu();
 
   setupTshockIpc(mainWindow, store);
-  setupConfigIpc(mainWindow, store);
+  setupConfigIpc(mainWindow);
 
   ipcMain.handle('app:get-version', () => {
     return app.getVersion();

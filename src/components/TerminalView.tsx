@@ -10,10 +10,8 @@ export const TerminalView = () => {
   const [inputValue, setInputValue] = useState('');
   const [status, setStatus] = useState<TerminalStatusType>('stopped');
   const [error, setError] = useState<string | null>(null);
-  const [tshockPath, setTshockPath] = useState<string>('');
   const [configPath, setConfigPath] = useState<string>('');
   const [isLoading, setIsLoading] = useState(false);
-  const [hasPathError, setHasPathError] = useState(false);
   const [hasSelection, setHasSelection] = useState(false);
   const outputRef = useRef<HTMLDivElement>(null);
   const isInitialMount = useRef(true);
@@ -77,11 +75,6 @@ export const TerminalView = () => {
 
         const path = await electronBridge.config.getPath();
         setConfigPath(path);
-
-        const tshockConfig = await electronBridge.app.getStore('tshock');
-        if (tshockConfig?.executablePath) {
-          setTshockPath(tshockConfig.executablePath);
-        }
       } catch (err) {
         console.error('Failed to load initial status:', err);
       }
@@ -108,16 +101,11 @@ export const TerminalView = () => {
       handleStop();
     });
 
-    const unsubscribePathUpdate = electronBridge.config.onTshockPathUpdated((path) => {
-      setTshockPath(path);
-    });
-
     return () => {
       unsubscribeOutput();
       unsubscribeStatus();
       unsubscribeStartRequest();
       unsubscribeStopRequest();
-      unsubscribePathUpdate();
     };
   }, [isElectron]);
 
@@ -212,59 +200,6 @@ export const TerminalView = () => {
       handleSendCommand();
     }
   };
-
-  const handleSelectPath = useCallback(async () => {
-    if (!isElectron) return;
-
-    try {
-      const result = await selectFile({
-        properties: ['openFile'],
-        filters: [
-          { name: 'Executables', extensions: ['exe', 'app', ''] },
-          { name: 'All Files', extensions: ['*'] }
-        ]
-      });
-
-      if (result && !result.canceled && result.filePaths.length > 0) {
-        const selectedPath = result.filePaths[0];
-        setTshockPath(selectedPath);
-
-        await electronBridge.app.setStore('tshock', {
-          executablePath: selectedPath,
-          workingDir: selectedPath.substring(0, selectedPath.lastIndexOf(selectedPath.includes('\\') ? '\\' : '/'))
-        });
-
-        setOutputs(prev => [...prev, {
-          type: 'info',
-          data: `TShock 路径已设置为: ${selectedPath}`,
-          timestamp: Date.now()
-        }]);
-      }
-    } catch (err) {
-      console.error('Failed to select file:', err);
-    }
-  }, [isElectron, selectFile]);
-
-  const handleValidatePath = useCallback(async () => {
-    if (!tshockPath || !isElectron) return;
-
-    try {
-      const validation = await electronBridge.config.validatePath(tshockPath);
-      setHasPathError(!validation.valid);
-
-      if (validation.valid) {
-        setOutputs(prev => [...prev, {
-          type: 'info',
-          data: `路径验证通过: ${tshockPath}`,
-          timestamp: Date.now()
-        }]);
-      } else {
-        setError(`路径无效: ${validation.stats.exists ? '文件不可执行' : '文件不存在'}`);
-      }
-    } catch (err) {
-      console.error('Failed to validate path:', err);
-    }
-  }, [tshockPath, isElectron]);
 
   const handleClearOutput = () => {
     setOutputs([]);
@@ -375,40 +310,6 @@ export const TerminalView = () => {
             清除
           </button>
         </div>
-      </div>
-
-      <div className="flex items-center gap-4 p-4 border-b border-slate-700/50 bg-slate-900/30">
-        <div className="flex-1">
-          <label className="block text-slate-400 text-sm mb-1">TShock 可执行文件路径</label>
-          <input
-            type="text"
-            value={tshockPath}
-            onChange={(e) => {
-              setTshockPath(e.target.value);
-              setHasPathError(false);
-            }}
-            placeholder="选择或输入 TShock 服务器路径"
-            className={`w-full px-3 py-2 bg-slate-800/50 border rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-green-500 transition-all ${
-              hasPathError ? 'border-red-500' : 'border-slate-600'
-            }`}
-          />
-          {hasPathError && (
-            <p className="text-red-400 text-xs mt-1">路径无效，请检查文件是否存在</p>
-          )}
-        </div>
-        <button
-          onClick={handleSelectPath}
-          className="px-4 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-600 rounded-lg text-white transition-all whitespace-nowrap"
-        >
-          浏览...
-        </button>
-        <button
-          onClick={handleValidatePath}
-          disabled={!tshockPath}
-          className="px-4 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-600 rounded-lg text-white transition-all whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          验证
-        </button>
       </div>
 
       <div className="flex-1 flex gap-4 p-4 overflow-hidden">
