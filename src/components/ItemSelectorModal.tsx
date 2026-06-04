@@ -58,7 +58,7 @@ export const ItemSelectorModal = ({ isOpen, onClose, onSelectItem }: ItemSelecto
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+    <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
       <div className="glass-card neon-border p-4 sm:p-6 max-w-full sm:max-w-4xl w-full transform transition-all max-h-[85vh] flex flex-col">
         <div className="flex items-center justify-between mb-4 sm:mb-6 flex-shrink-0">
           <div>

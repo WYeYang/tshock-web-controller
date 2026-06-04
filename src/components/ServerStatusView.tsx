@@ -276,7 +276,7 @@ export function ServerStatusView({ onGoToConfig }: ServerStatusViewProps) {
     };
 
     return (
-      <div className="fixed bottom-6 right-6 z-50">
+      <div className="absolute bottom-6 right-6 z-50">
         <div className={`glass-card border bg-gradient-to-r ${colors[toast.type]} p-4 flex items-center gap-3`}>
           <span className="font-medium">{toast.message}</span>
         </div>
@@ -310,7 +310,7 @@ export function ServerStatusView({ onGoToConfig }: ServerStatusViewProps) {
     const getInputPlaceholder = () => confirmDialog.type === 'changeGroup' ? '用户组名称' : '物品ID/名称 [数量]';
 
     return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 lg:pl-[280px]">
+      <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
         <div className="glass-card neon-border p-4 sm:p-6 md:p-8 max-w-full sm:max-w-md w-full transform transition-all max-h-[90vh] overflow-y-auto">
           <h3 className="text-xl sm:text-2xl font-bold text-white mb-4 sm:mb-6">{getTitle()}</h3>
           <div className="text-slate-300 mb-4 sm:mb-6 whitespace-pre-line bg-slate-800/30 p-3 sm:p-4 rounded-lg border border-slate-700/50 text-sm sm:text-base">
@@ -415,7 +415,7 @@ export function ServerStatusView({ onGoToConfig }: ServerStatusViewProps) {
 
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full relative">
       <div className="flex items-center gap-3 p-4 border-b border-slate-700/50 bg-slate-900/50 backdrop-blur-xl">
         <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-green-500/20 to-cyan-600/20 flex items-center justify-center">
           <div className="w-2.5 h-2.5 rounded-full bg-green-400 animate-pulse"></div>
