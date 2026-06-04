@@ -30,6 +30,7 @@ export const SetupWizard = ({ onComplete }: SetupWizardProps) => {
   const [configExists, setConfigExists] = useState(false);
   const [terminalStatus, setTerminalStatus] = useState<string>('stopped');
   const [commandInput, setCommandInput] = useState('');
+  const [savedPath, setSavedPath] = useState<string | null>(null);
 
   // 默认值配置
   const DEFAULT_VALUES = {
@@ -53,6 +54,12 @@ export const SetupWizard = ({ onComplete }: SetupWizardProps) => {
       electronBridge.terminal.start().catch(err => {
         console.error('SetupWizard - 启动终端失败:', err);
       });
+
+      // 读取保存的路径
+      const saved = localStorage.getItem('tshock_last_path');
+      if (saved) {
+        setSavedPath(saved);
+      }
     }
   }, []);
 
@@ -262,22 +269,35 @@ export const SetupWizard = ({ onComplete }: SetupWizardProps) => {
     }
   };
 
-  const handleSelectDirectory = async () => {
+  const handleSelectDirectory = async (path?: string) => {
     if (!isElectronAvailable()) return;
 
     try {
       setError('');
-      const result = await selectFile({
-        properties: ['openDirectory'],
-        title: '选择 TShock 安装目录'
-      });
-
-      if (result && !result.canceled && result.filePaths.length > 0) {
-        // 选择目录后自动检测配置并执行 Installer
-        await handleAutoRunInstaller();
+      
+      let selectedPath;
+      if (path) {
+        selectedPath = path;
       } else {
-        setError('未选择目录');
+        const result = await selectFile({
+          properties: ['openDirectory'],
+          title: '选择 TShock 安装目录'
+        });
+
+        if (result && !result.canceled && result.filePaths.length > 0) {
+          selectedPath = result.filePaths[0];
+        } else {
+          setError('未选择目录');
+          return;
+        }
       }
+
+      // 保存路径
+      localStorage.setItem('tshock_last_path', selectedPath);
+      setSavedPath(selectedPath);
+      
+      // 选择目录后自动检测配置并执行 Installer
+      await handleAutoRunInstaller();
     } catch (err) {
       setError(err instanceof Error ? err.message : '选择目录失败');
     }
@@ -422,15 +442,15 @@ export const SetupWizard = ({ onComplete }: SetupWizardProps) => {
           </div>
         </div>
 
-        <div className="p-6 overflow-y-auto flex-1">
-          {/* Terminal Display */}
-          <div className="mb-4">
+        <div className="p-6 flex flex-col flex-1 min-h-0 overflow-hidden">
+          {/* Terminal Display - 铺满可用空间 */}
+          <div className="flex-1 min-h-[200px] mb-4 overflow-hidden">
             <TerminalUI visible={true} />
           </div>
 
           {/* IDLE 状态下的输入框 */}
           {terminalStatus === 'idle' && (
-            <div className="mb-4 flex gap-2 items-center">
+            <div className="mb-4 flex gap-2 items-center flex-shrink-0">
               <span className="text-slate-400 text-sm">命令:</span>
               <input
                 type="text"
@@ -451,7 +471,7 @@ export const SetupWizard = ({ onComplete }: SetupWizardProps) => {
           )}
 
           {error && (
-            <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-4 mb-4">
+            <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-4 mb-4 flex-shrink-0">
               <div className="flex items-center gap-2 text-red-400">
                 <span className="text-xl">⚠</span>
                 <span className="font-medium">{error}</span>
@@ -459,7 +479,7 @@ export const SetupWizard = ({ onComplete }: SetupWizardProps) => {
             </div>
           )}
 
-          <div className="flex gap-3 justify-center">
+          <div className="flex gap-3 justify-center flex-wrap flex-shrink-0">
             {step === 1 && (
               <>
                 <button
@@ -468,14 +488,24 @@ export const SetupWizard = ({ onComplete }: SetupWizardProps) => {
                   className="px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-400 hover:to-emerald-400 text-white font-medium rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-green-500/25 flex flex-col items-center"
                 >
                   <span className="text-lg">📦 使用内置版本</span>
-                  <span className="text-xs opacity-80">v{builtinInfo?.version}</span>
+                  <span className="text-xs opacity-80">{builtinInfo?.version}</span>
                 </button>
+                {savedPath && (
+                  <button
+                    onClick={() => handleSelectDirectory(savedPath)}
+                    disabled={loading}
+                    className="px-6 py-3 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-400 hover:to-pink-400 text-white font-medium rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-purple-500/25 flex flex-col items-center"
+                  >
+                    <span className="text-lg">📂 使用上次路径</span>
+                    <span className="text-xs opacity-80 truncate max-w-[200px]">{savedPath}</span>
+                  </button>
+                )}
                 <button
-                  onClick={handleSelectDirectory}
+                  onClick={() => handleSelectDirectory()}
                   disabled={loading}
                   className="px-6 py-3 bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-400 hover:to-blue-400 text-white font-medium rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-cyan-500/25 flex flex-col items-center"
                 >
-                  <span className="text-lg">📁 自己选择路径</span>
+                  <span className="text-lg">📁 选择新路径</span>
                   <span className="text-xs opacity-80">自定义目录</span>
                 </button>
               </>

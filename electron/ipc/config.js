@@ -99,9 +99,13 @@ function getExtractTargetDir() {
 }
 
 function getBuiltinTShockInfo() {
+  const zipPath = getBuiltinTShockZipPath();
+  const filename = path.basename(zipPath);
+  
   return {
     exists: true,
-    zipPath: getBuiltinTShockZipPath()
+    zipPath: zipPath,
+    version: filename
   };
 }
 
