@@ -102,7 +102,7 @@ function startShell() {
   });
 }
 
-function sendToShell(command) {
+function sendToShell(data) {
   return new Promise((resolve, reject) => {
     if (!shellProcess) {
       reject(new Error('Shell not started'));
@@ -110,43 +110,37 @@ function sendToShell(command) {
     }
 
     try {
-      const cmdWithoutNewline = command.replace(/[\r\n]+$/, '');
-      
-      // 过滤空命令和控制字符序列（如鼠标事件 \x1B[I, \x1B[O）
-      if (!cmdWithoutNewline || /^\x1B\[/.test(cmdWithoutNewline)) {
-        resolve({ success: true, skipped: true });
-        return;
-      }
-      
-      console.log('[sendToShell] 原始命令:', cmdWithoutNewline);
-
-      // 解析命令
-      const args = parseCommandArgs(cmdWithoutNewline);
-      console.log('[sendToShell] 解析后的参数:', args);
-      
-      const commandName = args[0];
-      const commandArgs = args.slice(1);
-
-      console.log('[sendToShell] 命令名:', commandName, '命令参数:', commandArgs);
-
-      // 先查找并执行注册的命令处理器
-      const handler = registry.findCommand(commandName);
-      if (handler) {
-        console.log('[sendToShell] 找到命令处理器:', commandName);
-        // 只显示命令，不写入 shell 执行
-        sendOutput('stdout', cmdWithoutNewline + '\r\n');
-        (async () => {
-          const success = await handler.execute(commandArgs);
-          // 执行完成后写入换行，让 shell 显示新的提示符
-          shellProcess.write('\r\n');
-          resolve({ success, command: cmdWithoutNewline });
-        })();
-        return;
+      // 只对带换行的完整命令做拦截检查
+      const hasNewline = data.includes('\r') || data.includes('\n');
+      if (hasNewline) {
+        const command = data.trim();
+        if (command) {
+          console.log('[sendToShell] 完整命令:', command);
+          
+          // 解析命令
+          const args = parseCommandArgs(command);
+          const commandName = args[0];
+          const commandArgs = args.slice(1);
+          
+          // 查找并执行注册的命令处理器
+          const handler = registry.findCommand(commandName);
+          if (handler) {
+            console.log('[sendToShell] 找到命令处理器:', commandName);
+            // 先把命令显示在终端上
+            sendOutput('stdout', command + '\r\n');
+            // 执行命令处理器
+            (async () => {
+              const success = await handler.execute(commandArgs);
+              resolve({ success, command });
+            })();
+            return;
+          }
+        }
       }
 
-      // 其他命令写入 shell 执行（会自动显示）
-      shellProcess.write(cmdWithoutNewline + '\r\n');
-      resolve({ success: true, command });
+      // 普通数据直接写入 shell
+      shellProcess.write(data);
+      resolve({ success: true, data });
     } catch (error) {
       console.error('[sendToShell] Error:', error);
       reject(error);

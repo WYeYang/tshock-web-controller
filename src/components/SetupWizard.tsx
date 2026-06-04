@@ -27,6 +27,7 @@ export const SetupWizard = ({ onComplete }: SetupWizardProps) => {
   const [adminUsername, setAdminUsername] = useState('');
   const [adminPassword, setAdminPassword] = useState('');
   const [setupComplete, setSetupComplete] = useState(false);
+  const [configExists, setConfigExists] = useState(false);
 
   // 默认值配置
   const DEFAULT_VALUES = {
@@ -52,6 +53,13 @@ export const SetupWizard = ({ onComplete }: SetupWizardProps) => {
       });
     }
   }, []);
+
+  // 当进入步骤2时自动打开配置编辑器
+  useEffect(() => {
+    if (step === 2 && !showConfigEditor) {
+      setShowConfigEditor(true);
+    }
+  }, [step]);
 
   // 检测选项
   const detectOptions = (text: string): string[] => {
@@ -165,8 +173,9 @@ export const SetupWizard = ({ onComplete }: SetupWizardProps) => {
       
       // 检测解压完成
       if (data.data.includes('✓ 解压完成') || data.data.includes('Extraction complete')) {
-        setStep(2);
         setLoading(false);
+        // 解压完成后自动检测配置并执行 Installer
+        handleAutoRunInstaller();
       }
       
       // 检测解压失败
@@ -177,6 +186,44 @@ export const SetupWizard = ({ onComplete }: SetupWizardProps) => {
 
     return unsubscribe;
   }, []);
+
+  const handleAutoRunInstaller = async () => {
+    if (!isElectronAvailable()) return;
+
+    try {
+      // 尝试读取配置来判断是否存在
+      const configPath = await electronBridge.config.getPath();
+      console.log('[SetupWizard] 检查配置路径:', configPath);
+      
+      const readResult = await electronBridge.config.read();
+      const hasConfig = !(readResult && readResult.success === false);
+      
+      // 如果不存在配置，先执行 Installer 生成配置
+      if (!hasConfig) {
+        console.log('[SetupWizard] 配置不存在，执行 Installer 生成配置');
+        setLoading(true);
+        
+        const result = await electronBridge.terminal.setup();
+        if (result.success) {
+          setConfigExists(true);
+        } else {
+          setError(result.error || 'Installer 执行失败');
+        }
+        
+        setLoading(false);
+      } else {
+        console.log('[SetupWizard] 配置已存在');
+        setConfigExists(true);
+      }
+      
+      // 进入配置确认页面
+      setStep(2);
+    } catch (err) {
+      console.error('[SetupWizard] handleAutoRunInstaller error:', err);
+      // 即使检测失败，也继续到下一步
+      setStep(2);
+    }
+  };
 
   const handleUseBuiltinTshock = async () => {
     if (!isElectronAvailable()) return;
@@ -212,8 +259,8 @@ export const SetupWizard = ({ onComplete }: SetupWizardProps) => {
       });
 
       if (result && !result.canceled && result.filePaths.length > 0) {
-        setStep(2);
-        await handleConfigureRest();
+        // 选择目录后自动检测配置并执行 Installer
+        await handleAutoRunInstaller();
       } else {
         setError('未选择目录');
       }
@@ -247,6 +294,9 @@ export const SetupWizard = ({ onComplete }: SetupWizardProps) => {
     setLoading(true);
 
     try {
+      // 先停止之前启动的进程
+      await electronBridge.terminal.stop();
+      
       const writeResult = await electronBridge.config.write(config);
       
       if (writeResult.success) {
@@ -257,7 +307,14 @@ export const SetupWizard = ({ onComplete }: SetupWizardProps) => {
           password: ''
         });
         setShowConfigEditor(false);
-        setStep(4);
+        
+        // 执行 Installer（带配置运行）
+        const startResult = await electronBridge.terminal.setup();
+        if (startResult.success) {
+          setStep(4);
+        } else {
+          setError(startResult.error || '启动服务器失败');
+        }
       } else {
         setError('保存配置失败');
       }
@@ -425,18 +482,14 @@ export const SetupWizard = ({ onComplete }: SetupWizardProps) => {
             )}
 
             {step === 2 && (
-              <button
-                onClick={handleRunInstaller}
-                disabled={loading}
-                className="px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-400 hover:to-emerald-400 text-white font-medium rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-green-500/25"
-              >
-                {loading ? '运行中...' : '运行 TShock.Installer.exe 生成配置'}
-              </button>
+              <div className="text-cyan-400 text-sm">
+                请在弹出的配置编辑器中确认配置
+              </div>
             )}
 
             {step === 3 && (
               <div className="text-cyan-400 text-sm">
-                请在弹出的配置编辑器中确认配置
+                服务器启动中...
               </div>
             )}
 

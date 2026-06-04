@@ -32,8 +32,8 @@ export function TerminalUI({ visible, onOutput }: TerminalUIProps) {
     if (!terminalRef.current || !visible) return;
 
     const terminal = new Terminal({
-      cursorBlink: true,
-      cursorStyle: 'block',
+      cursorBlink: false,
+      cursorStyle: 'bar',
       fontFamily: 'Consolas, "Courier New", monospace',
       fontSize: 14,
       lineHeight: 1.2,
@@ -41,7 +41,7 @@ export function TerminalUI({ visible, onOutput }: TerminalUIProps) {
       theme: {
         background: '#000000',
         foreground: '#cccccc',
-        cursor: '#ffffff',
+        cursor: '#555555',
         cursorAccent: '#000000',
         selectionBackground: 'rgba(255, 255, 255, 0.3)',
         black: '#000000',
@@ -62,13 +62,31 @@ export function TerminalUI({ visible, onOutput }: TerminalUIProps) {
         brightWhite: '#ffffff'
       },
       scrollback: 5000,
-      convertEol: true
+      convertEol: true,
+      disableStdin: true,
+      macOptionIsMeta: false,
+      macOptionClickForcesSelection: false,
+      rightClickSelectsWord: false
     });
 
     const fitAddon = new FitAddon();
     terminal.loadAddon(fitAddon);
 
     terminal.open(terminalRef.current);
+    
+    // 彻底禁用聚焦
+    setTimeout(() => {
+      const textarea = terminalRef.current?.querySelector('textarea');
+      if (textarea) {
+        textarea.disabled = true;
+        textarea.tabIndex = -1;
+        textarea.style.display = 'none';
+      }
+      const terminalElement = terminalRef.current?.querySelector('.xterm');
+      if (terminalElement) {
+        (terminalElement as HTMLElement).tabIndex = -1;
+      }
+    }, 100);
     
     // 监听选中变化
     const handleSelectionChange = () => {
@@ -91,23 +109,6 @@ export function TerminalUI({ visible, onOutput }: TerminalUIProps) {
 
     terminalInstanceRef.current = terminal;
     fitAddonRef.current = fitAddon;
-
-    let inputBuffer = '';
-    
-    terminal.onData((data) => {
-      // 如果是回车键，发送完整命令
-      if (data === '\r' || data === '\n') {
-        if (inputBuffer.trim()) {
-          electronBridge.terminal.send(inputBuffer);
-        }
-        inputBuffer = '';
-      } else if (data === '\x7F') {
-        // Backspace
-        inputBuffer = inputBuffer.slice(0, -1);
-      } else {
-        inputBuffer += data;
-      }
-    });
 
     terminal.onResize(({ cols, rows }) => {
       electronBridge.terminal.resize(cols, rows);
@@ -150,7 +151,11 @@ export function TerminalUI({ visible, onOutput }: TerminalUIProps) {
 
   return (
     <div className="relative border border-gray-600 overflow-hidden" style={{ height: '450px', width: '100%', backgroundColor: '#000000' }}>
-      <div ref={terminalRef} className="h-full w-full" />
+      <div 
+        ref={terminalRef} 
+        className="h-full w-full" 
+        style={{ pointerEvents: 'none' }}
+      />
       {hasSelection && (
         <button
           onClick={copySelection}
