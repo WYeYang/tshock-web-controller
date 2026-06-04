@@ -26,7 +26,9 @@ const store = new Store({
     },
     window: {
       width: 1200,
-      height: 800
+      height: 800,
+      x: null,
+      y: null
     }
   }
 });
@@ -34,7 +36,7 @@ const store = new Store({
 function createWindow() {
   const windowConfig = store.get('window');
 
-  mainWindow = new BrowserWindow({
+  const windowOptions = {
     width: windowConfig.width,
     height: windowConfig.height,
     minWidth: 800,
@@ -47,15 +49,28 @@ function createWindow() {
     },
     show: false,
     backgroundColor: '#0f172a'
-  });
+  };
+
+  // 如果有保存的位置，使用它
+  if (windowConfig.x !== null && windowConfig.y !== null) {
+    windowOptions.x = windowConfig.x;
+    windowOptions.y = windowConfig.y;
+  }
+
+  mainWindow = new BrowserWindow(windowOptions);
 
   mainWindow.once('ready-to-show', () => {
     mainWindow.show();
   });
 
   mainWindow.on('resize', () => {
-    const { width, height } = mainWindow.getBounds();
-    store.set('window', { width, height });
+    const { width, height, x, y } = mainWindow.getBounds();
+    store.set('window', { width, height, x, y });
+  });
+
+  mainWindow.on('move', () => {
+    const { width, height, x, y } = mainWindow.getBounds();
+    store.set('window', { width, height, x, y });
   });
 
   mainWindow.on('close', async (event) => {
