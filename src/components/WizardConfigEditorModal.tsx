@@ -2,6 +2,8 @@ import { useState, useEffect, useCallback } from 'react';
 import { electronBridge } from '../services/electronBridge';
 import { usePlatform } from '../hooks/usePlatform';
 import { ConfigForm } from './ConfigForm';
+import { ItemSlot } from './ItemSlot';
+import { ItemSelectorModal } from './ItemSelectorModal';
 
 interface TShockConfig {
   [key: string]: any;
@@ -27,6 +29,42 @@ const DEFAULT_CONFIG: TShockConfig = {
   Settings: DEFAULT_SETTINGS
 };
 
+
+// 解析 MOTD 格式 [c/HEX颜色:文本] 为带样式的 HTML
+function renderMotdPreview(text: string): string {
+  if (!text) return '';
+  
+  // 正则匹配 [c/HEX:文本] 格式
+  const colorPattern = /\[c\/([0-9a-fA-F]{6}):([^\]]*)\]/g;
+  let result = text;
+  let lastIndex = 0;
+  let html = '';
+  
+  let match;
+  while ((match = colorPattern.exec(text)) !== null) {
+    const [fullMatch, hexColor, content] = match;
+    const before = text.substring(lastIndex, match.index);
+    html += escapeHtml(before);
+    html += `<span style="color:#${hexColor}">${escapeHtml(content)}</span>`;
+    lastIndex = match.index + fullMatch.length;
+  }
+  
+  // 添加剩余文本
+  html += escapeHtml(text.substring(lastIndex));
+  
+  return html;
+}
+
+// 简单的 HTML 转义
+function escapeHtml(text: string): string {
+  return text
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
 export const WizardConfigEditorModal = ({ isOpen, onConfirm }: WizardConfigEditorModalProps) => {
   const { isElectron } = usePlatform();
   const [config, setConfig] = useState<TShockConfig>({ ...DEFAULT_CONFIG });
@@ -37,6 +75,12 @@ export const WizardConfigEditorModal = ({ isOpen, onConfirm }: WizardConfigEdito
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'config' | 'ssc' | 'motd' | 'rules' | 'whitelist'>('config');
+  
+  // 物品选择器状态
+  const [isItemSelectorOpen, setIsItemSelectorOpen] = useState(false);
+  const [selectedSlotIndex, setSelectedSlotIndex] = useState<number | null>(null);
+  const [pendingItemId, setPendingItemId] = useState<number | null>(null);
+  const [showQuantityDialog, setShowQuantityDialog] = useState(false);
 
   const loadAllConfigs = useCallback(async () => {
     if (!isElectron) return;
@@ -64,7 +108,19 @@ export const WizardConfigEditorModal = ({ isOpen, onConfirm }: WizardConfigEdito
       // 加载 sscconfig.json
       const sscResult = await electronBridge.config.read('sscconfig.json');
       if (sscResult && typeof sscResult === 'object') {
-        setSscConfig(sscResult);
+        // 确保有默认的StartingInventory (铜短剑、铜斧、铜镐)
+        const defaultStartingInventory = [
+          { netID: 3505, prefix: 0, stack: 1, favorited: false },
+          { netID: 3502, prefix: 0, stack: 1, favorited: false },
+          { netID: 3501, prefix: 0, stack: 1, favorited: false },
+        ];
+        setSscConfig({
+          ...sscResult,
+          Settings: {
+            ...sscResult.Settings,
+            StartingInventory: sscResult.Settings?.StartingInventory || defaultStartingInventory
+          }
+        });
       }
 
       // 加载 motd.txt
@@ -170,63 +226,234 @@ export const WizardConfigEditorModal = ({ isOpen, onConfirm }: WizardConfigEdito
             </div>
           ) : (
             <>
-              {activeTab === 'config' && (
-                <ConfigForm
-                  config={config}
-                  onChange={setConfig}
-                />
-              )}
-              
-              {activeTab === 'ssc' && (
-                <div className="space-y-4">
-                  <div className="text-white text-sm mb-2">SSC 配置 (服务器端角色配置</div>
-                  <textarea
-                    value={JSON.stringify(sscConfig, null, 2)}
-                    onChange={(e) => {
-                      try {
-                        setSscConfig(JSON.parse(e.target.value));
-                      } catch {}
-                    }}
-                    className="w-full h-64 bg-slate-900 border border-slate-700 rounded text-white text-sm font-mono p-2"
+              <div className="h-[400px] overflow-y-auto">
+                {activeTab === 'config' && (
+                  <ConfigForm
+                    config={config}
+                    onChange={setConfig}
                   />
-                </div>
-              )}
-              
-              {activeTab === 'motd' && (
-                <div className="space-y-4">
-                  <div className="text-white text-sm mb-2">MOTD (消息)</div>
-                  <textarea
-                    value={motdText}
-                    onChange={(e) => setMotdText(e.target.value)}
-                    className="w-full h-64 bg-slate-900 border border-slate-700 rounded text-white text-sm p-2"
-                    placeholder="Welcome to the server..."
-                  />
-                </div>
-              )}
-              
-              {activeTab === 'rules' && (
-                <div className="space-y-4">
-                  <div className="text-white text-sm mb-2">规则</div>
-                  <textarea
-                    value={rulesText}
-                    onChange={(e) => setRulesText(e.target.value)}
-                    className="w-full h-64 bg-slate-900 border border-slate-700 rounded text-white text-sm p-2"
-                    placeholder="1. Respect others..."
-                  />
-                </div>
-              )}
-              
-              {activeTab === 'whitelist' && (
-                <div className="space-y-4">
-                  <div className="text-white text-sm mb-2">白名单</div>
-                  <textarea
-                    value={whitelistText}
-                    onChange={(e) => setWhitelistText(e.target.value)}
-                    className="w-full h-64 bg-slate-900 border border-slate-700 rounded text-white text-sm p-2"
-                    placeholder="127.0.0.1"
-                  />
-                </div>
-              )}
+                )}
+                
+                {activeTab === 'ssc' && (
+                  <div className="space-y-4">
+                    <div className="text-white text-sm mb-2">SSC 配置 (服务器端角色)</div>
+                    
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <label className="text-slate-300 text-sm">启用 SSC</label>
+                        <div className="flex items-center">
+                          <button
+                            onClick={() => setSscConfig({ ...sscConfig, Settings: { ...sscConfig.Settings, Enabled: true } })}
+                            className={`px-3 py-1 rounded-l text-sm ${sscConfig.Settings?.Enabled ? 'bg-cyan-600 text-white' : 'bg-slate-700 text-slate-400'}`}
+                          >
+                            开
+                          </button>
+                          <button
+                            onClick={() => setSscConfig({ ...sscConfig, Settings: { ...sscConfig.Settings, Enabled: false } })}
+                            className={`px-3 py-1 rounded-r text-sm ${!sscConfig.Settings?.Enabled ? 'bg-cyan-600 text-white' : 'bg-slate-700 text-slate-400'}`}
+                          >
+                            关
+                          </button>
+                        </div>
+                      </div>
+                      
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <label className="text-slate-300 text-sm block mb-1">服务器端角色保存 (分钟)</label>
+                          <input
+                            type="number"
+                            value={sscConfig.Settings?.ServerSideCharacterSave || 5}
+                            onChange={(e) => setSscConfig({ ...sscConfig, Settings: { ...sscConfig.Settings, ServerSideCharacterSave: parseInt(e.target.value) || 5 } })}
+                            className="w-full bg-slate-900 border border-slate-700 rounded px-3 py-2 text-white text-sm"
+                          />
+                        </div>
+                        
+                        <div>
+                          <label className="text-slate-300 text-sm block mb-1">登录丢弃阈值 (秒)</label>
+                          <input
+                            type="number"
+                            value={sscConfig.Settings?.LogonDiscardThreshold || 250}
+                            onChange={(e) => setSscConfig({ ...sscConfig, Settings: { ...sscConfig.Settings, LogonDiscardThreshold: parseInt(e.target.value) || 250 } })}
+                            className="w-full bg-slate-900 border border-slate-700 rounded px-3 py-2 text-white text-sm"
+                          />
+                        </div>
+                        
+                        <div>
+                          <label className="text-slate-300 text-sm block mb-1">初始生命值</label>
+                          <input
+                            type="number"
+                            value={sscConfig.Settings?.StartingHealth || 100}
+                            onChange={(e) => setSscConfig({ ...sscConfig, Settings: { ...sscConfig.Settings, StartingHealth: parseInt(e.target.value) || 100 } })}
+                            className="w-full bg-slate-900 border border-slate-700 rounded px-3 py-2 text-white text-sm"
+                          />
+                        </div>
+                        
+                        <div>
+                          <label className="text-slate-300 text-sm block mb-1">初始魔力值</label>
+                          <input
+                            type="number"
+                            value={sscConfig.Settings?.StartingMana || 20}
+                            onChange={(e) => setSscConfig({ ...sscConfig, Settings: { ...sscConfig.Settings, StartingMana: parseInt(e.target.value) || 20 } })}
+                            className="w-full bg-slate-900 border border-slate-700 rounded px-3 py-2 text-white text-sm"
+                          />
+                        </div>
+                      </div>
+                      
+                      <div className="flex items-center justify-between">
+                        <label className="text-slate-300 text-sm">保留玩家外观</label>
+                        <div className="flex items-center">
+                          <button
+                            onClick={() => setSscConfig({ ...sscConfig, Settings: { ...sscConfig.Settings, KeepPlayerAppearance: true } })}
+                            className={`px-3 py-1 rounded-l text-sm ${sscConfig.Settings?.KeepPlayerAppearance ? 'bg-cyan-600 text-white' : 'bg-slate-700 text-slate-400'}`}
+                          >
+                            是
+                          </button>
+                          <button
+                            onClick={() => setSscConfig({ ...sscConfig, Settings: { ...sscConfig.Settings, KeepPlayerAppearance: false } })}
+                            className={`px-3 py-1 rounded-r text-sm ${!sscConfig.Settings?.KeepPlayerAppearance ? 'bg-cyan-600 text-white' : 'bg-slate-700 text-slate-400'}`}
+                          >
+                            否
+                          </button>
+                        </div>
+                      </div>
+                      
+                      <div className="flex items-center justify-between">
+                        <label className="text-slate-300 text-sm">警告玩家绕过权限</label>
+                        <div className="flex items-center">
+                          <button
+                            onClick={() => setSscConfig({ ...sscConfig, Settings: { ...sscConfig.Settings, WarnPlayersAboutBypassPermission: true } })}
+                            className={`px-3 py-1 rounded-l text-sm ${sscConfig.Settings?.WarnPlayersAboutBypassPermission ? 'bg-cyan-600 text-white' : 'bg-slate-700 text-slate-400'}`}
+                          >
+                            是
+                          </button>
+                          <button
+                            onClick={() => setSscConfig({ ...sscConfig, Settings: { ...sscConfig.Settings, WarnPlayersAboutBypassPermission: false } })}
+                            className={`px-3 py-1 rounded-r text-sm ${!sscConfig.Settings?.WarnPlayersAboutBypassPermission ? 'bg-cyan-600 text-white' : 'bg-slate-700 text-slate-400'}`}
+                          >
+                            否
+                          </button>
+                        </div>
+                      </div>
+                      
+                      {/* 初始背包编辑 */}
+                      <div>
+                        <label className="text-slate-300 text-sm block mb-2">初始背包</label>
+                        <div className="bg-slate-800/50 border border-slate-700 rounded-lg p-3">
+                          <div className="flex flex-wrap gap-1.5">
+                            {(sscConfig.Settings?.StartingInventory || []).map((item: any, index: number) => (
+                              <div 
+                                key={`${item.netID}-${item.stack}-${index}`} 
+                                className="flex flex-col gap-1 items-center"
+                              >
+                                {/* 物品格子 - 点击打开选择器 */}
+                                <div
+                                  className="cursor-pointer hover:ring-2 hover:ring-cyan-500/50 rounded"
+                                >
+                                  <ItemSlot 
+                                    item={item} 
+                                    onClick={() => {
+                                      setSelectedSlotIndex(index);
+                                      setIsItemSelectorOpen(true);
+                                    }}
+                                  />
+                                </div>
+                              </div>
+                            ))}
+                            {/* 添加按钮 - 类似物品格子 */}
+                            <div className="flex flex-col gap-1 items-center">
+                              <div
+                                onClick={() => {
+                                  const newInv = [...(sscConfig.Settings?.StartingInventory || [])];
+                                  const newIndex = newInv.length;
+                                  newInv.push({ netID: 0, prefix: 0, stack: 1, favorited: false });
+                                  setSscConfig({ ...sscConfig, Settings: { ...sscConfig.Settings, StartingInventory: newInv } });
+                                  setSelectedSlotIndex(newIndex);
+                                  setIsItemSelectorOpen(true);
+                                }}
+                                className="w-10 h-10 bg-slate-700/50 border border-dashed border-slate-600/50 rounded flex items-center justify-center cursor-pointer hover:border-cyan-500/50 hover:bg-slate-600/50 transition-all"
+                              >
+                                <svg className="w-5 h-5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                                </svg>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+                
+                {activeTab === 'motd' && (
+                  <div className="space-y-4">
+                    <div className="text-white text-sm mb-2">MOTD (欢迎消息)</div>
+                    
+                    {/* 预览区域 */}
+                    <div className="bg-slate-950 border border-slate-700 rounded-lg p-3">
+                      <div className="text-slate-400 text-xs mb-2">预览 (游戏内显示):</div>
+                      <div className="font-mono text-sm leading-relaxed whitespace-pre-wrap" dangerouslySetInnerHTML={{ __html: renderMotdPreview(motdText) }} />
+                    </div>
+                    
+                    {/* 编辑区域 */}
+                    <textarea
+                      value={motdText}
+                      onChange={(e) => setMotdText(e.target.value)}
+                      className="w-full h-28 bg-slate-900 border border-slate-700 rounded text-white text-sm p-2 font-mono"
+                      placeholder="Welcome to the server..."
+                    />
+                    
+                    {/* 格式说明 */}
+                    <div className="bg-slate-800/50 border border-slate-700 rounded-lg p-3">
+                      <div className="text-slate-300 text-xs font-semibold mb-2">格式说明:</div>
+                      <div className="grid grid-cols-2 gap-2 text-xs text-slate-400">
+                        <div>
+                          <span className="text-slate-200">[c/ff0000:红色]</span>
+                          <span className="ml-2">→ 红色文本</span>
+                        </div>
+                        <div>
+                          <span className="text-slate-200">[c/00ff00:绿色]</span>
+                          <span className="ml-2">→ 绿色文本</span>
+                        </div>
+                        <div>
+                          <span className="text-slate-200">[c/0000ff:蓝色]</span>
+                          <span className="ml-2">→ 蓝色文本</span>
+                        </div>
+                        <div>
+                          <span className="text-slate-200">[c/ffffff:白色]</span>
+                          <span className="ml-2">→ 白色文本</span>
+                        </div>
+                      </div>
+                      <div className="mt-2 text-xs text-slate-500">
+                        占位符: %map% → 地图名, %players% → 玩家数, %serverslots% → 服务器槽数
+                      </div>
+                    </div>
+                  </div>
+                )}
+                
+                {activeTab === 'rules' && (
+                  <div className="space-y-4">
+                    <div className="text-white text-sm mb-2">规则</div>
+                    <textarea
+                      value={rulesText}
+                      onChange={(e) => setRulesText(e.target.value)}
+                      className="w-full h-[360px] bg-slate-900 border border-slate-700 rounded text-white text-sm p-2"
+                      placeholder="1. Respect others..."
+                    />
+                  </div>
+                )}
+                
+                {activeTab === 'whitelist' && (
+                  <div className="space-y-4">
+                    <div className="text-white text-sm mb-2">白名单</div>
+                    <textarea
+                      value={whitelistText}
+                      onChange={(e) => setWhitelistText(e.target.value)}
+                      className="w-full h-[360px] bg-slate-900 border border-slate-700 rounded text-white text-sm p-2"
+                      placeholder="127.0.0.1"
+                    />
+                  </div>
+                )}
+              </div>
             </>
           )}
         </div>
@@ -243,6 +470,85 @@ export const WizardConfigEditorModal = ({ isOpen, onConfirm }: WizardConfigEdito
           </div>
         </div>
       </div>
+      
+      {/* 物品选择器 */}
+      <ItemSelectorModal
+        isOpen={isItemSelectorOpen}
+        onClose={() => setIsItemSelectorOpen(false)}
+        onSelectItem={(itemId) => {
+          setPendingItemId(itemId);
+          setIsItemSelectorOpen(false);
+          setShowQuantityDialog(true);
+        }}
+      />
+      
+      {/* 数量选择对话框 */}
+      {showQuantityDialog && pendingItemId !== null && selectedSlotIndex !== null && (
+        <div className="fixed inset-0 z-[10001] flex items-center justify-center bg-black/60 backdrop-blur-sm">
+          <div className="bg-slate-800 border border-slate-700 rounded-xl p-4 w-64">
+            <h3 className="text-white text-sm font-semibold mb-3">输入数量</h3>
+            <input
+              type="number"
+              defaultValue={sscConfig.Settings?.StartingInventory[selectedSlotIndex]?.stack || 1}
+              min="1"
+              autoFocus
+              className="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded text-white text-sm mb-3"
+              ref={(input) => input?.select()}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  const newInv = [...(sscConfig.Settings?.StartingInventory || [])];
+                  newInv[selectedSlotIndex] = {
+                    netID: pendingItemId,
+                    prefix: 0,
+                    stack: Math.max(1, parseInt((e.target as HTMLInputElement).value) || 1),
+                    favorited: false
+                  };
+                  setSscConfig({ ...sscConfig, Settings: { ...sscConfig.Settings, StartingInventory: newInv } });
+                  setShowQuantityDialog(false);
+                  setPendingItemId(null);
+                  setSelectedSlotIndex(null);
+                }
+                if (e.key === 'Escape') {
+                  setShowQuantityDialog(false);
+                  setPendingItemId(null);
+                  setSelectedSlotIndex(null);
+                }
+              }}
+            />
+            <div className="flex gap-2">
+              <button
+                onClick={() => {
+                  setShowQuantityDialog(false);
+                  setPendingItemId(null);
+                  setSelectedSlotIndex(null);
+                }}
+                className="flex-1 px-3 py-1.5 bg-slate-700 text-slate-300 rounded text-sm hover:bg-slate-600 transition-all"
+              >
+                取消
+              </button>
+              <button
+                onClick={() => {
+                  const input = document.querySelector('.fixed.z-\\[10001\\] input[type="number"]') as HTMLInputElement;
+                  const newInv = [...(sscConfig.Settings?.StartingInventory || [])];
+                  newInv[selectedSlotIndex] = {
+                    netID: pendingItemId,
+                    prefix: 0,
+                    stack: Math.max(1, parseInt(input?.value || '1')),
+                    favorited: false
+                  };
+                  setSscConfig({ ...sscConfig, Settings: { ...sscConfig.Settings, StartingInventory: newInv } });
+                  setShowQuantityDialog(false);
+                  setPendingItemId(null);
+                  setSelectedSlotIndex(null);
+                }}
+                className="flex-1 px-3 py-1.5 bg-cyan-600 text-white rounded text-sm hover:bg-cyan-500 transition-all"
+              >
+                确认
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

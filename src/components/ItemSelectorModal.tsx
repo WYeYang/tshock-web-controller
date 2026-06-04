@@ -58,7 +58,7 @@ export const ItemSelectorModal = ({ isOpen, onClose, onSelectItem }: ItemSelecto
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 lg:pl-[280px]">
+    <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
       <div className="glass-card neon-border p-4 sm:p-6 max-w-full sm:max-w-4xl w-full transform transition-all max-h-[85vh] flex flex-col">
         <div className="flex items-center justify-between mb-4 sm:mb-6 flex-shrink-0">
           <div>
@@ -90,15 +90,15 @@ export const ItemSelectorModal = ({ isOpen, onClose, onSelectItem }: ItemSelecto
           <span>第 {currentPage} / {totalPages} 页</span>
         </div>
 
-        <div className="bg-slate-800/30 p-3 sm:p-4 rounded-lg border border-slate-700/50 overflow-hidden flex-shrink-0">
-          <div className="h-[450px]">
+        <div className="bg-slate-800/30 p-3 sm:p-4 rounded-lg border border-slate-700/50 flex-1 overflow-hidden">
+          <div className="h-full overflow-y-auto">
             {currentPageItems.length > 0 ? (
               <div 
-                className="grid gap-1 sm:gap-2 w-full h-full overflow-y-auto grid-cols-10 grid-rows-8 auto-rows-fr items-center justify-items-center content-start"
+                className="grid gap-1 sm:gap-2 w-full grid-cols-10 auto-rows-fr items-center justify-items-center content-start pt-1"
                 style={{ gridTemplateColumns: 'repeat(10, minmax(0, 1fr))' }}
               >
                 {currentPageItems.map((item) => (
-                  <div key={item.id} className="cursor-pointer">
+                  <div key={item.id} className="cursor-pointer py-1">
                     <ItemTooltip
                       item={{
                         netID: item.id,
