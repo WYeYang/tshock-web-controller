@@ -203,7 +203,7 @@ export const SetupWizard = ({ onComplete }: SetupWizardProps) => {
       const configPath = await electronBridge.config.getPath();
       console.log('[SetupWizard] 检查配置路径:', configPath);
       
-      const readResult = await electronBridge.config.read();
+      const readResult = await electronBridge.config.read('config.json');
       const hasConfig = !(readResult && readResult.success === false);
       
       // 如果不存在配置，先执行 Installer 生成配置
@@ -308,7 +308,7 @@ export const SetupWizard = ({ onComplete }: SetupWizardProps) => {
     setLoading(true);
 
     try {
-      const writeResult = await electronBridge.config.write(config);
+      const writeResult = await electronBridge.config.write('config.json', config);
       
       if (writeResult.success) {
         updateTshockConfig({

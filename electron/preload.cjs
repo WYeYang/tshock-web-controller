@@ -34,8 +34,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
   },
 
   config: {
-    read: () => ipcRenderer.invoke('config:read'),
-    write: (data) => ipcRenderer.invoke('config:write', data),
+    read: (filename) => ipcRenderer.invoke('config:read', filename),
+    write: (filename, data) => ipcRenderer.invoke('config:write', filename, data),
     getPath: () => ipcRenderer.invoke('config:get-path'),
     getExtractPaths: () => ipcRenderer.invoke('config:get-extract-paths'),
     onTshockPathUpdated: (callback) => {

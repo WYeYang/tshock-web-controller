@@ -37,8 +37,8 @@ export interface ElectronAPI {
     onStopRequest: (callback: () => void) => () => void;
   };
   config: {
-    read: () => Promise<any>;
-    write: (data: any) => Promise<any>;
+    read: (filename: string) => Promise<any>;
+    write: (filename: string, data: any) => Promise<any>;
     getPath: () => Promise<any>;
     getExtractPaths: () => Promise<any>;
     onTshockPathUpdated: (callback: (path: string) => void) => () => void;
@@ -143,16 +143,16 @@ export const electronBridge = {
   },
 
   config: {
-    read: async () => {
+    read: async (filename: string) => {
       const api = getElectronAPI();
       if (!api) throw new Error('Electron API not available');
-      return await api.config.read();
+      return await api.config.read(filename);
     },
 
-    write: async (data: any) => {
+    write: async (filename: string, data: any) => {
       const api = getElectronAPI();
       if (!api) throw new Error('Electron API not available');
-      return await api.config.write(data);
+      return await api.config.write(filename, data);
     },
 
     getPath: async () => {

@@ -44,15 +44,19 @@ function readConfig(filePath) {
   return new Promise((resolve, reject) => {
     fs.readFile(filePath, 'utf8', (err, data) => {
       if (err) {
+        console.log('[readConfig] err:', err);
         reject(err);
         return;
       }
+       console.log('[readConfig] success:', data);
 
+      // 尝试解析为 JSON
       try {
         const config = JSON.parse(data);
         resolve(config);
       } catch (parseError) {
-        reject(new Error('Invalid JSON'));
+        // JSON 解析失败，直接返回原始文本
+        resolve(data);
       }
     });
   });
@@ -105,13 +109,14 @@ export function setupConfigIpc(window, electronStore) {
   mainWindow = window;
   store = electronStore;
 
-  ipcMain.handle('config:read', async () => {
-    const configPath = getConfigPath();
-    console.log('[config:read] 读取配置路径:', configPath);
-    console.log('[config:read] 文件是否存在:', fs.existsSync(configPath));
+  ipcMain.handle('config:read', async (event, filename) => {
+    console.log('[config:read] 读取配置文件:', filename);
+    const filePath = path.join(getTShockRootDir(), 'tshock', filename);
+    console.log('[config:read] 读取配置路径:', filePath);
+    console.log('[config:read] 文件是否存在:', fs.existsSync(filePath));
     
     try {
-      const config = await readConfig(configPath);
+      const config = await readConfig(filePath);
       console.log('[config:read] 配置读取成功');
       return config;
     } catch (error) {
@@ -123,9 +128,10 @@ export function setupConfigIpc(window, electronStore) {
     }
   });
 
-  ipcMain.handle('config:write', async (event, data) => {
+  ipcMain.handle('config:write', async (event, filename, data) => {
+    const filePath = path.join(getTShockRootDir(), 'tshock', filename);
     try {
-      await writeConfig(getConfigPath(), data);
+      await writeConfig(filePath, data);
       return { success: true };
     } catch (error) {
       return {
