@@ -226,7 +226,7 @@ export const WizardConfigEditorModal = ({ isOpen, onConfirm }: WizardConfigEdito
             </div>
           ) : (
             <>
-              <div className="h-[400px] overflow-y-auto">
+              <div className="h-[500px] overflow-y-auto">
                 {activeTab === 'config' && (
                   <ConfigForm
                     config={config}
@@ -385,25 +385,11 @@ export const WizardConfigEditorModal = ({ isOpen, onConfirm }: WizardConfigEdito
                 )}
                 
                 {activeTab === 'motd' && (
-                  <div className="space-y-4">
+                  <div className="flex flex-col h-full space-y-4">
                     <div className="text-white text-sm mb-2">MOTD (欢迎消息)</div>
                     
-                    {/* 预览区域 */}
-                    <div className="bg-slate-950 border border-slate-700 rounded-lg p-3">
-                      <div className="text-slate-400 text-xs mb-2">预览 (游戏内显示):</div>
-                      <div className="font-mono text-sm leading-relaxed whitespace-pre-wrap" dangerouslySetInnerHTML={{ __html: renderMotdPreview(motdText) }} />
-                    </div>
-                    
-                    {/* 编辑区域 */}
-                    <textarea
-                      value={motdText}
-                      onChange={(e) => setMotdText(e.target.value)}
-                      className="w-full h-28 bg-slate-900 border border-slate-700 rounded text-white text-sm p-2 font-mono"
-                      placeholder="Welcome to the server..."
-                    />
-                    
-                    {/* 格式说明 */}
-                    <div className="bg-slate-800/50 border border-slate-700 rounded-lg p-3">
+                    {/* 格式说明 - 放最上面 */}
+                    <div className="bg-slate-800/50 border border-slate-700 rounded-lg p-3 flex-shrink-0">
                       <div className="text-slate-300 text-xs font-semibold mb-2">格式说明:</div>
                       <div className="grid grid-cols-2 gap-2 text-xs text-slate-400">
                         <div>
@@ -425,6 +411,28 @@ export const WizardConfigEditorModal = ({ isOpen, onConfirm }: WizardConfigEdito
                       </div>
                       <div className="mt-2 text-xs text-slate-500">
                         占位符: %map% → 地图名, %players% → 玩家数, %serverslots% → 服务器槽数
+                      </div>
+                    </div>
+                    
+                    {/* 预览和编辑 - 上下排列，占满剩余空间 */}
+                    <div className="flex flex-col flex-1 gap-4 overflow-hidden">
+                      {/* 预览区域 - 占一半高度 */}
+                      <div className="flex flex-col flex-1 overflow-hidden">
+                        <div className="text-slate-400 text-xs mb-2 flex-shrink-0">预览 (游戏内显示):</div>
+                        <div className="bg-slate-950 border border-slate-700 rounded-lg p-3 flex-1 overflow-y-auto">
+                          <div className="font-mono text-sm leading-relaxed whitespace-pre-wrap" dangerouslySetInnerHTML={{ __html: renderMotdPreview(motdText) }} />
+                        </div>
+                      </div>
+                      
+                      {/* 编辑区域 - 占一半高度 */}
+                      <div className="flex flex-col flex-1 overflow-hidden">
+                        <div className="text-slate-400 text-xs mb-2 flex-shrink-0">编辑:</div>
+                        <textarea
+                          value={motdText}
+                          onChange={(e) => setMotdText(e.target.value)}
+                          className="w-full bg-slate-900 border border-slate-700 rounded text-white text-sm p-2 font-mono resize-none flex-1"
+                          placeholder="Welcome to the server..."
+                        />
                       </div>
                     </div>
                   </div>

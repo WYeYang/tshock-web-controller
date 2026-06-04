@@ -376,8 +376,8 @@ export const SetupWizard = ({ onComplete }: SetupWizardProps) => {
 
   return (
     <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/80 backdrop-blur-sm">
-      <div className="w-full max-w-4xl mx-4 bg-slate-900/95 backdrop-blur-xl border border-cyan-500/30 rounded-2xl shadow-2xl shadow-cyan-500/10">
-        <div className="p-6 border-b border-slate-700/50">
+      <div className="w-full max-w-4xl mx-4 bg-slate-900/95 backdrop-blur-xl border border-cyan-500/30 rounded-2xl shadow-2xl shadow-cyan-500/10 max-h-[90vh] flex flex-col">
+        <div className="p-6 border-b border-slate-700/50 flex-shrink-0">
           <h2 className="text-2xl font-bold text-white flex items-center gap-3">
             <span className="text-3xl">🚀</span>
             TShock 快速设置向导
@@ -385,7 +385,7 @@ export const SetupWizard = ({ onComplete }: SetupWizardProps) => {
           <p className="text-slate-400 mt-2">按照以下步骤快速配置 TShock 服务器</p>
         </div>
 
-        <div className="px-6 py-4 border-b border-slate-700/50">
+        <div className="px-6 py-4 border-b border-slate-700/50 flex-shrink-0">
           <div className="flex items-center justify-between">
             {['选择目录', '生成配置', '配置 REST', '启动服务器'].map((label, index) => {
               const stepNum = index + 1;
@@ -422,7 +422,7 @@ export const SetupWizard = ({ onComplete }: SetupWizardProps) => {
           </div>
         </div>
 
-        <div className="p-6">
+        <div className="p-6 overflow-y-auto flex-1">
           {/* Terminal Display */}
           <div className="mb-4">
             <TerminalUI visible={true} />
