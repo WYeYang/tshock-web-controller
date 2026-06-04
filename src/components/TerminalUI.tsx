@@ -93,7 +93,7 @@ export function TerminalUI({ visible, onOutput }: TerminalUIProps) {
     fitAddonRef.current = fitAddon;
 
     terminal.onData((data) => {
-      electronBridge.terminal.sendRaw(data);
+      electronBridge.terminal.send(data);
     });
 
     terminal.onResize(({ cols, rows }) => {

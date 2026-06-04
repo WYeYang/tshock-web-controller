@@ -2,7 +2,7 @@ import * as pty from 'node-pty';
 import treeKill from 'tree-kill';
 import path from 'path';
 import fs from 'fs';
-import { ipcMain } from 'electron';
+import { ipcMain, app } from 'electron';
 import { registry, parseCommandArgs } from './commands.js';
 import { UnzipCommandHandler } from './command-handlers/unzip.js';
 import { getTShockRootDir, getExecutablePath, getConfigPath } from './config.js';
@@ -63,11 +63,16 @@ function startShell() {
   return new Promise((resolve, reject) => {
     try {
       const shell = process.platform === 'win32' ? 'cmd.exe' : 'bash';
+      // 启动时使用 APP 根目录，解压后再 cd 到 TShock 目录
+      const appPath = app.isPackaged
+        ? path.dirname(app.getPath('exe'))
+        : process.cwd();
+      
       const spawnOptions = {
         name: 'xterm-color',
         cols: 120,
         rows: 50,
-        cwd: getTShockRootDir(),
+        cwd: appPath,
         env: { ...process.env }
       };
 
@@ -106,10 +111,14 @@ function sendToShell(command) {
 
     try {
       const cmdWithoutNewline = command.replace(/[\r\n]+$/, '');
+      
+      // 过滤空命令和控制字符序列（如鼠标事件 \x1B[I, \x1B[O）
+      if (!cmdWithoutNewline || /^\x1B\[/.test(cmdWithoutNewline)) {
+        resolve({ success: true, skipped: true });
+        return;
+      }
+      
       console.log('[sendToShell] 原始命令:', cmdWithoutNewline);
-
-      // 先把命令写入终端显示
-      shellProcess.write(cmdWithoutNewline + '\r\n');
 
       // 解析命令
       const args = parseCommandArgs(cmdWithoutNewline);
@@ -120,37 +129,26 @@ function sendToShell(command) {
 
       console.log('[sendToShell] 命令名:', commandName, '命令参数:', commandArgs);
 
-      // 查找并执行注册的命令处理器
+      // 先查找并执行注册的命令处理器
       const handler = registry.findCommand(commandName);
       if (handler) {
         console.log('[sendToShell] 找到命令处理器:', commandName);
+        // 只显示命令，不写入 shell 执行
+        sendOutput('stdout', cmdWithoutNewline + '\r\n');
         (async () => {
           const success = await handler.execute(commandArgs);
+          // 执行完成后写入换行，让 shell 显示新的提示符
+          shellProcess.write('\r\n');
           resolve({ success, command: cmdWithoutNewline });
         })();
         return;
       }
 
-      // 其他命令直接透传给终端
+      // 其他命令写入 shell 执行（会自动显示）
+      shellProcess.write(cmdWithoutNewline + '\r\n');
       resolve({ success: true, command });
     } catch (error) {
       console.error('[sendToShell] Error:', error);
-      reject(error);
-    }
-  });
-}
-
-function sendRawToShell(data) {
-  return new Promise((resolve, reject) => {
-    if (!shellProcess) {
-      reject(new Error('Shell not started'));
-      return;
-    }
-
-    try {
-      shellProcess.write(data);
-      resolve({ success: true });
-    } catch (error) {
       reject(error);
     }
   });
@@ -176,6 +174,9 @@ function setupTshock() {
         return;
       }
 
+      // 先 cd 到 TShock 目录
+      await sendToShell(`cd "${tshockDir}"\r\n`);
+      
       await sendToShell(`"${installerPath}"`);
 
       setTimeout(() => {
@@ -208,6 +209,11 @@ function startTshock() {
         return;
       }
 
+      const tshockDir = getTShockRootDir();
+      
+      // 先 cd 到 TShock 目录
+      await sendToShell(`cd "${tshockDir}"\r\n`);
+      
       let command = `"${executablePath}"`;
       const basename = path.basename(executablePath).toLowerCase();
 
@@ -301,9 +307,10 @@ export function setupTshockIpc(window, electronStore) {
   });
   registry.registerCommand('unzip', unzipHandler);
 
+  // 只启动终端
   ipcMain.handle('terminal:start', async () => {
     try {
-      return await startTshock();
+      return await startShell();
     } catch (error) {
       return { success: false, error: error.message };
     }
@@ -317,17 +324,9 @@ export function setupTshockIpc(window, electronStore) {
     }
   });
 
-  ipcMain.handle('terminal:send', async (event, command) => {
+  ipcMain.handle('terminal:send', async (event, data) => {
     try {
-      return await sendToShell(command);
-    } catch (error) {
-      return { success: false, error: error.message };
-    }
-  });
-
-  ipcMain.handle('terminal:sendRaw', async (event, data) => {
-    try {
-      return await sendRawToShell(data);
+      return await sendToShell(data);
     } catch (error) {
       return { success: false, error: error.message };
     }

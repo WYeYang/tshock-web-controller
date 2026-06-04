@@ -4,8 +4,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   terminal: {
     start: () => ipcRenderer.invoke('terminal:start'),
     stop: () => ipcRenderer.invoke('terminal:stop'),
-    send: (command) => ipcRenderer.invoke('terminal:send', command),
-    sendRaw: (data) => ipcRenderer.invoke('terminal:sendRaw', data),
+    send: (data) => ipcRenderer.invoke('terminal:send', data),
     resize: (cols, rows) => ipcRenderer.invoke('terminal:resize', cols, rows),
     getStatus: () => ipcRenderer.invoke('terminal:status'),
     setup: (tshockDir) => ipcRenderer.invoke('terminal:setup', tshockDir),

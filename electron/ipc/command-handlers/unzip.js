@@ -59,6 +59,9 @@ export class UnzipCommandHandler {
 
       this.sendOutput('Extraction complete!\r\n');
 
+      // 切换到解压目录
+      this.sendOutput(`cd "${targetDir}"\r\n`);
+
       return true;
     } catch (error) {
       console.error('[UnzipCommandHandler] Error:', error);

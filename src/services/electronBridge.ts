@@ -24,8 +24,7 @@ export interface ElectronAPI {
   terminal: {
     start: () => Promise<any>;
     stop: () => Promise<any>;
-    send: (command: string) => Promise<any>;
-    sendRaw: (data: string) => Promise<any>;
+    send: (data: string) => Promise<any>;
     resize: (cols: number, rows: number) => Promise<any>;
     getStatus: () => Promise<any>;
     setup: (tshockDir: string) => Promise<any>;
@@ -68,16 +67,10 @@ export const electronBridge = {
       return await api.terminal.stop();
     },
 
-    send: async (command: string) => {
+    send: async (data: string) => {
       const api = getElectronAPI();
       if (!api) throw new Error('Electron API not available');
-      return await api.terminal.send(command);
-    },
-
-    sendRaw: async (data: string) => {
-      const api = getElectronAPI();
-      if (!api) throw new Error('Electron API not available');
-      return await api.terminal.sendRaw(data);
+      return await api.terminal.send(data);
     },
 
     resize: async (cols: number, rows: number) => {

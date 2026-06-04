@@ -1,29 +1,34 @@
 import fs from 'fs';
 import path from 'path';
-import crypto from 'crypto';
 import { ipcMain, app } from 'electron';
 
 let mainWindow = null;
-let customTShockDir = null;
+let store = null;
 
-// TShock 根目录：优先使用用户选择的路径
-function getTShockRootDir() {
-  if (customTShockDir) {
-    return customTShockDir;
+export function getTShockRootDir() {
+  // 1. 用户自定义目录（优先级最高）
+  //    示例：C:\Users\WEN\Documents\project\Tshock Server\CustomTShock
+  const customDir = store?.get('tshockDir');
+  if (customDir) {
+    return customDir;
   }
+  
+  // 2. 开发环境默认值：项目根目录/TShock
+  //    示例：C:\Users\WEN\Documents\project\Tshock Server\tshock-web-controller\TShock
   if (!app.isPackaged) {
     return path.join(process.cwd(), 'TShock');
   }
-  const appDir = path.dirname(app.getPath('exe'));
-  return path.join(appDir, 'TShock');
+  
+  // 3. 打包后环境：程序所在目录/TShock
+  //    示例：C:\Program Files\tshock-web-controller\TShock
+  return path.join(path.dirname(app.getPath('exe')), 'TShock');
 }
 
-function getConfigPath() {
-  const tshockDir = getTShockRootDir();
-  return path.join(tshockDir, 'tshock', 'config.json');
+export function getConfigPath() {
+  return path.join(getTShockRootDir(), 'tshock', 'config.json');
 }
 
-function getExecutablePath() {
+export function getExecutablePath() {
   const tshockDir = getTShockRootDir();
   const installerPath = path.join(tshockDir, 'TShock.Installer.exe');
   const serverPath = path.join(tshockDir, 'TerrariaServer.exe');
@@ -96,8 +101,9 @@ function getBuiltinTShockInfo() {
   };
 }
 
-export function setupConfigIpc(window) {
+export function setupConfigIpc(window, electronStore) {
   mainWindow = window;
+  store = electronStore;
 
   ipcMain.handle('config:read', async () => {
     try {
