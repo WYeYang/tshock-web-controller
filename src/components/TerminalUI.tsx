@@ -41,7 +41,7 @@ export function TerminalUI({ visible, onOutput }: TerminalUIProps) {
       theme: {
         background: '#000000',
         foreground: '#cccccc',
-        cursor: '#555555',
+        cursor: 'transparent',
         cursorAccent: '#000000',
         selectionBackground: 'rgba(255, 255, 255, 0.3)',
         black: '#000000',
@@ -63,32 +63,20 @@ export function TerminalUI({ visible, onOutput }: TerminalUIProps) {
       },
       scrollback: 5000,
       convertEol: true,
-      disableStdin: true,
-      macOptionIsMeta: false,
-      macOptionClickForcesSelection: false,
-      rightClickSelectsWord: false
+      disableStdin: true
     });
 
     const fitAddon = new FitAddon();
     terminal.loadAddon(fitAddon);
 
     terminal.open(terminalRef.current);
-    
-    // 彻底禁用聚焦
-    setTimeout(() => {
-      const textarea = terminalRef.current?.querySelector('textarea');
-      if (textarea) {
-        textarea.disabled = true;
-        textarea.tabIndex = -1;
-        textarea.style.display = 'none';
-      }
-      const terminalElement = terminalRef.current?.querySelector('.xterm');
-      if (terminalElement) {
-        (terminalElement as HTMLElement).tabIndex = -1;
-      }
-    }, 100);
-    
-    // 监听选中变化
+
+    // 拦截 TShock 发送的 ANSI 鼠标控制序列，防止干扰文本选择
+    terminal.onData((data) => {
+      // 不处理任何输入数据，完全禁用终端输入
+    });
+
+    // 监控选中变化
     const handleSelectionChange = () => {
       const selection = window.getSelection();
       const hasSel = selection && selection.toString().trim().length > 0;
@@ -100,7 +88,7 @@ export function TerminalUI({ visible, onOutput }: TerminalUIProps) {
     terminalElement.addEventListener('mousedown', handleSelectionChange);
     terminalElement.addEventListener('keyup', handleSelectionChange);
     document.addEventListener('selectionchange', handleSelectionChange);
-    
+
     requestAnimationFrame(() => {
       fitAddon.fit();
       electronBridge.terminal.resize(terminal.cols, terminal.rows);
@@ -123,12 +111,12 @@ export function TerminalUI({ visible, onOutput }: TerminalUIProps) {
     });
 
     electronBridge.terminal.sync();
-    
+
     const handleResize = () => {
       fitAddon.fit();
     };
     window.addEventListener('resize', handleResize);
-    
+
     const interval = setInterval(() => {
       if (fitAddonRef.current) {
         try {
@@ -136,7 +124,7 @@ export function TerminalUI({ visible, onOutput }: TerminalUIProps) {
         } catch (e) {}
       }
     }, 1000);
-    
+
     return () => {
       clearInterval(interval);
       window.removeEventListener('resize', handleResize);
@@ -150,11 +138,10 @@ export function TerminalUI({ visible, onOutput }: TerminalUIProps) {
   }, [visible]);
 
   return (
-    <div className="relative border border-gray-600 overflow-hidden" style={{ height: '450px', width: '100%', backgroundColor: '#000000' }}>
-      <div 
-        ref={terminalRef} 
-        className="h-full w-full" 
-        style={{ pointerEvents: 'none' }}
+    <div className="relative border border-gray-600" style={{ height: '450px', width: '100%', backgroundColor: '#000000' }}>
+      <div
+        ref={terminalRef}
+        className="h-full w-full"
       />
       {hasSelection && (
         <button

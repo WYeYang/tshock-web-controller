@@ -110,41 +110,73 @@ function sendToShell(data) {
     }
 
     try {
-      // 只对带换行的完整命令做拦截检查
-      const hasNewline = data.includes('\r') || data.includes('\n');
-      if (hasNewline) {
-        const command = data.trim();
-        if (command) {
-          console.log('[sendToShell] 完整命令:', command);
-          
-          // 解析命令
-          const args = parseCommandArgs(command);
-          const commandName = args[0];
-          const commandArgs = args.slice(1);
-          
-          // 查找并执行注册的命令处理器
-          const handler = registry.findCommand(commandName);
-          if (handler) {
-            console.log('[sendToShell] 找到命令处理器:', commandName);
-            // 先把命令显示在终端上
-            sendOutput('stdout', command + '\r\n');
-            // 执行命令处理器
-            (async () => {
-              const success = await handler.execute(commandArgs);
-              resolve({ success, command });
-            })();
-            return;
-          }
+      // 如果是特殊字符（如 Ctrl+C），直接发送不附加换行符
+      if (data === '\x03') {
+        shellProcess.write(data);
+        resolve({ success: true, data });
+        return;
+      }
+
+      const command = data.trim();
+      if (command) {
+        console.log('[sendToShell] 完整命令:', command);
+        
+        // 解析命令
+        const args = parseCommandArgs(command);
+        const commandName = args[0];
+        const commandArgs = args.slice(1);
+        
+        // 查找并执行注册的命令处理器
+        const handler = registry.findCommand(commandName);
+        if (handler) {
+          console.log('[sendToShell] 找到命令处理器:', commandName);
+          // 先把命令显示在终端上
+          sendOutput('stdout', command + '\r\n');
+          // 执行命令处理器
+          (async () => {
+            const success = await handler.execute(commandArgs);
+            resolve({ success, command });
+          })();
+          return;
         }
       }
 
-      // 普通数据直接写入 shell
-      shellProcess.write(data);
+      // 普通命令直接写入 shell，自动附加换行符
+      shellProcess.write(data + '\r\n');
       resolve({ success: true, data });
     } catch (error) {
       console.error('[sendToShell] Error:', error);
       reject(error);
     }
+  });
+}
+
+function waitForConfig() {
+  return new Promise((resolve, reject) => {
+    const configPath = getConfigPath();
+    let attempts = 0;
+    const maxAttempts = 30; // 最多等30秒
+    const checkInterval = 1000; // 每1秒检查一次
+
+    const check = () => {
+      attempts++;
+      if (fs.existsSync(configPath)) {
+        console.log('[waitForConfig] 配置文件已生成！');
+        resolve();
+        return;
+      }
+
+      if (attempts >= maxAttempts) {
+        console.log('[waitForConfig] 等待配置文件超时');
+        reject(new Error('等待配置文件生成超时'));
+        return;
+      }
+
+      console.log(`[waitForConfig] 等待配置文件... (${attempts}/${maxAttempts})`);
+      setTimeout(check, checkInterval);
+    };
+
+    check();
   });
 }
 
@@ -161,7 +193,7 @@ function setupTshock() {
 
       const tshockDir = getTShockRootDir();
       const installerPath = path.join(tshockDir, 'TShock.Installer.exe');
-      
+
       if (!fs.existsSync(installerPath)) {
         updateStatus(TShockStatus.ERROR, `TShock.Installer.exe not found at: ${installerPath}`);
         reject(new Error(`TShock.Installer.exe not found at: ${installerPath}`));
@@ -169,15 +201,14 @@ function setupTshock() {
       }
 
       // 先 cd 到 TShock 目录
-      await sendToShell(`cd "${tshockDir}"\r\n`);
-      
+      await sendToShell(`cd "${tshockDir}"`);
       await sendToShell(`"${installerPath}"`);
-
-      setTimeout(() => {
-        sendOutput('info', 'Configuration generation phase complete');
-        updateStatus(TShockStatus.IDLE);
-        resolve({ success: true });
-      }, 10000);
+      
+      // 等待 config.json 生成
+      await waitForConfig();
+      
+      updateStatus(TShockStatus.IDLE);
+      resolve({ success: true });
     } catch (error) {
       updateStatus(TShockStatus.ERROR, error.message);
       reject(error);
@@ -206,7 +237,7 @@ function startTshock() {
       const tshockDir = getTShockRootDir();
       
       // 先 cd 到 TShock 目录
-      await sendToShell(`cd "${tshockDir}"\r\n`);
+      await sendToShell(`cd "${tshockDir}"`);
       
       let command = `"${executablePath}"`;
       const basename = path.basename(executablePath).toLowerCase();

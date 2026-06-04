@@ -228,7 +228,7 @@ export interface TerminalOutput {
 }
 
 export interface TerminalStatus {
-  status: 'stopped' | 'starting' | 'running' | 'stopping' | 'error' | 'setup';
+  status: 'stopped' | 'starting' | 'running' | 'stopping' | 'error' | 'setup' | 'idle';
   mode?: 'setup' | 'server';
   error?: string;
   timestamp: number;

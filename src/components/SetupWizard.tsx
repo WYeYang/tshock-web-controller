@@ -28,6 +28,8 @@ export const SetupWizard = ({ onComplete }: SetupWizardProps) => {
   const [adminPassword, setAdminPassword] = useState('');
   const [setupComplete, setSetupComplete] = useState(false);
   const [configExists, setConfigExists] = useState(false);
+  const [terminalStatus, setTerminalStatus] = useState<string>('stopped');
+  const [commandInput, setCommandInput] = useState('');
 
   // 默认值配置
   const DEFAULT_VALUES = {
@@ -135,36 +137,27 @@ export const SetupWizard = ({ onComplete }: SetupWizardProps) => {
   // 处理选项点击
   const handleOptionClick = async (option: string) => {
     if (!isElectronAvailable()) return;
-    await electronBridge.terminal.send(option + '\r\n');
+    await electronBridge.terminal.send(option);
     setDetectedOptions([]);
   };
 
   // 处理文本输入提交
   const handleSubmitInput = async () => {
     if (!isElectronAvailable() || !inputValue) return;
-    await electronBridge.terminal.send(inputValue + '\r\n');
+    await electronBridge.terminal.send(inputValue);
     setInputValue('');
     setPendingInput(null);
   };
 
+  // 监听终端状态变化
   useEffect(() => {
     if (!isElectronAvailable) return;
 
-    const unsubscribe = electronBridge.terminal.onOutput((data) => {
-      // 检测选项
-      const options = detectOptions(data.data);
-      if (options.length > 0) {
-        setDetectedOptions(options);
-        setShowSkipButton(true);
-      }
-      
-      // 检测文本输入
-      const textInput = detectTextInput(data.data);
-      if (textInput) {
-        setPendingInput(textInput);
-        setShowSkipButton(true);
-      }
-      
+    const unsubscribeStatus = electronBridge.terminal.onStatusChange((data) => {
+      setTerminalStatus(data.status);
+    });
+
+    const unsubscribeOutput = electronBridge.terminal.onOutput((data) => {
       // 检测服务器就绪
       if (data.data.includes('Listening on') || 
           data.data.includes('Server started, waiting for connections')) {
@@ -184,8 +177,23 @@ export const SetupWizard = ({ onComplete }: SetupWizardProps) => {
       }
     });
 
-    return unsubscribe;
+    // 初始获取状态
+    electronBridge.terminal.getStatus().then((statusData) => {
+      setTerminalStatus(statusData.status);
+    });
+
+    return () => {
+      unsubscribeStatus();
+      unsubscribeOutput();
+    };
   }, []);
+
+  // 处理命令发送
+  const handleSendCommand = async () => {
+    if (!isElectronAvailable()) return;
+    await electronBridge.terminal.send(commandInput);
+    setCommandInput('');
+  };
 
   const handleAutoRunInstaller = async () => {
     if (!isElectronAvailable()) return;
@@ -216,6 +224,12 @@ export const SetupWizard = ({ onComplete }: SetupWizardProps) => {
         setConfigExists(true);
       }
       
+      // 先发送两次 Ctrl+C 终止指令
+      await electronBridge.terminal.send('\x03');
+      await new Promise(resolve => setTimeout(resolve, 500)); // 等一会儿
+      await electronBridge.terminal.send('\x03');
+      await new Promise(resolve => setTimeout(resolve, 500)); // 再等一会儿
+      
       // 进入配置确认页面
       setStep(2);
     } catch (err) {
@@ -241,7 +255,7 @@ export const SetupWizard = ({ onComplete }: SetupWizardProps) => {
       console.log('[SetupWizard] 发送的命令:', command);
       
       // 发送到终端
-      await electronBridge.terminal.send(command + '\r\n');
+      await electronBridge.terminal.send(command);
     } catch (err) {
       setError(err instanceof Error ? err.message : '解压 TShock 失败');
       setLoading(false);
@@ -294,9 +308,6 @@ export const SetupWizard = ({ onComplete }: SetupWizardProps) => {
     setLoading(true);
 
     try {
-      // 先停止之前启动的进程
-      await electronBridge.terminal.stop();
-      
       const writeResult = await electronBridge.config.write(config);
       
       if (writeResult.success) {
@@ -308,7 +319,12 @@ export const SetupWizard = ({ onComplete }: SetupWizardProps) => {
         });
         setShowConfigEditor(false);
         
-        // 执行 Installer（带配置运行）
+        // 先发送 Ctrl+C 终止当前进程
+        await electronBridge.terminal.send('\x03');
+        // 等待一下让进程停止
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
+        // 然后执行 Installer（带配置运行）
         const startResult = await electronBridge.terminal.setup();
         if (startResult.success) {
           setStep(4);
@@ -342,7 +358,7 @@ export const SetupWizard = ({ onComplete }: SetupWizardProps) => {
 
     try {
       const command = `/auth ${adminUsername} ${adminPassword}`;
-      await electronBridge.terminal.send(command + '\r\n');
+      await electronBridge.terminal.send(command);
     } catch (err) {
       // 静默失败
     }
@@ -407,45 +423,29 @@ export const SetupWizard = ({ onComplete }: SetupWizardProps) => {
         </div>
 
         <div className="p-6">
-          {/* Terminal Display - 现在在所有步骤都显示 */}
+          {/* Terminal Display */}
           <div className="mb-4">
             <TerminalUI visible={true} />
           </div>
 
-          {/* 检测到的选项按钮 */}
-          {detectedOptions.length > 0 && (
-            <div className="mb-4 flex gap-2 flex-wrap">
-              <span className="text-slate-400 text-sm">选项:</span>
-              {detectedOptions.map((option, index) => (
-                <button
-                  key={index}
-                  onClick={() => handleOptionClick(option)}
-                  className="px-3 py-1 bg-cyan-600 hover:bg-cyan-500 text-white rounded text-sm transition-all"
-                >
-                  {option}
-                </button>
-              ))}
-            </div>
-          )}
-
-          {/* 文本输入提示 */}
-          {pendingInput && (
+          {/* IDLE 状态下的输入框 */}
+          {terminalStatus === 'idle' && (
             <div className="mb-4 flex gap-2 items-center">
-              <span className="text-slate-400 text-sm">{pendingInput.prompt}</span>
+              <span className="text-slate-400 text-sm">命令:</span>
               <input
-                type={pendingInput.type}
-                value={inputValue}
-                onChange={(e) => setInputValue(e.target.value)}
-                onKeyPress={(e) => e.key === 'Enter' && handleSubmitInput()}
-                className="flex-1 px-3 py-1 bg-slate-900 border border-slate-600 rounded text-white text-sm"
-                placeholder={pendingInput.type === 'password' ? '输入密码...' : '输入...'}
+                type="text"
+                value={commandInput}
+                onChange={(e) => setCommandInput(e.target.value)}
+                onKeyPress={(e) => e.key === 'Enter' && handleSendCommand()}
+                className="flex-1 px-3 py-2 bg-slate-900 border border-slate-600 rounded text-white text-sm"
+                placeholder="输入命令..."
                 autoFocus
               />
               <button
-                onClick={handleSubmitInput}
-                className="px-3 py-1 bg-green-600 hover:bg-green-500 text-white rounded text-sm transition-all"
+                onClick={handleSendCommand}
+                className="px-4 py-2 bg-cyan-600 hover:bg-cyan-500 text-white rounded text-sm transition-all"
               >
-                确定
+                发送
               </button>
             </div>
           )}
