@@ -106,9 +106,16 @@ export function setupConfigIpc(window, electronStore) {
   store = electronStore;
 
   ipcMain.handle('config:read', async () => {
+    const configPath = getConfigPath();
+    console.log('[config:read] 读取配置路径:', configPath);
+    console.log('[config:read] 文件是否存在:', fs.existsSync(configPath));
+    
     try {
-      return await readConfig(getConfigPath());
+      const config = await readConfig(configPath);
+      console.log('[config:read] 配置读取成功');
+      return config;
     } catch (error) {
+      console.error('[config:read] 配置读取失败:', error.message);
       return {
         success: false,
         error: error.message

@@ -92,8 +92,21 @@ export function TerminalUI({ visible, onOutput }: TerminalUIProps) {
     terminalInstanceRef.current = terminal;
     fitAddonRef.current = fitAddon;
 
+    let inputBuffer = '';
+    
     terminal.onData((data) => {
-      electronBridge.terminal.send(data);
+      // 如果是回车键，发送完整命令
+      if (data === '\r' || data === '\n') {
+        if (inputBuffer.trim()) {
+          electronBridge.terminal.send(inputBuffer);
+        }
+        inputBuffer = '';
+      } else if (data === '\x7F') {
+        // Backspace
+        inputBuffer = inputBuffer.slice(0, -1);
+      } else {
+        inputBuffer += data;
+      }
     });
 
     terminal.onResize(({ cols, rows }) => {

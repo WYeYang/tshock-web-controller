@@ -41,16 +41,20 @@ export const WizardConfigEditorModal = ({ isOpen, onConfirm }: WizardConfigEdito
 
     try {
       const result = await electronBridge.config.read();
-      console.log('loadConfig - reading config from:', result.path);
 
-      if (result.success && result.config && result.config.Settings) {
-        // 新格式，正确使用 Settings 对象
-        const fileSettings = result.config.Settings;
+      // 如果返回的是错误对象，显示错误
+      if (result && result.success === false) {
+        console.log('loadConfig - config read failed:', result.error);
+        setError(result.error);
+        return;
+      }
+
+      // 直接使用返回的 config 对象
+      if (result && result.Settings) {
         console.log('loadConfig - found valid config with Settings object');
         
-        // 合并默认值，只覆盖必需的字段
         const mergedSettings = {
-          ...fileSettings,
+          ...result.Settings,
           RestApiEnabled: true,
           RestApiPort: 7878,
           EnableTokenEndpointAuthentication: false,
