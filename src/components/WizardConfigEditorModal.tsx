@@ -1,9 +1,9 @@
 import { useState, useEffect, useCallback } from 'react';
 import { electronBridge } from '../services/electronBridge';
 import { usePlatform } from '../hooks/usePlatform';
-import { ConfigForm } from './ConfigForm';
 import { ItemSlot } from './ItemSlot';
 import { ItemSelectorModal } from './ItemSelectorModal';
+import { CONFIG_DESCRIPTIONS } from '../config/descriptions';
 
 interface TShockConfig {
   [key: string]: any;
@@ -228,10 +228,216 @@ export const WizardConfigEditorModal = ({ isOpen, onConfirm }: WizardConfigEdito
             <>
               <div className="h-[500px] overflow-y-auto">
                 {activeTab === 'config' && (
-                  <ConfigForm
-                    config={config}
-                    onChange={setConfig}
-                  />
+                  <div className="space-y-4">
+                    <div className="text-white text-sm mb-2">服务器配置</div>
+                    
+                    <div className="space-y-3">
+                      {/* Rest 相关配置 - 不可编辑 */}
+                      <div className="bg-slate-800/30 border border-cyan-500/20 rounded-lg p-3 mb-4">
+                        <div className="text-cyan-400 text-xs font-semibold mb-3 flex items-center gap-2">
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9-3-9m-9 9a9 9 0 019-9" />
+                          </svg>
+                          REST API 配置（已锁定）
+                        </div>
+                        
+                        <div className="space-y-3">
+                          {/* RestApiEnabled */}
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <label className="text-slate-300 text-sm block">RestApiEnabled</label>
+                              <p className="text-xs text-slate-500">启用 REST API</p>
+                            </div>
+                            <div className="flex items-center opacity-60">
+                              <span className="px-3 py-1 bg-cyan-600 text-white rounded text-sm">是</span>
+                            </div>
+                          </div>
+                          
+                          {/* RestApiPort */}
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <label className="text-slate-300 text-sm block">RestApiPort</label>
+                              <p className="text-xs text-slate-500">REST API 端口</p>
+                            </div>
+                            <input
+                              type="number"
+                              value={7878}
+                              disabled
+                              className="w-32 bg-slate-900 border border-slate-700 rounded px-3 py-2 text-white text-sm opacity-60 cursor-not-allowed"
+                            />
+                          </div>
+                          
+                          {/* EnableTokenEndpointAuthentication */}
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <label className="text-slate-300 text-sm block">EnableTokenEndpointAuthentication</label>
+                              <p className="text-xs text-slate-500">启用令牌端点认证</p>
+                            </div>
+                            <div className="flex items-center opacity-60">
+                              <span className="px-3 py-1 bg-slate-700 text-slate-400 rounded text-sm">否</span>
+                            </div>
+                          </div>
+                          
+                          {/* LogRest */}
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <label className="text-slate-300 text-sm block">LogRest</label>
+                              <p className="text-xs text-slate-500">记录 REST 日志</p>
+                            </div>
+                            <div className="flex items-center opacity-60">
+                              <span className="px-3 py-1 bg-cyan-600 text-white rounded text-sm">是</span>
+                            </div>
+                          </div>
+                          
+                          {/* RESTMaximumRequestsPerInterval */}
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <label className="text-slate-300 text-sm block">RESTMaximumRequestsPerInterval</label>
+                              <p className="text-xs text-slate-500">每间隔最大请求数</p>
+                            </div>
+                            <input
+                              type="number"
+                              value={50}
+                              disabled
+                              className="w-32 bg-slate-900 border border-slate-700 rounded px-3 py-2 text-white text-sm opacity-60 cursor-not-allowed"
+                            />
+                          </div>
+                          
+                          {/* RESTRequestBucketDecreaseIntervalMinutes */}
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <label className="text-slate-300 text-sm block">RESTRequestBucketDecreaseIntervalMinutes</label>
+                              <p className="text-xs text-slate-500">请求桶减少间隔（分钟）</p>
+                            </div>
+                            <input
+                              type="number"
+                              value={1}
+                              disabled
+                              className="w-32 bg-slate-900 border border-slate-700 rounded px-3 py-2 text-white text-sm opacity-60 cursor-not-allowed"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                      
+                      {/* 其他配置字段 - 可编辑 */}
+                      <div className="space-y-3">
+                        {/* 遍历所有配置字段，排除 Rest 相关字段 */}
+                        {(config.Settings ? Object.keys(config.Settings) : [])
+                          .filter((key) => ![
+                            'RestApiEnabled',
+                            'RestApiPort',
+                            'EnableTokenEndpointAuthentication',
+                            'LogRest',
+                            'RESTMaximumRequestsPerInterval',
+                            'RESTRequestBucketDecreaseIntervalMinutes',
+                            'ApplicationRestTokens'
+                          ].includes(key))
+                          .map((key) => {
+                          const value = config.Settings?.[key];
+                          const type = typeof value;
+                          
+                          const description = CONFIG_DESCRIPTIONS[key] || '暂无说明';
+                          
+                          return (
+                            <div key={key}>
+                              {type === 'boolean' ? (
+                                <div className="flex items-center justify-between">
+                                  <div className="flex-1">
+                                    <label className="text-slate-300 text-sm block">{key}</label>
+                                    <p className="text-xs text-slate-500">{description}</p>
+                                  </div>
+                                  <div className="flex items-center">
+                                    <button
+                                      onClick={() => setConfig({ 
+                                        ...config, 
+                                        Settings: { 
+                                          ...config.Settings, 
+                                          [key]: true 
+                                        } 
+                                      })}
+                                      className={`px-3 py-1 rounded-l text-sm ${config.Settings?.[key] ? 'bg-cyan-600 text-white' : 'bg-slate-700 text-slate-400'}`}
+                                    >
+                                      是
+                                    </button>
+                                    <button
+                                      onClick={() => setConfig({ 
+                                        ...config, 
+                                        Settings: { 
+                                          ...config.Settings, 
+                                          [key]: false 
+                                        } 
+                                      })}
+                                      className={`px-3 py-1 rounded-r text-sm ${!config.Settings?.[key] ? 'bg-cyan-600 text-white' : 'bg-slate-700 text-slate-400'}`}
+                                    >
+                                      否
+                                    </button>
+                                  </div>
+                                </div>
+                              ) : type === 'number' ? (
+                                <div className="flex items-center justify-between">
+                                  <div className="flex-1">
+                                    <label className="text-slate-300 text-sm block">{key}</label>
+                                    <p className="text-xs text-slate-500">{description}</p>
+                                  </div>
+                                  <input
+                                    type="number"
+                                    value={value ?? ''}
+                                    onChange={(e) => setConfig({ 
+                                      ...config, 
+                                      Settings: { 
+                                        ...config.Settings, 
+                                        [key]: parseInt(e.target.value) ?? value 
+                                      } 
+                                    })}
+                                    className="w-32 bg-slate-900 border border-slate-700 rounded px-3 py-2 text-white text-sm"
+                                  />
+                                </div>
+                              ) : type === 'object' || Array.isArray(value) ? (
+                                <div>
+                                  <label className="text-slate-300 text-sm block mb-1">{key}</label>
+                                  <p className="text-xs text-slate-500 mb-1">{description}</p>
+                                  <textarea
+                                    value={JSON.stringify(value, null, 2)}
+                                    onChange={(e) => {
+                                      try {
+                                        const val = JSON.parse(e.target.value);
+                                        setConfig({ 
+                                          ...config, 
+                                          Settings: { 
+                                            ...config.Settings, 
+                                            [key]: val 
+                                          } 
+                                        });
+                                      } catch {}
+                                    }}
+                                    className="w-full bg-slate-900 border border-slate-700 rounded px-3 py-2 text-white text-sm font-mono"
+                                    rows={Math.min(Math.max(JSON.stringify(value, null, 2).split('\n').length, 3), 10)}
+                                  />
+                                </div>
+                              ) : (
+                                <div>
+                                  <label className="text-slate-300 text-sm block mb-1">{key}</label>
+                                  <p className="text-xs text-slate-500 mb-1">{description}</p>
+                                  <input
+                                    type="text"
+                                    value={value ?? ''}
+                                    onChange={(e) => setConfig({ 
+                                      ...config, 
+                                      Settings: { 
+                                        ...config.Settings, 
+                                        [key]: e.target.value 
+                                      } 
+                                    })}
+                                    className="w-full bg-slate-900 border border-slate-700 rounded px-3 py-2 text-white text-sm"
+                                  />
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </div>
                 )}
                 
                 {activeTab === 'ssc' && (
