@@ -1,69 +1,16 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
-import { electronBridge, type TerminalOutput, type TerminalStatus } from '../services/electronBridge';
+import { useState, useEffect, useCallback } from 'react';
+import { electronBridge, type TerminalStatus } from '../services/electronBridge';
 import { usePlatform } from '../hooks/usePlatform';
+import { TerminalPanel } from './TerminalPanel';
 
 type TerminalStatusType = 'stopped' | 'starting' | 'running' | 'stopping' | 'error' | 'setup' | 'idle';
 
 export const TerminalView = () => {
-  const { isElectron, selectFile } = usePlatform();
-  const [outputs, setOutputs] = useState<TerminalOutput[]>([]);
-  const [inputValue, setInputValue] = useState('');
+  const { isElectron } = usePlatform();
   const [status, setStatus] = useState<TerminalStatusType>('stopped');
   const [error, setError] = useState<string | null>(null);
   const [configPath, setConfigPath] = useState<string>('');
   const [isLoading, setIsLoading] = useState(false);
-  const [hasSelection, setHasSelection] = useState(false);
-  const outputRef = useRef<HTMLDivElement>(null);
-  const isInitialMount = useRef(true);
-
-  const copySelection = async () => {
-    try {
-      const selection = window.getSelection();
-      if (selection && selection.toString()) {
-        await navigator.clipboard.writeText(selection.toString());
-        setHasSelection(false);
-      }
-    } catch (err) {
-      console.error('Failed to copy:', err);
-    }
-  };
-
-  const scrollToBottom = useCallback(() => {
-    if (outputRef.current) {
-      outputRef.current.scrollTop = outputRef.current.scrollHeight;
-    }
-  }, []);
-
-  useEffect(() => {
-    if (!isInitialMount.current) {
-      scrollToBottom();
-    }
-  }, [outputs, scrollToBottom]);
-
-  useEffect(() => {
-    isInitialMount.current = false;
-  }, []);
-
-  // 监听选中变化
-  useEffect(() => {
-    const handleSelectionChange = () => {
-      const selection = window.getSelection();
-      const hasSel = selection && selection.toString().trim().length > 0;
-      setHasSelection(!!hasSel);
-    };
-
-    const handleMouseUp = () => setTimeout(handleSelectionChange, 10);
-    const handleKeyUp = () => setTimeout(handleSelectionChange, 10);
-
-    document.addEventListener('selectionchange', handleSelectionChange);
-    document.addEventListener('mouseup', handleMouseUp);
-    document.addEventListener('keyup', handleKeyUp);
-    return () => {
-      document.removeEventListener('selectionchange', handleSelectionChange);
-      document.removeEventListener('mouseup', handleMouseUp);
-      document.removeEventListener('keyup', handleKeyUp);
-    };
-  }, []);
 
   useEffect(() => {
     if (!isElectron) return;
@@ -82,10 +29,6 @@ export const TerminalView = () => {
 
     loadInitialStatus();
 
-    const unsubscribeOutput = electronBridge.terminal.onOutput((data) => {
-      setOutputs(prev => [...prev, data]);
-    });
-
     const unsubscribeStatus = electronBridge.terminal.onStatusChange((data: TerminalStatus) => {
       setStatus(data.status);
       if (data.error) {
@@ -102,7 +45,6 @@ export const TerminalView = () => {
     });
 
     return () => {
-      unsubscribeOutput();
       unsubscribeStatus();
       unsubscribeStartRequest();
       unsubscribeStopRequest();
@@ -114,30 +56,15 @@ export const TerminalView = () => {
 
     setIsLoading(true);
     setError(null);
-    setOutputs(prev => [...prev, {
-      type: 'info',
-      data: '正在启动 TShock 服务器...',
-      timestamp: Date.now()
-    }]);
 
     try {
       const result = await electronBridge.terminal.start();
       if (!result.success) {
         setError(result.error || '启动失败');
-        setOutputs(prev => [...prev, {
-          type: 'error',
-          data: `启动失败: ${result.error}`,
-          timestamp: Date.now()
-        }]);
       }
     } catch (err) {
       const errorMsg = err instanceof Error ? err.message : '启动失败';
       setError(errorMsg);
-      setOutputs(prev => [...prev, {
-        type: 'error',
-        data: `启动失败: ${errorMsg}`,
-        timestamp: Date.now()
-      }]);
     } finally {
       setIsLoading(false);
     }
@@ -148,85 +75,19 @@ export const TerminalView = () => {
 
     setIsLoading(true);
     setError(null);
-    setOutputs(prev => [...prev, {
-      type: 'info',
-      data: '正在停止 TShock 服务器...',
-      timestamp: Date.now()
-    }]);
 
     try {
       const result = await electronBridge.terminal.stop();
       if (!result.success) {
         setError(result.error || '停止失败');
-        setOutputs(prev => [...prev, {
-          type: 'error',
-          data: `停止失败: ${result.error}`,
-          timestamp: Date.now()
-        }]);
       }
     } catch (err) {
       const errorMsg = err instanceof Error ? err.message : '停止失败';
       setError(errorMsg);
-      setOutputs(prev => [...prev, {
-        type: 'error',
-        data: `停止失败: ${errorMsg}`,
-        timestamp: Date.now()
-      }]);
     } finally {
       setIsLoading(false);
     }
   }, [isElectron]);
-
-  const handleSendCommand = useCallback(async () => {
-    if (!inputValue.trim() || !isElectron) return;
-
-    const command = inputValue.trim();
-    setInputValue('');
-
-    try {
-      const result = await electronBridge.terminal.send(command);
-      if (!result.success) {
-        setError(result.error || '命令发送失败');
-      }
-    } catch (err) {
-      const errorMsg = err instanceof Error ? err.message : '命令发送失败';
-      setError(errorMsg);
-    }
-  }, [inputValue, isElectron]);
-
-  const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      handleSendCommand();
-    }
-  };
-
-  const handleClearOutput = () => {
-    setOutputs([]);
-  };
-
-  const handleCopyOutput = async () => {
-    if (outputs.length === 0) return;
-    
-    const text = outputs.map(output => 
-      `[${formatTime(output.timestamp)}] ${output.data}`
-    ).join('\n');
-    
-    try {
-      await navigator.clipboard.writeText(text);
-      alert('已复制到剪贴板');
-    } catch (err) {
-      console.error('复制失败:', err);
-    }
-  };
-
-  const formatTime = (timestamp: number) => {
-    return new Date(timestamp).toLocaleTimeString('zh-CN', {
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit'
-    });
-  };
 
   const getStatusColor = () => {
     switch (status) {
@@ -289,94 +150,12 @@ export const TerminalView = () => {
               {getStatusText()}
             </span>
           </div>
-          <button
-            onClick={handleCopyOutput}
-            className="flex items-center gap-2 px-3 py-2 bg-slate-800/50 hover:bg-slate-700/50 rounded-lg text-slate-400 hover:text-white transition-all text-sm"
-            title="复制全部输出"
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-            </svg>
-            复制
-          </button>
-          <button
-            onClick={handleClearOutput}
-            className="flex items-center gap-2 px-3 py-2 bg-slate-800/50 hover:bg-slate-700/50 rounded-lg text-slate-400 hover:text-white transition-all text-sm"
-            title="清除输出"
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-            </svg>
-            清除
-          </button>
         </div>
       </div>
 
       <div className="flex-1 flex gap-4 p-4 overflow-hidden">
-        <div className="flex-1 flex flex-col glass-card neon-border overflow-hidden relative">
-          <div className="flex items-center justify-between p-3 border-b border-slate-700/50 bg-slate-900/30">
-            <div className="flex items-center gap-2">
-              <div className="w-2 h-2 rounded-full bg-green-500"></div>
-              <span className="text-slate-300 font-medium">终端输出</span>
-            </div>
-            <span className="text-slate-500 text-xs">{outputs.length} 条消息</span>
-          </div>
-
-          {hasSelection && (
-            <button
-              onClick={copySelection}
-              className="absolute top-14 right-4 z-10 px-3 py-1 bg-gray-800 hover:bg-gray-700 border border-gray-600 rounded text-white text-sm transition-colors"
-            >
-              复制选中
-            </button>
-          )}
-
-          <div
-            ref={outputRef}
-            className="flex-1 overflow-y-auto p-3 bg-slate-950/50 font-mono text-sm select-text"
-            style={{ userSelect: 'text' }}
-          >
-            {outputs.length === 0 ? (
-              <div className="text-slate-500 text-center py-8">
-                暂无输出，请启动 TShock 服务器
-              </div>
-            ) : (
-              outputs.map((output, index) => (
-                <div key={index} className="flex gap-2 mb-1">
-                  <span className="text-slate-500 shrink-0">[{formatTime(output.timestamp)}]</span>
-                  <span className={
-                    output.type === 'stderr' || output.type === 'error' ? 'text-red-400' :
-                    output.type === 'command' ? 'text-cyan-400' :
-                    output.type === 'info' ? 'text-blue-400' :
-                    'text-slate-300'
-                  }>
-                    {output.data}
-                  </span>
-                </div>
-              ))
-            )}
-          </div>
-
-          <div className="p-3 border-t border-slate-700/50 bg-slate-900/30">
-            <div className="flex gap-2">
-              <input
-                type="text"
-                value={inputValue}
-                onChange={(e) => setInputValue(e.target.value)}
-                onKeyDown={handleKeyPress}
-                placeholder="输入命令..."
-                disabled={status !== 'running' && status !== 'idle'}
-                className="flex-1 px-3 py-2 bg-slate-800/50 border border-slate-600 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-green-500 transition-all disabled:opacity-50"
-              />
-              <button
-                onClick={handleSendCommand}
-                disabled={!inputValue.trim() || (status !== 'running' && status !== 'idle')}
-                className="px-4 py-2 bg-gradient-to-r from-green-500 to-emerald-500 rounded-lg text-white font-medium hover:opacity-90 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                发送
-              </button>
-            </div>
-          </div>
+        <div className="flex-1 flex flex-col glass-card neon-border overflow-hidden">
+          <TerminalPanel showInput={true} showActions={true} className="flex-1" />
         </div>
 
         <div className="w-64 flex flex-col gap-4">

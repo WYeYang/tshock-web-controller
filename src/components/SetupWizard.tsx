@@ -4,7 +4,7 @@ import { TShockApi } from '../services/tshockApi';
 import { useConfig } from '../hooks/useConfig';
 import { usePlatform } from '../hooks/usePlatform';
 import { WizardConfigEditorModal } from './WizardConfigEditorModal';
-import { TerminalUI } from './TerminalUI';
+import { TerminalPanel } from './TerminalPanel';
 
 interface SetupWizardProps {
   onComplete: () => void;
@@ -14,7 +14,7 @@ export const SetupWizard = ({ onComplete }: SetupWizardProps) => {
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const { updateTshockConfig, config } = useConfig();
+  const { updateTshockConfig } = useConfig();
   const { selectFile } = usePlatform();
   const [builtinInfo, setBuiltinInfo] = useState<any>(null);
   const [showConfigEditor, setShowConfigEditor] = useState(false);
@@ -25,18 +25,27 @@ export const SetupWizard = ({ onComplete }: SetupWizardProps) => {
   const [skipMode, setSkipMode] = useState(false);
   const [worldSize, setWorldSize] = useState<number | null>(null);
   const [serverReady, setServerReady] = useState(false);
-  const [adminUsername, setAdminUsername] = useState('');
-  const [adminPassword, setAdminPassword] = useState('');
+  const [adminUsername, setAdminUsername] = useState(() => {
+    try {
+      const data = localStorage.getItem('tshock-web-config');
+      if (data) {
+        const parsed = JSON.parse(decodeURIComponent(atob(data)));
+        return parsed?.tshock?.username || '';
+      }
+    } catch {}
+    return '';
+  });
+  const [adminPassword, setAdminPassword] = useState(() => {
+    try {
+      const data = localStorage.getItem('tshock-web-config');
+      if (data) {
+        const parsed = JSON.parse(decodeURIComponent(atob(data)));
+        return parsed?.tshock?.password || '';
+      }
+    } catch {}
+    return '';
+  });
 
-  // 从已保存的配置中自动填充账号密码
-  useEffect(() => {
-    if (config?.tshock?.username) {
-      setAdminUsername(config.tshock.username);
-    }
-    if (config?.tshock?.password) {
-      setAdminPassword(config.tshock.password);
-    }
-  }, [config]);
   const [setupComplete, setSetupComplete] = useState(false);
   const [configExists, setConfigExists] = useState(false);
   const [terminalStatus, setTerminalStatus] = useState<string>('stopped');
@@ -729,31 +738,9 @@ export const SetupWizard = ({ onComplete }: SetupWizardProps) => {
           ) : (
             <>
               {/* Terminal Display */}
-              <div className="flex-1 min-h-[200px] mb-4 overflow-hidden">
-                <TerminalUI visible={true} />
+              <div className="flex-1 min-h-0 mb-4 overflow-hidden">
+                <TerminalPanel showInput={true} showActions={true} className="h-full border border-slate-700/50 rounded-lg" />
               </div>
-
-              {/* IDLE 状态下的输入框 */}
-              {terminalStatus === 'idle' && (
-                <div className="mb-4 flex gap-2 items-center flex-shrink-0">
-                  <span className="text-slate-400 text-sm">命令:</span>
-                  <input
-                    type="text"
-                    value={commandInput}
-                    onChange={(e) => setCommandInput(e.target.value)}
-                    onKeyPress={(e) => e.key === 'Enter' && handleSendCommand()}
-                    className="flex-1 px-3 py-2 bg-slate-900 border border-slate-600 rounded text-white text-sm"
-                    placeholder="输入命令..."
-                    autoFocus
-                  />
-                  <button
-                    onClick={handleSendCommand}
-                    className="px-4 py-2 bg-cyan-600 hover:bg-cyan-500 text-white rounded text-sm transition-all"
-                  >
-                    发送
-                  </button>
-                </div>
-              )}
 
               {error && (
                 <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-4 mb-4 flex-shrink-0">
