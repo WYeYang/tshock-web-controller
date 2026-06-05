@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect } from 'react';
 import { electronBridge, isElectronAvailable } from '../services/electronBridge';
+import { TShockApi } from '../services/tshockApi';
 import { useConfig } from '../hooks/useConfig';
 import { usePlatform } from '../hooks/usePlatform';
 import { WizardConfigEditorModal } from './WizardConfigEditorModal';
@@ -13,7 +14,7 @@ export const SetupWizard = ({ onComplete }: SetupWizardProps) => {
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const { updateTshockConfig } = useConfig();
+  const { updateTshockConfig, config } = useConfig();
   const { selectFile } = usePlatform();
   const [builtinInfo, setBuiltinInfo] = useState<any>(null);
   const [showConfigEditor, setShowConfigEditor] = useState(false);
@@ -26,6 +27,16 @@ export const SetupWizard = ({ onComplete }: SetupWizardProps) => {
   const [serverReady, setServerReady] = useState(false);
   const [adminUsername, setAdminUsername] = useState('');
   const [adminPassword, setAdminPassword] = useState('');
+
+  // 从已保存的配置中自动填充账号密码
+  useEffect(() => {
+    if (config?.tshock?.username) {
+      setAdminUsername(config.tshock.username);
+    }
+    if (config?.tshock?.password) {
+      setAdminPassword(config.tshock.password);
+    }
+  }, [config]);
   const [setupComplete, setSetupComplete] = useState(false);
   const [configExists, setConfigExists] = useState(false);
   const [terminalStatus, setTerminalStatus] = useState<string>('stopped');
@@ -34,6 +45,7 @@ export const SetupWizard = ({ onComplete }: SetupWizardProps) => {
   const [selectedOption, setSelectedOption] = useState<'builtin' | 'saved' | 'new' | null>(null);
   const [worldPath, setWorldPath] = useState<string | null>(null);
   const [reinstall, setReinstall] = useState(true);
+  const [skipConfig, setSkipConfig] = useState(() => localStorage.getItem('tshock_skip_config') === 'true');
 
   // 默认值配置
   const DEFAULT_VALUES = {
@@ -248,12 +260,17 @@ export const SetupWizard = ({ onComplete }: SetupWizardProps) => {
       await electronBridge.terminal.send('\x03');
       await new Promise(resolve => setTimeout(resolve, 500)); // 再等一会儿
       
-      // 配置已就绪，打开配置编辑器
-      setShowConfigEditor(true);
+      // 配置已就绪
+      if (skipConfig) {
+        const config = await electronBridge.config.read('config.json');
+        await handleConfigConfirm(config);
+      } else {
+        setShowConfigEditor(true);
+      }
     } catch (err) {
       console.error('[SetupWizard] handleAutoRunInstaller error:', err);
-      // 即使检测失败，也尝试打开配置编辑器
-      setShowConfigEditor(true);
+      setError(err instanceof Error ? err.message : '配置生成失败');
+      setLoading(false);
     }
   };
 
@@ -312,6 +329,8 @@ export const SetupWizard = ({ onComplete }: SetupWizardProps) => {
       // 保存路径
       localStorage.setItem('tshock_last_path', selectedPath);
       setSavedPath(selectedPath);
+      setSkipConfig(false);
+      localStorage.setItem('tshock_skip_config', 'false');
       
       // 选择目录后自动检测配置并执行 Installer
       await handleAutoRunInstaller();
@@ -356,6 +375,10 @@ export const SetupWizard = ({ onComplete }: SetupWizardProps) => {
         });
         setShowConfigEditor(false);
         
+        // 确认配置后，下次跳过配置确认
+        setSkipConfig(true);
+        localStorage.setItem('tshock_skip_config', 'true');
+        
         // 先发送 Ctrl+C 终止当前进程
         await electronBridge.terminal.send('\x03');
         // 等待一下让进程停止
@@ -390,25 +413,43 @@ export const SetupWizard = ({ onComplete }: SetupWizardProps) => {
     }
   };
 
-  const handleCreateAdmin = async () => {
-    if (!isElectronAvailable() || !adminUsername || !adminPassword) return;
+  const handleSetupComplete = async () => {
+    if (!adminUsername || !adminPassword) {
+      setError('请输入服主账号和密码');
+      return;
+    }
+
+    setSetupComplete(true);
+    setLoading(true);
 
     try {
-      const command = `/auth ${adminUsername} ${adminPassword}`;
-      await electronBridge.terminal.send(command);
-    } catch (err) {
-      // 静默失败
-    }
-  };
+      // 1. 添加用户
+      await electronBridge.terminal.send(`/user add ${adminUsername} ${adminPassword} owner`);
+      await new Promise(resolve => setTimeout(resolve, 2000));
 
-  const handleSetupComplete = async () => {
-    setSetupComplete(true);
-    
-    if (adminUsername && adminPassword) {
-      await handleCreateAdmin();
+      // 2. 给 owner 组添加 REST 权限
+      await electronBridge.terminal.send(`/group addperm owner tshock.rest.*`);
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
+      // 3. 通过 REST API 获取 token
+      const api = new TShockApi();
+      const token = await api.getToken(adminUsername, adminPassword);
+
+      // 4. 保存 url、用户名、密码和 token
+      updateTshockConfig({
+        serverUrl: 'http://localhost:7878',
+        token: token,
+        username: adminUsername,
+        password: adminPassword
+      });
+
+      onComplete();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : '添加服主账号失败');
+      setSetupComplete(false);
+    } finally {
+      setLoading(false);
     }
-    
-    setTimeout(onComplete, 2000);
   };
 
   // 处理确认按钮点击
@@ -580,6 +621,8 @@ export const SetupWizard = ({ onComplete }: SetupWizardProps) => {
                         localStorage.setItem('tshock_last_path', selectedPath);
                         setSavedPath(selectedPath);
                         setSelectedOption('saved');
+                        setSkipConfig(false);
+                        localStorage.setItem('tshock_skip_config', 'false');
                       }
                     }}
                     className="flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-all border-2 border-transparent hover:border-slate-600 hover:bg-slate-700/30 w-full text-left"
@@ -659,6 +702,21 @@ export const SetupWizard = ({ onComplete }: SetupWizardProps) => {
                   </div>
                 </div>
 
+                {/* 跳过配置确认开关 */}
+                <div className="mt-3 pt-3 border-t border-slate-700/50 flex items-center justify-between">
+                  <span className="text-slate-400 text-xs">跳过配置确认</span>
+                  <div
+                    className={`w-8 h-4 rounded-full transition-colors relative cursor-pointer ${skipConfig ? 'bg-cyan-500' : 'bg-slate-600'}`}
+                    onClick={() => {
+                      const newVal = !skipConfig;
+                      setSkipConfig(newVal);
+                      localStorage.setItem('tshock_skip_config', String(newVal));
+                    }}
+                  >
+                    <div className={`absolute top-0.5 w-3 h-3 rounded-full bg-white transition-transform ${skipConfig ? 'translate-x-4' : 'translate-x-0.5'}`} />
+                  </div>
+                </div>
+
                 <button
                   onClick={handleConfirm}
                   disabled={loading || !selectedOption}
@@ -699,9 +757,21 @@ export const SetupWizard = ({ onComplete }: SetupWizardProps) => {
 
               {error && (
                 <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-4 mb-4 flex-shrink-0">
-                  <div className="flex items-center gap-2 text-red-400">
-                    <span className="text-xl">⚠</span>
-                    <span className="font-medium">{error}</span>
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2 text-red-400">
+                      <span className="text-xl">⚠</span>
+                      <span className="font-medium">{error}</span>
+                    </div>
+                    <button
+                      onClick={() => {
+                        setError('');
+                        setLoading(false);
+                        setStep(1);
+                      }}
+                      className="px-3 py-1.5 bg-red-500/20 hover:bg-red-500/30 border border-red-500/40 text-red-400 text-sm rounded-lg transition-all flex-shrink-0"
+                    >
+                      重新开始
+                    </button>
                   </div>
                 </div>
               )}
@@ -719,51 +789,42 @@ export const SetupWizard = ({ onComplete }: SetupWizardProps) => {
                   </div>
                 )}
 
-                {/* 管理员账号创建（步骤4之前） */}
-                {step === 3 && !showConfigEditor && (
-                  <div className="mb-4 space-y-3 bg-slate-800/30 p-4 rounded-lg border border-slate-700/50">
-                    <div className="text-cyan-400 text-sm font-medium">可选：创建管理员账号</div>
-                    <div className="grid grid-cols-2 gap-3">
-                      <div>
-                        <label className="block text-slate-400 text-xs mb-1">管理员用户名</label>
-                        <input
-                          type="text"
-                          value={adminUsername}
-                          onChange={(e) => setAdminUsername(e.target.value)}
-                          placeholder="输入用户名"
-                          className="w-full px-3 py-2 bg-slate-900 border border-slate-600 rounded text-white text-sm"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-slate-400 text-xs mb-1">管理员密码</label>
-                        <input
-                          type="password"
-                          value={adminPassword}
-                          onChange={(e) => setAdminPassword(e.target.value)}
-                          placeholder="输入密码"
-                          className="w-full px-3 py-2 bg-slate-900 border border-slate-600 rounded text-white text-sm"
-                        />
-                      </div>
-                    </div>
-                    <div className="text-slate-500 text-xs">
-                      服务器启动后将自动创建管理员账号
-                    </div>
-                  </div>
-                )}
-
                 {step === 4 && (
-                  <div className="space-y-3">
-                    <div className="text-cyan-400 text-sm font-medium">
-                      ✓ 终端已启动，请在下方终端中直接输入命令启动
+                  <div className="space-y-4">
+                    <div className="bg-slate-800/30 p-4 rounded-lg border border-slate-700/50">
+                      <div className="text-cyan-400 text-sm font-medium mb-3">添加服主账号</div>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <label className="block text-slate-400 text-xs mb-1">用户名</label>
+                          <input
+                            type="text"
+                            value={adminUsername}
+                            onChange={(e) => setAdminUsername(e.target.value)}
+                            placeholder="输入用户名"
+                            className="w-full px-3 py-2 bg-slate-900 border border-slate-600 rounded text-white text-sm"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-slate-400 text-xs mb-1">密码</label>
+                          <input
+                            type="password"
+                            value={adminPassword}
+                            onChange={(e) => setAdminPassword(e.target.value)}
+                            placeholder="输入密码"
+                            className="w-full px-3 py-2 bg-slate-900 border border-slate-600 rounded text-white text-sm"
+                          />
+                        </div>
+                      </div>
                     </div>
-                    
-                    <button
-                      onClick={handleSetupComplete}
-                      disabled={setupComplete}
-                      className="px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-400 hover:to-emerald-400 text-white font-medium rounded-lg transition-all disabled:opacity-50 shadow-lg shadow-green-500/25"
-                    >
-                      {setupComplete ? '完成中...' : '✓ 完成设置'}
-                    </button>
+                    <div className="flex justify-center">
+                      <button
+                        onClick={handleSetupComplete}
+                        disabled={setupComplete || !adminUsername || !adminPassword}
+                        className="px-8 py-3 bg-gradient-to-r from-cyan-500 to-purple-500 hover:from-cyan-400 hover:to-purple-400 text-white font-medium rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-purple-500/20"
+                      >
+                        {setupComplete ? '添加中...' : '添加服主账号并完成设置'}
+                      </button>
+                    </div>
                   </div>
                 )}
               </div>

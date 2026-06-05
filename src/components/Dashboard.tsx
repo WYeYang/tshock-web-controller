@@ -35,12 +35,12 @@ export const Dashboard = () => {
     setPreviousConfigured(isConfigured);
   }, [config.tshock.serverUrl, config.tshock.token, currentView]);
 
-  // 检测桌面模式且未配置时显示设置向导
+  // 检测桌面模式时显示设置向导
   useEffect(() => {
-    if (isElectron && !isConfigured) {
+    if (isElectron) {
       setShowSetupWizard(true);
     }
-  }, [isElectron, isConfigured]);
+  }, [isElectron]);
 
   const renderView = () => {
     if (currentView === 'config') {
