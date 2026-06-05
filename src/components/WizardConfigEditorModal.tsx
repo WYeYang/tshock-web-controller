@@ -81,6 +81,7 @@ export const WizardConfigEditorModal = ({ isOpen, onConfirm }: WizardConfigEdito
   const [selectedSlotIndex, setSelectedSlotIndex] = useState<number | null>(null);
   const [pendingItemId, setPendingItemId] = useState<number | null>(null);
   const [showQuantityDialog, setShowQuantityDialog] = useState(false);
+  const [configSearchQuery, setConfigSearchQuery] = useState('');
 
   const loadAllConfigs = useCallback(async () => {
     if (!isElectron) return;
@@ -229,7 +230,32 @@ export const WizardConfigEditorModal = ({ isOpen, onConfirm }: WizardConfigEdito
               <div className="h-[500px] overflow-y-auto">
                 {activeTab === 'config' && (
                   <div className="space-y-4">
-                    <div className="text-white text-sm mb-2">服务器配置</div>
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="text-white text-sm">服务器配置</div>
+                      {/* 搜索框 */}
+                      <div className="relative">
+                        <input
+                          type="text"
+                          value={configSearchQuery}
+                          onChange={(e) => setConfigSearchQuery(e.target.value)}
+                          placeholder="搜索配置..."
+                          className="w-48 px-3 py-1.5 pl-8 bg-slate-800 border border-slate-700 rounded text-white text-sm placeholder-slate-500 focus:outline-none focus:border-cyan-500"
+                        />
+                        <svg className="w-4 h-4 text-slate-500 absolute left-2.5 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                        </svg>
+                        {configSearchQuery && (
+                          <button
+                            onClick={() => setConfigSearchQuery('')}
+                            className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-500 hover:text-white"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                          </button>
+                        )}
+                      </div>
+                    </div>
                     
                     <div className="space-y-3">
                       {/* Rest 相关配置 - 不可编辑 */}
@@ -321,7 +347,7 @@ export const WizardConfigEditorModal = ({ isOpen, onConfirm }: WizardConfigEdito
                       
                       {/* 其他配置字段 - 可编辑 */}
                       <div className="space-y-3">
-                        {/* 遍历所有配置字段，排除 Rest 相关字段 */}
+                        {/* 遍历所有配置字段，排除 Rest 相关字段，支持搜索过滤 */}
                         {(config.Settings ? Object.keys(config.Settings) : [])
                           .filter((key) => ![
                             'RestApiEnabled',
@@ -332,6 +358,12 @@ export const WizardConfigEditorModal = ({ isOpen, onConfirm }: WizardConfigEdito
                             'RESTRequestBucketDecreaseIntervalMinutes',
                             'ApplicationRestTokens'
                           ].includes(key))
+                          .filter((key) => {
+                            if (!configSearchQuery) return true;
+                            const query = configSearchQuery.toLowerCase();
+                            const description = (CONFIG_DESCRIPTIONS[key] || '').toLowerCase();
+                            return key.toLowerCase().includes(query) || description.includes(query);
+                          })
                           .map((key) => {
                           const value = config.Settings?.[key];
                           const type = typeof value;
@@ -435,6 +467,30 @@ export const WizardConfigEditorModal = ({ isOpen, onConfirm }: WizardConfigEdito
                             </div>
                           );
                         })}
+                        
+                        {/* 搜索无结果提示 */}
+                        {configSearchQuery && Object.keys(config.Settings || {}).filter((key) => ![
+                          'RestApiEnabled',
+                          'RestApiPort',
+                          'EnableTokenEndpointAuthentication',
+                          'LogRest',
+                          'RESTMaximumRequestsPerInterval',
+                          'RESTRequestBucketDecreaseIntervalMinutes',
+                          'ApplicationRestTokens'
+                        ].includes(key)).filter((key) => {
+                          if (!configSearchQuery) return true;
+                          const query = configSearchQuery.toLowerCase();
+                          const description = (CONFIG_DESCRIPTIONS[key] || '').toLowerCase();
+                          return key.toLowerCase().includes(query) || description.includes(query);
+                        }).length === 0 && (
+                          <div className="text-center py-8">
+                            <svg className="w-12 h-12 text-slate-600 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <p className="text-slate-400 text-sm">未找到匹配的配置项</p>
+                            <p className="text-slate-500 text-xs mt-1">试试其他关键词</p>
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>
