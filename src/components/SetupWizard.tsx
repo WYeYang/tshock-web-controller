@@ -31,6 +31,8 @@ export const SetupWizard = ({ onComplete }: SetupWizardProps) => {
   const [terminalStatus, setTerminalStatus] = useState<string>('stopped');
   const [commandInput, setCommandInput] = useState('');
   const [savedPath, setSavedPath] = useState<string | null>(null);
+  const [selectedOption, setSelectedOption] = useState<'builtin' | 'saved' | 'new' | null>(null);
+  const [worldPath, setWorldPath] = useState<string | null>(null);
 
   // 默认值配置
   const DEFAULT_VALUES = {
@@ -60,15 +62,23 @@ export const SetupWizard = ({ onComplete }: SetupWizardProps) => {
       if (saved) {
         setSavedPath(saved);
       }
+
+      // 读取保存的世界文件路径
+      const savedWorld = localStorage.getItem('tshock_last_world');
+      if (savedWorld) {
+        setWorldPath(savedWorld);
+      }
     }
   }, []);
 
-  // 当进入步骤2时自动打开配置编辑器
+  // 根据 savedPath 和 builtinInfo 自动设置默认选项
   useEffect(() => {
-    if (step === 2 && !showConfigEditor) {
-      setShowConfigEditor(true);
+    if (savedPath) {
+      setSelectedOption('saved');
+    } else if (builtinInfo?.exists) {
+      setSelectedOption('builtin');
     }
-  }, [step]);
+  }, [savedPath, builtinInfo]);
 
   // 检测选项
   const detectOptions = (text: string): string[] => {
@@ -237,12 +247,12 @@ export const SetupWizard = ({ onComplete }: SetupWizardProps) => {
       await electronBridge.terminal.send('\x03');
       await new Promise(resolve => setTimeout(resolve, 500)); // 再等一会儿
       
-      // 进入配置确认页面
-      setStep(2);
+      // 配置已就绪，打开配置编辑器
+      setShowConfigEditor(true);
     } catch (err) {
       console.error('[SetupWizard] handleAutoRunInstaller error:', err);
-      // 即使检测失败，也继续到下一步
-      setStep(2);
+      // 即使检测失败，也尝试打开配置编辑器
+      setShowConfigEditor(true);
     }
   };
 
@@ -394,9 +404,23 @@ export const SetupWizard = ({ onComplete }: SetupWizardProps) => {
     setTimeout(onComplete, 2000);
   };
 
+  // 处理确认按钮点击
+  const handleConfirm = async () => {
+    if (!selectedOption) return;
+
+    // 立即进入步骤2，显示终端
+    setStep(2);
+
+    if (selectedOption === 'builtin') {
+      await handleUseBuiltinTshock();
+    } else if (selectedOption === 'saved') {
+      await handleSelectDirectory(savedPath!);
+    }
+  };
+
   return (
     <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/80 backdrop-blur-sm">
-      <div className="w-full max-w-4xl mx-4 bg-slate-900/95 backdrop-blur-xl border border-cyan-500/30 rounded-2xl shadow-2xl shadow-cyan-500/10 max-h-[90vh] flex flex-col">
+      <div className="w-full max-w-4xl mx-4 bg-slate-900/95 backdrop-blur-xl border border-cyan-500/30 rounded-2xl shadow-2xl shadow-cyan-500/10 h-[90vh] flex flex-col">
         <div className="p-6 border-b border-slate-700/50 flex-shrink-0">
           <h2 className="text-2xl font-bold text-white flex items-center gap-3">
             <span className="text-3xl">🚀</span>
@@ -443,134 +467,284 @@ export const SetupWizard = ({ onComplete }: SetupWizardProps) => {
         </div>
 
         <div className="p-6 flex flex-col flex-1 min-h-0 overflow-hidden">
-          {/* Terminal Display - 铺满可用空间 */}
-          <div className="flex-1 min-h-[200px] mb-4 overflow-hidden">
-            <TerminalUI visible={true} />
-          </div>
+          {step === 1 && !showConfigEditor ? (
+            <div className="flex flex-col flex-1 min-h-0">
+              <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-4 flex-1 flex flex-col">
+                <h3 className="text-white font-medium mb-3">选择 TShock 安装方式</h3>
+                <div className="space-y-2 flex-1">
+                  {builtinInfo?.exists && (
+                    <label 
+                      className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-all border-2 ${
+                        selectedOption === 'builtin' 
+                          ? 'border-cyan-500 bg-cyan-500/10' 
+                          : 'border-transparent hover:border-slate-600 hover:bg-slate-700/30'
+                      }`}
+                    >
+                      <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+                        selectedOption === 'builtin' 
+                          ? 'border-cyan-500' 
+                          : 'border-slate-500'
+                      }`}>
+                        {selectedOption === 'builtin' && (
+                          <div className="w-2.5 h-2.5 rounded-full bg-cyan-500" />
+                        )}
+                      </div>
+                      <input 
+                        type="radio" 
+                        name="tshockOption" 
+                        value="builtin" 
+                        checked={selectedOption === 'builtin'}
+                        onChange={() => setSelectedOption('builtin')}
+                        className="hidden"
+                      />
+                      <div className="flex-1">
+                        <div className="text-white text-sm font-medium flex items-center gap-2">
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
+                          </svg>
+                          使用内置版本
+                          <span className="text-xs opacity-70">{builtinInfo?.version}</span>
+                        </div>
+                        <p className="text-slate-400 text-xs mt-1">使用应用内置的 TShock 版本</p>
+                      </div>
+                    </label>
+                  )}
+                  
+                  {savedPath && (
+                    <label 
+                      className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-all border-2 ${
+                        selectedOption === 'saved' 
+                          ? 'border-cyan-500 bg-cyan-500/10' 
+                          : 'border-transparent hover:border-slate-600 hover:bg-slate-700/30'
+                      }`}
+                    >
+                      <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+                        selectedOption === 'saved' 
+                          ? 'border-cyan-500' 
+                          : 'border-slate-500'
+                      }`}>
+                        {selectedOption === 'saved' && (
+                          <div className="w-2.5 h-2.5 rounded-full bg-cyan-500" />
+                        )}
+                      </div>
+                      <input 
+                        type="radio" 
+                        name="tshockOption" 
+                        value="saved" 
+                        checked={selectedOption === 'saved'}
+                        onChange={() => setSelectedOption('saved')}
+                        className="hidden"
+                      />
+                      <div className="flex-1">
+                        <div className="text-white text-sm font-medium flex items-center gap-2">
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
+                          </svg>
+                          使用上次路径
+                        </div>
+                        <p className="text-slate-400 text-xs mt-1 truncate">{savedPath}</p>
+                      </div>
+                    </label>
+                  )}
 
-          {/* IDLE 状态下的输入框 */}
-          {terminalStatus === 'idle' && (
-            <div className="mb-4 flex gap-2 items-center flex-shrink-0">
-              <span className="text-slate-400 text-sm">命令:</span>
-              <input
-                type="text"
-                value={commandInput}
-                onChange={(e) => setCommandInput(e.target.value)}
-                onKeyPress={(e) => e.key === 'Enter' && handleSendCommand()}
-                className="flex-1 px-3 py-2 bg-slate-900 border border-slate-600 rounded text-white text-sm"
-                placeholder="输入命令..."
-                autoFocus
-              />
-              <button
-                onClick={handleSendCommand}
-                className="px-4 py-2 bg-cyan-600 hover:bg-cyan-500 text-white rounded text-sm transition-all"
-              >
-                发送
-              </button>
-            </div>
-          )}
-
-          {error && (
-            <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-4 mb-4 flex-shrink-0">
-              <div className="flex items-center gap-2 text-red-400">
-                <span className="text-xl">⚠</span>
-                <span className="font-medium">{error}</span>
-              </div>
-            </div>
-          )}
-
-          <div className="flex gap-3 justify-center flex-wrap flex-shrink-0">
-            {step === 1 && (
-              <>
-                <button
-                  onClick={handleUseBuiltinTshock}
-                  disabled={loading || !builtinInfo?.exists}
-                  className="px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-400 hover:to-emerald-400 text-white font-medium rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-green-500/25 flex flex-col items-center"
-                >
-                  <span className="text-lg">📦 使用内置版本</span>
-                  <span className="text-xs opacity-80">{builtinInfo?.version}</span>
-                </button>
-                {savedPath && (
                   <button
-                    onClick={() => handleSelectDirectory(savedPath)}
-                    disabled={loading}
-                    className="px-6 py-3 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-400 hover:to-pink-400 text-white font-medium rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-purple-500/25 flex flex-col items-center"
+                    onClick={async () => {
+                      const result = await selectFile({
+                        properties: ['openDirectory'],
+                        title: '选择 TShock 安装目录'
+                      });
+                      if (result && !result.canceled && result.filePaths.length > 0) {
+                        const selectedPath = result.filePaths[0];
+                        localStorage.setItem('tshock_last_path', selectedPath);
+                        setSavedPath(selectedPath);
+                        setSelectedOption('saved');
+                      }
+                    }}
+                    className="flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-all border-2 border-transparent hover:border-slate-600 hover:bg-slate-700/30 w-full text-left"
                   >
-                    <span className="text-lg">📂 使用上次路径</span>
-                    <span className="text-xs opacity-80 truncate max-w-[200px]">{savedPath}</span>
+                    <div className="w-5 h-5 rounded-full border-2 border-slate-500 flex items-center justify-center">
+                      <svg className="w-3 h-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                      </svg>
+                    </div>
+                    <div className="flex-1">
+                      <div className="text-white text-sm font-medium flex items-center gap-2">
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 19a2 2 0 01-2-2V7a2 2 0 012-2h4l2 2h4a2 2 0 012 2v1M5 19h14a2 2 0 002-2v-5a2 2 0 00-2-2H9a2 2 0 00-2 2v5a2 2 0 01-2 2z" />
+                        </svg>
+                        选择新路径
+                      </div>
+                      <p className="text-slate-400 text-xs mt-1">选择一个新的 TShock 安装目录</p>
+                    </div>
                   </button>
+                </div>
+
+                {/* 世界文件选择 */}
+                <div className="mt-4 pt-4 border-t border-slate-700/50">
+                  <h3 className="text-white font-medium mb-3">世界文件（可选）</h3>
+                  <div className="space-y-2">
+                    <button
+                      onClick={async () => {
+                        const result = await selectFile({
+                          properties: ['openFile'],
+                          title: '选择世界文件',
+                          filters: [{ name: '世界文件', extensions: ['wld'] }]
+                        });
+                        if (result && !result.canceled && result.filePaths.length > 0) {
+                          const selected = result.filePaths[0];
+                          setWorldPath(selected);
+                          localStorage.setItem('tshock_last_world', selected);
+                        }
+                      }}
+                      className="flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-all border-2 border-transparent hover:border-slate-600 hover:bg-slate-700/30 w-full text-left"
+                    >
+                      <div className="w-5 h-5 rounded-full border-2 border-slate-500 flex items-center justify-center">
+                        <svg className="w-3 h-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="text-white text-sm font-medium flex items-center gap-2">
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                          选择世界文件
+                        </div>
+                        {worldPath ? (
+                          <p className="text-cyan-400 text-xs mt-1 truncate">{worldPath}</p>
+                        ) : (
+                          <p className="text-slate-400 text-xs mt-1">未选择，将使用默认世界</p>
+                        )}
+                      </div>
+                      {worldPath && (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setWorldPath(null);
+                            localStorage.removeItem('tshock_last_world');
+                          }}
+                          className="p-1 hover:bg-slate-600 rounded transition-all flex-shrink-0"
+                          title="清除"
+                        >
+                          <svg className="w-4 h-4 text-slate-400 hover:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                          </svg>
+                        </button>
+                      )}
+                    </button>
+                  </div>
+                </div>
+
+                <button
+                  onClick={handleConfirm}
+                  disabled={loading || !selectedOption}
+                  className="mx-auto mt-4 px-8 py-3 bg-gradient-to-r from-cyan-500 to-purple-500 hover:from-cyan-400 hover:to-purple-400 text-white font-medium rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-purple-500/20"
+                >
+                  {loading ? '处理中...' : '确认'}
+                </button>
+              </div>
+            </div>
+          ) : (
+            <>
+              {/* Terminal Display */}
+              <div className="flex-1 min-h-[200px] mb-4 overflow-hidden">
+                <TerminalUI visible={true} />
+              </div>
+
+              {/* IDLE 状态下的输入框 */}
+              {terminalStatus === 'idle' && (
+                <div className="mb-4 flex gap-2 items-center flex-shrink-0">
+                  <span className="text-slate-400 text-sm">命令:</span>
+                  <input
+                    type="text"
+                    value={commandInput}
+                    onChange={(e) => setCommandInput(e.target.value)}
+                    onKeyPress={(e) => e.key === 'Enter' && handleSendCommand()}
+                    className="flex-1 px-3 py-2 bg-slate-900 border border-slate-600 rounded text-white text-sm"
+                    placeholder="输入命令..."
+                    autoFocus
+                  />
+                  <button
+                    onClick={handleSendCommand}
+                    className="px-4 py-2 bg-cyan-600 hover:bg-cyan-500 text-white rounded text-sm transition-all"
+                  >
+                    发送
+                  </button>
+                </div>
+              )}
+
+              {error && (
+                <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-4 mb-4 flex-shrink-0">
+                  <div className="flex items-center gap-2 text-red-400">
+                    <span className="text-xl">⚠</span>
+                    <span className="font-medium">{error}</span>
+                  </div>
+                </div>
+              )}
+
+              <div className="flex flex-col gap-4 flex-shrink-0">
+                {step === 2 && (
+                  <div className="text-cyan-400 text-sm">
+                    请在弹出的配置编辑器中确认配置
+                  </div>
                 )}
-                <button
-                  onClick={() => handleSelectDirectory()}
-                  disabled={loading}
-                  className="px-6 py-3 bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-400 hover:to-blue-400 text-white font-medium rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-cyan-500/25 flex flex-col items-center"
-                >
-                  <span className="text-lg">📁 选择新路径</span>
-                  <span className="text-xs opacity-80">自定义目录</span>
-                </button>
-              </>
-            )}
 
-            {step === 2 && (
-              <div className="text-cyan-400 text-sm">
-                请在弹出的配置编辑器中确认配置
-              </div>
-            )}
-
-            {step === 3 && (
-              <div className="text-cyan-400 text-sm">
-                服务器启动中...
-              </div>
-            )}
-
-            {/* 管理员账号创建（步骤4之前） */}
-            {step === 3 && !showConfigEditor && (
-              <div className="mb-4 space-y-3 bg-slate-800/30 p-4 rounded-lg border border-slate-700/50">
-                <div className="text-cyan-400 text-sm font-medium">可选：创建管理员账号</div>
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="block text-slate-400 text-xs mb-1">管理员用户名</label>
-                    <input
-                      type="text"
-                      value={adminUsername}
-                      onChange={(e) => setAdminUsername(e.target.value)}
-                      placeholder="输入用户名"
-                      className="w-full px-3 py-2 bg-slate-900 border border-slate-600 rounded text-white text-sm"
-                    />
+                {step === 3 && (
+                  <div className="text-cyan-400 text-sm">
+                    服务器启动中...
                   </div>
-                  <div>
-                    <label className="block text-slate-400 text-xs mb-1">管理员密码</label>
-                    <input
-                      type="password"
-                      value={adminPassword}
-                      onChange={(e) => setAdminPassword(e.target.value)}
-                      placeholder="输入密码"
-                      className="w-full px-3 py-2 bg-slate-900 border border-slate-600 rounded text-white text-sm"
-                    />
-                  </div>
-                </div>
-                <div className="text-slate-500 text-xs">
-                  服务器启动后将自动创建管理员账号
-                </div>
-              </div>
-            )}
+                )}
 
-            {step === 4 && (
-              <div className="space-y-3">
-                <div className="text-cyan-400 text-sm font-medium">
-                  ✓ 终端已启动，请在下方终端中直接输入命令启动
-                </div>
-                
-                <button
-                  onClick={handleSetupComplete}
-                  disabled={setupComplete}
-                  className="px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-400 hover:to-emerald-400 text-white font-medium rounded-lg transition-all disabled:opacity-50 shadow-lg shadow-green-500/25"
-                >
-                  {setupComplete ? '完成中...' : '✓ 完成设置'}
-                </button>
+                {/* 管理员账号创建（步骤4之前） */}
+                {step === 3 && !showConfigEditor && (
+                  <div className="mb-4 space-y-3 bg-slate-800/30 p-4 rounded-lg border border-slate-700/50">
+                    <div className="text-cyan-400 text-sm font-medium">可选：创建管理员账号</div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-slate-400 text-xs mb-1">管理员用户名</label>
+                        <input
+                          type="text"
+                          value={adminUsername}
+                          onChange={(e) => setAdminUsername(e.target.value)}
+                          placeholder="输入用户名"
+                          className="w-full px-3 py-2 bg-slate-900 border border-slate-600 rounded text-white text-sm"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-slate-400 text-xs mb-1">管理员密码</label>
+                        <input
+                          type="password"
+                          value={adminPassword}
+                          onChange={(e) => setAdminPassword(e.target.value)}
+                          placeholder="输入密码"
+                          className="w-full px-3 py-2 bg-slate-900 border border-slate-600 rounded text-white text-sm"
+                        />
+                      </div>
+                    </div>
+                    <div className="text-slate-500 text-xs">
+                      服务器启动后将自动创建管理员账号
+                    </div>
+                  </div>
+                )}
+
+                {step === 4 && (
+                  <div className="space-y-3">
+                    <div className="text-cyan-400 text-sm font-medium">
+                      ✓ 终端已启动，请在下方终端中直接输入命令启动
+                    </div>
+                    
+                    <button
+                      onClick={handleSetupComplete}
+                      disabled={setupComplete}
+                      className="px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-400 hover:to-emerald-400 text-white font-medium rounded-lg transition-all disabled:opacity-50 shadow-lg shadow-green-500/25"
+                    >
+                      {setupComplete ? '完成中...' : '✓ 完成设置'}
+                    </button>
+                  </div>
+                )}
               </div>
-            )}
-          </div>
+            </>
+          )}
         </div>
 
         <div className="px-6 py-4 border-t border-slate-700/50 bg-slate-950/30 rounded-b-2xl">
