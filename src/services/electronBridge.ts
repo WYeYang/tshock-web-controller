@@ -27,7 +27,7 @@ export interface ElectronAPI {
     send: (data: string) => Promise<any>;
     resize: (cols: number, rows: number) => Promise<any>;
     getStatus: () => Promise<any>;
-    setup: (tshockDir: string) => Promise<any>;
+    startTShock: (worldPath?: string) => Promise<any>;
     sync: () => Promise<any>;
     clear: () => Promise<any>;
     extractBuiltin: () => Promise<any>;
@@ -50,6 +50,8 @@ export interface ElectronAPI {
     setStore: (key: string, value: any) => Promise<boolean>;
     selectFile: (options: any) => Promise<any>;
     getBuiltinTShockInfo: () => Promise<any>;
+    getTerrariaWorldsPath: () => Promise<string>;
+    getAppRootPath: () => Promise<string>;
   };
 }
 
@@ -85,10 +87,10 @@ export const electronBridge = {
       return await api.terminal.getStatus();
     },
 
-    setup: async (tshockDir: string) => {
+    startTShock: async (worldPath?: string) => {
       const api = getElectronAPI();
       if (!api) throw new Error('Electron API not available');
-      return await api.terminal.setup(tshockDir);
+      return await api.terminal.startTShock(worldPath);
     },
 
     sync: async () => {
@@ -217,6 +219,18 @@ export const electronBridge = {
       console.log('electronBridge - API available');
       console.log('electronBridge - api.app keys:', Object.keys(api.app));
       return await api.app.getBuiltinTShockInfo();
+    },
+
+    getTerrariaWorldsPath: async () => {
+      const api = getElectronAPI();
+      if (!api) return '';
+      return await api.app.getTerrariaWorldsPath();
+    },
+
+    getAppRootPath: async () => {
+      const api = getElectronAPI();
+      if (!api) return '';
+      return await api.app.getAppRootPath();
     }
   }
 };

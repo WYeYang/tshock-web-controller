@@ -180,7 +180,7 @@ function waitForConfig() {
   });
 }
 
-function setupTshock() {
+function startTshock(worldPath) {
   return new Promise(async (resolve, reject) => {
     try {
       if (!shellProcess) {
@@ -189,7 +189,7 @@ function setupTshock() {
 
       updateStatus(TShockStatus.SETUP);
       processMode = 'setup';
-      sendOutput('info', 'Starting configuration generation...');
+      sendOutput('info', 'Starting TShock server...');
 
       const tshockDir = getTShockRootDir();
       const installerPath = path.join(tshockDir, 'TShock.Installer.exe');
@@ -202,62 +202,18 @@ function setupTshock() {
 
       // 先 cd 到 TShock 目录
       await sendToShell(`cd "${tshockDir}"`);
-      await sendToShell(`"${installerPath}"`);
+
+      let command = `"${installerPath}"`;
+      if (worldPath && fs.existsSync(worldPath)) {
+        command += ` -world "${worldPath}"`;
+      }
+
+      await sendToShell(command);
       
       // 等待 config.json 生成
       await waitForConfig();
       
       updateStatus(TShockStatus.IDLE);
-      resolve({ success: true });
-    } catch (error) {
-      updateStatus(TShockStatus.ERROR, error.message);
-      reject(error);
-    }
-  });
-}
-
-function startTshock() {
-  return new Promise(async (resolve, reject) => {
-    try {
-      if (!shellProcess) {
-        await startShell();
-      }
-
-      updateStatus(TShockStatus.STARTING);
-      processMode = 'server';
-      sendOutput('info', 'Starting TShock server...');
-
-      const executablePath = getExecutablePath();
-      if (!fs.existsSync(executablePath)) {
-        updateStatus(TShockStatus.ERROR, `Executable not found: ${executablePath}`);
-        reject(new Error(`TShock executable not found at: ${executablePath}`));
-        return;
-      }
-
-      const tshockDir = getTShockRootDir();
-      
-      // 先 cd 到 TShock 目录
-      await sendToShell(`cd "${tshockDir}"`);
-      
-      let command = `"${executablePath}"`;
-      const basename = path.basename(executablePath).toLowerCase();
-
-      if (basename.includes('installer')) {
-        command += ' -boot';
-      }
-
-      command += ` -config "${getConfigPath()}"`;
-      command += ' -port 7777 -maxplayers 8';
-
-      await sendToShell(command);
-
-      setTimeout(() => {
-        if (shellProcess && currentStatus === TShockStatus.STARTING) {
-          updateStatus(TShockStatus.RUNNING);
-          sendOutput('info', 'TShock server started successfully');
-        }
-      }, 3000);
-
       resolve({ success: true });
     } catch (error) {
       updateStatus(TShockStatus.ERROR, error.message);
@@ -361,9 +317,9 @@ export function setupTshockIpc(window, electronStore) {
     return getStatus();
   });
 
-  ipcMain.handle('terminal:setup', async () => {
+  ipcMain.handle('terminal:start-tshock', async (event, worldPath) => {
     try {
-      return await setupTshock();
+      return await startTshock(worldPath);
     } catch (error) {
       return { success: false, error: error.message };
     }

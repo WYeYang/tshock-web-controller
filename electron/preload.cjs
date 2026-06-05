@@ -7,7 +7,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
     send: (data) => ipcRenderer.invoke('terminal:send', data),
     resize: (cols, rows) => ipcRenderer.invoke('terminal:resize', cols, rows),
     getStatus: () => ipcRenderer.invoke('terminal:status'),
-    setup: (tshockDir) => ipcRenderer.invoke('terminal:setup', tshockDir),
+    startTShock: (worldPath) => ipcRenderer.invoke('terminal:start-tshock', worldPath),
     switchToServer: () => ipcRenderer.invoke('terminal:switch-to-server'),
     sync: () => ipcRenderer.invoke('terminal:sync'),
     clear: () => ipcRenderer.invoke('terminal:clear'),
@@ -51,7 +51,9 @@ contextBridge.exposeInMainWorld('electronAPI', {
     getStore: (key) => ipcRenderer.invoke('app:get-store', key),
     setStore: (key, value) => ipcRenderer.invoke('app:set-store', key, value),
     selectFile: (options) => ipcRenderer.invoke('dialog:select-file', options),
-    getBuiltinTShockInfo: () => ipcRenderer.invoke('app:get-builtin-tshock-info')
+    getBuiltinTShockInfo: () => ipcRenderer.invoke('app:get-builtin-tshock-info'),
+    getTerrariaWorldsPath: () => ipcRenderer.invoke('app:get-terraria-worlds-path'),
+    getAppRootPath: () => ipcRenderer.invoke('app:get-root-path')
   }
 });
 

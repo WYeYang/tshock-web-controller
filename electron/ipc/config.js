@@ -159,4 +159,16 @@ export function setupConfigIpc(window, electronStore) {
   ipcMain.handle('app:get-builtin-tshock-info', () => {
     return getBuiltinTShockInfo();
   });
+
+  ipcMain.handle('app:get-terraria-worlds-path', () => {
+    const documentsPath = app.getPath('documents');
+    return path.join(documentsPath, 'My Games', 'Terraria', 'Worlds');
+  });
+
+  ipcMain.handle('app:get-root-path', () => {
+    if (!app.isPackaged) {
+      return process.cwd();
+    }
+    return path.dirname(app.getPath('exe'));
+  });
 }

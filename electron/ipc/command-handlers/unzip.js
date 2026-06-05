@@ -12,17 +12,19 @@ export class UnzipCommandHandler {
   async execute(args) {
     try {
       console.log('[UnzipCommandHandler] 接收到的参数:', args);
-      
+
       if (args.length < 2) {
-        this.sendOutput('Error: Usage unzip <zipFile> <targetDir>\r\n');
+        this.sendOutput('Error: Usage unzip <zipFile> <targetDir> [--skip-existing]\r\n');
         return false;
       }
 
       const zipPath = args[0];
       const targetDir = args[1];
-      
+      const skipExisting = args.includes('--skip-existing');
+
       console.log('[UnzipCommandHandler] zipPath:', zipPath);
       console.log('[UnzipCommandHandler] targetDir:', targetDir);
+      console.log('[UnzipCommandHandler] skipExisting:', skipExisting);
 
       this.sendOutput('Starting extraction...\r\n');
       this.sendOutput(`Zip path: ${zipPath}\r\n`);
@@ -34,6 +36,12 @@ export class UnzipCommandHandler {
       }
 
       if (this.fs.existsSync(targetDir)) {
+        if (skipExisting && this.fs.readdirSync(targetDir).length > 0) {
+          this.sendOutput('Target directory is not empty, skipping extraction (--skip-existing).\r\n');
+          this.sendOutput(`cd "${targetDir}"\r\n`);
+          return true;
+        }
+
         this.sendOutput('Removing existing folder...\r\n');
         const deleteFolderRecursive = (folderPath) => {
           if (this.fs.existsSync(folderPath)) {

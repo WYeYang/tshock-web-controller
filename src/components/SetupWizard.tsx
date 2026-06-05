@@ -33,6 +33,7 @@ export const SetupWizard = ({ onComplete }: SetupWizardProps) => {
   const [savedPath, setSavedPath] = useState<string | null>(null);
   const [selectedOption, setSelectedOption] = useState<'builtin' | 'saved' | 'new' | null>(null);
   const [worldPath, setWorldPath] = useState<string | null>(null);
+  const [reinstall, setReinstall] = useState(true);
 
   // 默认值配置
   const DEFAULT_VALUES = {
@@ -228,7 +229,7 @@ export const SetupWizard = ({ onComplete }: SetupWizardProps) => {
         console.log('[SetupWizard] 配置不存在，执行 Installer 生成配置');
         setLoading(true);
         
-        const result = await electronBridge.terminal.setup();
+        const result = await electronBridge.terminal.startTShock();
         if (result.success) {
           setConfigExists(true);
         } else {
@@ -265,14 +266,20 @@ export const SetupWizard = ({ onComplete }: SetupWizardProps) => {
       const paths = await electronBridge.config.getExtractPaths();
       
       console.log('[SetupWizard] 获取到的路径:', paths);
-      
-      // 构建命令（单个单词带参数）
-      const command = `unzip "${paths.zipPath}" "${paths.targetDir}"`;
-      
-      console.log('[SetupWizard] 发送的命令:', command);
-      
-      // 发送到终端
-      await electronBridge.terminal.send(command);
+
+      // 保存路径到 savedPath
+      localStorage.setItem('tshock_last_path', paths.targetDir);
+      setSavedPath(paths.targetDir);
+
+      if (reinstall) {
+        // 重新安装：正常解压（删除旧文件再解压）
+        const command = `unzip "${paths.zipPath}" "${paths.targetDir}"`;
+        console.log('[SetupWizard] 发送的命令:', command);
+        await electronBridge.terminal.send(command);
+      } else {
+        // 不重新安装：跳过解压，直接走和"使用上次路径"一样的逻辑
+        await handleAutoRunInstaller();
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : '解压 TShock 失败');
       setLoading(false);
@@ -319,7 +326,7 @@ export const SetupWizard = ({ onComplete }: SetupWizardProps) => {
     setLoading(true);
 
     try {
-      const result = await electronBridge.terminal.setup();
+      const result = await electronBridge.terminal.startTShock();
 
       if (result.success) {
         setStep(3);
@@ -354,8 +361,8 @@ export const SetupWizard = ({ onComplete }: SetupWizardProps) => {
         // 等待一下让进程停止
         await new Promise(resolve => setTimeout(resolve, 1000));
         
-        // 然后执行 Installer（带配置运行）
-        const startResult = await electronBridge.terminal.setup();
+        // 启动 TShock 服务器（带世界文件参数）
+        const startResult = await electronBridge.terminal.startTShock(worldPath || undefined);
         if (startResult.success) {
           setStep(4);
         } else {
@@ -505,7 +512,20 @@ export const SetupWizard = ({ onComplete }: SetupWizardProps) => {
                           使用内置版本
                           <span className="text-xs opacity-70">{builtinInfo?.version}</span>
                         </div>
-                        <p className="text-slate-400 text-xs mt-1">使用应用内置的 TShock 版本</p>
+                        <div className="flex items-center gap-2 mt-1">
+                          <p className="text-slate-400 text-xs">使用应用内置的 TShock 版本</p>
+                          {selectedOption === 'builtin' && (
+                            <label className="flex items-center gap-1.5 ml-auto cursor-pointer select-none">
+                              <span className="text-slate-400 text-xs">重新安装</span>
+                              <div
+                                className={`w-8 h-4 rounded-full transition-colors relative ${reinstall ? 'bg-cyan-500' : 'bg-slate-600'}`}
+                                onClick={(e) => { e.stopPropagation(); setReinstall(!reinstall); }}
+                              >
+                                <div className={`absolute top-0.5 w-3 h-3 rounded-full bg-white transition-transform ${reinstall ? 'translate-x-4' : 'translate-x-0.5'}`} />
+                              </div>
+                            </label>
+                          )}
+                        </div>
                       </div>
                     </label>
                   )}
@@ -549,9 +569,11 @@ export const SetupWizard = ({ onComplete }: SetupWizardProps) => {
 
                   <button
                     onClick={async () => {
+                      const rootPath = await electronBridge.app.getAppRootPath();
                       const result = await selectFile({
                         properties: ['openDirectory'],
-                        title: '选择 TShock 安装目录'
+                        title: '选择已有的 TShock 版本目录',
+                        defaultPath: rootPath || undefined
                       });
                       if (result && !result.canceled && result.filePaths.length > 0) {
                         const selectedPath = result.filePaths[0];
@@ -572,9 +594,9 @@ export const SetupWizard = ({ onComplete }: SetupWizardProps) => {
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 19a2 2 0 01-2-2V7a2 2 0 012-2h4l2 2h4a2 2 0 012 2v1M5 19h14a2 2 0 002-2v-5a2 2 0 00-2-2H9a2 2 0 00-2 2v5a2 2 0 01-2 2z" />
                         </svg>
-                        选择新路径
+                        选择已有的版本
                       </div>
-                      <p className="text-slate-400 text-xs mt-1">选择一个新的 TShock 安装目录</p>
+                      <p className="text-slate-400 text-xs mt-1">选择一个已有的 TShock 安装目录</p>
                     </div>
                   </button>
                 </div>
@@ -583,11 +605,13 @@ export const SetupWizard = ({ onComplete }: SetupWizardProps) => {
                 <div className="mt-4 pt-4 border-t border-slate-700/50">
                   <h3 className="text-white font-medium mb-3">世界文件（可选）</h3>
                   <div className="space-y-2">
-                    <button
+                    <div
                       onClick={async () => {
+                        const worldsDir = await electronBridge.app.getTerrariaWorldsPath();
                         const result = await selectFile({
                           properties: ['openFile'],
                           title: '选择世界文件',
+                          defaultPath: worldsDir || undefined,
                           filters: [{ name: '世界文件', extensions: ['wld'] }]
                         });
                         if (result && !result.canceled && result.filePaths.length > 0) {
@@ -631,7 +655,7 @@ export const SetupWizard = ({ onComplete }: SetupWizardProps) => {
                           </svg>
                         </button>
                       )}
-                    </button>
+                    </div>
                   </div>
                 </div>
 
