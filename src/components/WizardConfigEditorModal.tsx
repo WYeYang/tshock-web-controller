@@ -498,108 +498,120 @@ export const WizardConfigEditorModal = ({ isOpen, onConfirm }: WizardConfigEdito
                 
                 {activeTab === 'ssc' && (
                   <div className="space-y-4">
-                    <div className="text-white text-sm mb-2">SSC 配置 (服务器端角色)</div>
+                    <div className="text-white text-sm mb-2">SSC 配置 (服务端角色)</div>
                     
                     <div className="space-y-3">
-                      <div className="flex items-center justify-between">
-                        <label className="text-slate-300 text-sm">启用 SSC</label>
-                        <div className="flex items-center">
-                          <button
-                            onClick={() => setSscConfig({ ...sscConfig, Settings: { ...sscConfig.Settings, Enabled: true } })}
-                            className={`px-3 py-1 rounded-l text-sm ${sscConfig.Settings?.Enabled ? 'bg-cyan-600 text-white' : 'bg-slate-700 text-slate-400'}`}
-                          >
-                            开
-                          </button>
-                          <button
-                            onClick={() => setSscConfig({ ...sscConfig, Settings: { ...sscConfig.Settings, Enabled: false } })}
-                            className={`px-3 py-1 rounded-r text-sm ${!sscConfig.Settings?.Enabled ? 'bg-cyan-600 text-white' : 'bg-slate-700 text-slate-400'}`}
-                          >
-                            关
-                          </button>
-                        </div>
-                      </div>
+                      {/* 遍历所有 SSC 配置字段 */}
+                      {(sscConfig.Settings ? Object.keys(sscConfig.Settings) : [])
+                        .filter((key) => key !== 'StartingInventory') // 初始背包单独处理
+                        .map((key) => {
+                          const value = sscConfig.Settings?.[key];
+                          const type = typeof value;
+                          
+                          const description = CONFIG_DESCRIPTIONS[key] || '暂无说明';
+                          
+                          return (
+                            <div key={key}>
+                              {type === 'boolean' ? (
+                                <div className="flex items-center justify-between">
+                                  <div className="flex-1">
+                                    <label className="text-slate-300 text-sm block">{key}</label>
+                                    <p className="text-xs text-slate-500">{description}</p>
+                                  </div>
+                                  <div className="flex items-center">
+                                    <button
+                                      onClick={() => setSscConfig({ 
+                                        ...sscConfig, 
+                                        Settings: { 
+                                          ...sscConfig.Settings, 
+                                          [key]: true 
+                                        } 
+                                      })}
+                                      className={`px-3 py-1 rounded-l text-sm ${sscConfig.Settings?.[key] ? 'bg-cyan-600 text-white' : 'bg-slate-700 text-slate-400'}`}
+                                    >
+                                      是
+                                    </button>
+                                    <button
+                                      onClick={() => setSscConfig({ 
+                                        ...sscConfig, 
+                                        Settings: { 
+                                          ...sscConfig.Settings, 
+                                          [key]: false 
+                                        } 
+                                      })}
+                                      className={`px-3 py-1 rounded-r text-sm ${!sscConfig.Settings?.[key] ? 'bg-cyan-600 text-white' : 'bg-slate-700 text-slate-400'}`}
+                                    >
+                                      否
+                                    </button>
+                                  </div>
+                                </div>
+                              ) : type === 'number' ? (
+                                <div className="flex items-center justify-between">
+                                  <div className="flex-1">
+                                    <label className="text-slate-300 text-sm block">{key}</label>
+                                    <p className="text-xs text-slate-500">{description}</p>
+                                  </div>
+                                  <input
+                                    type="number"
+                                    value={value ?? ''}
+                                    onChange={(e) => setSscConfig({ 
+                                      ...sscConfig, 
+                                      Settings: { 
+                                        ...sscConfig.Settings, 
+                                        [key]: parseInt(e.target.value) ?? value 
+                                      } 
+                                    })}
+                                    className="w-32 bg-slate-900 border border-slate-700 rounded px-3 py-2 text-white text-sm"
+                                  />
+                                </div>
+                              ) : type === 'object' || Array.isArray(value) ? (
+                                <div>
+                                  <label className="text-slate-300 text-sm block mb-1">{key}</label>
+                                  <p className="text-xs text-slate-500 mb-1">{description}</p>
+                                  <textarea
+                                    value={JSON.stringify(value, null, 2)}
+                                    onChange={(e) => {
+                                      try {
+                                        const val = JSON.parse(e.target.value);
+                                        setSscConfig({ 
+                                          ...sscConfig, 
+                                          Settings: { 
+                                            ...sscConfig.Settings, 
+                                            [key]: val 
+                                          } 
+                                        });
+                                      } catch {}
+                                    }}
+                                    className="w-full bg-slate-900 border border-slate-700 rounded px-3 py-2 text-white text-sm font-mono"
+                                    rows={Math.min(Math.max(JSON.stringify(value, null, 2).split('\n').length, 3), 10)}
+                                  />
+                                </div>
+                              ) : (
+                                <div>
+                                  <label className="text-slate-300 text-sm block mb-1">{key}</label>
+                                  <p className="text-xs text-slate-500 mb-1">{description}</p>
+                                  <input
+                                    type="text"
+                                    value={value ?? ''}
+                                    onChange={(e) => setSscConfig({ 
+                                      ...sscConfig, 
+                                      Settings: { 
+                                        ...sscConfig.Settings, 
+                                        [key]: e.target.value 
+                                      } 
+                                    })}
+                                    className="w-full bg-slate-900 border border-slate-700 rounded px-3 py-2 text-white text-sm"
+                                  />
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
                       
-                      <div className="grid grid-cols-2 gap-4">
-                        <div>
-                          <label className="text-slate-300 text-sm block mb-1">服务器端角色保存 (分钟)</label>
-                          <input
-                            type="number"
-                            value={sscConfig.Settings?.ServerSideCharacterSave || 5}
-                            onChange={(e) => setSscConfig({ ...sscConfig, Settings: { ...sscConfig.Settings, ServerSideCharacterSave: parseInt(e.target.value) || 5 } })}
-                            className="w-full bg-slate-900 border border-slate-700 rounded px-3 py-2 text-white text-sm"
-                          />
-                        </div>
-                        
-                        <div>
-                          <label className="text-slate-300 text-sm block mb-1">登录丢弃阈值 (秒)</label>
-                          <input
-                            type="number"
-                            value={sscConfig.Settings?.LogonDiscardThreshold || 250}
-                            onChange={(e) => setSscConfig({ ...sscConfig, Settings: { ...sscConfig.Settings, LogonDiscardThreshold: parseInt(e.target.value) || 250 } })}
-                            className="w-full bg-slate-900 border border-slate-700 rounded px-3 py-2 text-white text-sm"
-                          />
-                        </div>
-                        
-                        <div>
-                          <label className="text-slate-300 text-sm block mb-1">初始生命值</label>
-                          <input
-                            type="number"
-                            value={sscConfig.Settings?.StartingHealth || 100}
-                            onChange={(e) => setSscConfig({ ...sscConfig, Settings: { ...sscConfig.Settings, StartingHealth: parseInt(e.target.value) || 100 } })}
-                            className="w-full bg-slate-900 border border-slate-700 rounded px-3 py-2 text-white text-sm"
-                          />
-                        </div>
-                        
-                        <div>
-                          <label className="text-slate-300 text-sm block mb-1">初始魔力值</label>
-                          <input
-                            type="number"
-                            value={sscConfig.Settings?.StartingMana || 20}
-                            onChange={(e) => setSscConfig({ ...sscConfig, Settings: { ...sscConfig.Settings, StartingMana: parseInt(e.target.value) || 20 } })}
-                            className="w-full bg-slate-900 border border-slate-700 rounded px-3 py-2 text-white text-sm"
-                          />
-                        </div>
-                      </div>
-                      
-                      <div className="flex items-center justify-between">
-                        <label className="text-slate-300 text-sm">保留玩家外观</label>
-                        <div className="flex items-center">
-                          <button
-                            onClick={() => setSscConfig({ ...sscConfig, Settings: { ...sscConfig.Settings, KeepPlayerAppearance: true } })}
-                            className={`px-3 py-1 rounded-l text-sm ${sscConfig.Settings?.KeepPlayerAppearance ? 'bg-cyan-600 text-white' : 'bg-slate-700 text-slate-400'}`}
-                          >
-                            是
-                          </button>
-                          <button
-                            onClick={() => setSscConfig({ ...sscConfig, Settings: { ...sscConfig.Settings, KeepPlayerAppearance: false } })}
-                            className={`px-3 py-1 rounded-r text-sm ${!sscConfig.Settings?.KeepPlayerAppearance ? 'bg-cyan-600 text-white' : 'bg-slate-700 text-slate-400'}`}
-                          >
-                            否
-                          </button>
-                        </div>
-                      </div>
-                      
-                      <div className="flex items-center justify-between">
-                        <label className="text-slate-300 text-sm">警告玩家绕过权限</label>
-                        <div className="flex items-center">
-                          <button
-                            onClick={() => setSscConfig({ ...sscConfig, Settings: { ...sscConfig.Settings, WarnPlayersAboutBypassPermission: true } })}
-                            className={`px-3 py-1 rounded-l text-sm ${sscConfig.Settings?.WarnPlayersAboutBypassPermission ? 'bg-cyan-600 text-white' : 'bg-slate-700 text-slate-400'}`}
-                          >
-                            是
-                          </button>
-                          <button
-                            onClick={() => setSscConfig({ ...sscConfig, Settings: { ...sscConfig.Settings, WarnPlayersAboutBypassPermission: false } })}
-                            className={`px-3 py-1 rounded-r text-sm ${!sscConfig.Settings?.WarnPlayersAboutBypassPermission ? 'bg-cyan-600 text-white' : 'bg-slate-700 text-slate-400'}`}
-                          >
-                            否
-                          </button>
-                        </div>
-                      </div>
-                      
-                      {/* 初始背包编辑 */}
-                      <div>
-                        <label className="text-slate-300 text-sm block mb-2">初始背包</label>
+                      {/* 初始背包编辑 - 单独区块 */}
+                      <div className="pt-2 border-t border-slate-700/50">
+                        <label className="text-slate-300 text-sm block mb-2">StartingInventory（初始物品）</label>
+                        <p className="text-xs text-slate-500 mb-2">{CONFIG_DESCRIPTIONS['StartingInventory'] || '新注册的玩家创建角色时的初始物品列表'}</p>
                         <div className="bg-slate-800/50 border border-slate-700 rounded-lg p-3">
                           <div className="flex flex-wrap gap-1.5">
                             {(sscConfig.Settings?.StartingInventory || []).map((item: any, index: number) => (
@@ -607,7 +619,6 @@ export const WizardConfigEditorModal = ({ isOpen, onConfirm }: WizardConfigEdito
                                 key={`${item.netID}-${item.stack}-${index}`} 
                                 className="flex flex-col gap-1 items-center"
                               >
-                                {/* 物品格子 - 点击打开选择器 */}
                                 <div
                                   className="cursor-pointer hover:ring-2 hover:ring-cyan-500/50 rounded"
                                 >
