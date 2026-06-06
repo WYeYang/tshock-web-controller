@@ -1,11 +1,3 @@
-// 设置Node.js进程的默认编码为UTF-8
-if (process.platform === 'win32') {
-  process.env.LANG = 'zh_CN.UTF-8';
-  process.env.LC_ALL = 'zh_CN.UTF-8';
-  process.env.LC_CTYPE = 'zh_CN.UTF-8';
-  process.env.CHCP = '65001';
-}
-
 import { app, BrowserWindow, ipcMain, Menu, dialog, shell, session } from 'electron';
 import path from 'path';
 import { fileURLToPath } from 'url';

@@ -46,6 +46,10 @@ function sendOutput(type, data) {
     data: data,
     timestamp: Date.now()
   };
+  outputBuffer.push(outputData);
+  if (outputBuffer.length > MAX_BUFFER) {
+    outputBuffer.shift();
+  }
   if (mainWindow && !mainWindow.isDestroyed()) {
     mainWindow.webContents.send('terminal:output', outputData);
   }
@@ -233,29 +237,48 @@ function stopShell() {
 
     updateStatus(TShockStatus.STOPPING);
 
+    let exited = false;
+
+    // 监听进程退出
+    const exitHandler = () => {
+      exited = true;
+      updateStatus(TShockStatus.STOPPED);
+      shellProcess = null;
+      processMode = null;
+      resolve({ success: true, message: 'Shell stopped gracefully' });
+    };
+
+    shellProcess.once('exit', exitHandler);
+
     try {
-      // Windows 下先尝试发送 Ctrl+C 给 shell 中的进程
+      // 发送 Ctrl+C 让进程安全退出
       if (process.platform === 'win32') {
         try {
           shellProcess.write('\x03'); // Ctrl+C
         } catch (e) {
           // 忽略错误
         }
+      } else {
+        shellProcess.kill('SIGINT');
       }
-
-      // 直接 kill 掉 pty 进程
-      shellProcess.kill();
     } catch (e) {
-      console.error('Error stopping shell:', e);
+      console.error('Error sending interrupt to shell:', e);
     }
 
-    // 等待一段时间让进程退出
+    // 超时强制 kill
     setTimeout(() => {
-      updateStatus(TShockStatus.STOPPED);
-      shellProcess = null;
-      processMode = null;
-      resolve({ success: true, message: 'Shell stopped' });
-    }, 1500);
+      if (!exited && shellProcess) {
+        try {
+          shellProcess.kill();
+        } catch (e) {
+          console.error('Error killing shell:', e);
+        }
+        updateStatus(TShockStatus.STOPPED);
+        shellProcess = null;
+        processMode = null;
+        resolve({ success: true, message: 'Shell stopped (forced)' });
+      }
+    }, 3000); // 5秒超时
   });
 }
 
