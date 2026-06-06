@@ -43,15 +43,28 @@ function sendOutput(type, data) {
   // 在 Windows 平台下尝试处理 GBK 编码转换为 UTF-8
   if (process.platform === 'win32') {
     try {
+      // 确保数据是 Buffer 类型
+      let buffer;
       if (Buffer.isBuffer(data)) {
-        // 如果是 buffer，使用 iconv-lite 转换 GBK 到 UTF-8
-        outputString = iconv.decode(data, 'cp936');
+        buffer = data;
       } else if (typeof data === 'string') {
-        // 如果已经是字符串，先尝试用 GBK 解码再用 UTF-8 编码
-        const buffer = Buffer.from(data, 'binary');
-        outputString = iconv.decode(buffer, 'cp936');
+        // 如果是字符串，以 binary 方式转成 Buffer（保留原始字节）
+        buffer = Buffer.from(data, 'binary');
       } else {
-        outputString = String(data);
+        buffer = Buffer.from(String(data), 'binary');
+      }
+      
+      // 先尝试用 cp936 (GBK) 解码
+      try {
+        outputString = iconv.decode(buffer, 'cp936');
+      } catch (e) {
+        // 如果 GBK 失败，尝试用 gbk
+        try {
+          outputString = iconv.decode(buffer, 'gbk');
+        } catch (e2) {
+          // 如果都失败，直接用 utf8
+          outputString = buffer.toString('utf8');
+        }
       }
     } catch (e) {
       // 如果编码转换失败，回退到原始数据
@@ -101,6 +114,7 @@ function startShell() {
         env.LANG = 'zh_CN.UTF-8';
         env.LC_ALL = 'zh_CN.UTF-8';
         env.LC_CTYPE = 'zh_CN.UTF-8';
+        env.Chcp = '65001'; // 设置控制台代码页为 UTF-8
       }
       
       const spawnOptions = {
@@ -109,19 +123,18 @@ function startShell() {
         rows: 50,
         cwd: appPath,
         env: env,
-        encoding: 'utf8'
+        encoding: null // 重要：让 pty 返回原始 Buffer
       };
 
       shellProcess = pty.spawn(shell, [], spawnOptions);
 
+      // Windows 下先设置代码页
+      if (process.platform === 'win32') {
+        shellProcess.write('chcp 65001\r\n');
+      }
+
       shellProcess.onData((data) => {
-        // 对于 Windows 下的原始终端数据，我们需要确保是 Buffer 形式传递给 sendOutput
-        let processedData = data;
-        if (process.platform === 'win32' && typeof data === 'string') {
-          // 如果是字符串，尝试以 Buffer 的方式处理
-          processedData = Buffer.from(data, 'binary');
-        }
-        sendOutput('stdout', processedData);
+        sendOutput('stdout', data);
       });
 
       shellProcess.onExit(({ exitCode, signal }) => {
