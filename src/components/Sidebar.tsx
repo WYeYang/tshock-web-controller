@@ -118,10 +118,24 @@ export const Sidebar = ({ currentView, onViewChange, isConfigured, isDesktop = f
         ))}
       </div>
 
-      <div className="mt-8 pt-4 border-t border-slate-700/50">
-        <div className="text-center text-slate-500 text-xs">
-          <p>服务器管理工具</p>
-          <p className="mt-1">© 2024</p>
+      <div className="mt-8 pt-4 border-t border-slate-700/50 space-y-3">
+        <div className="text-center space-y-1">
+          <p className="text-slate-400 text-xs font-medium">TShock Server Controller</p>
+          <p className="text-slate-500 text-[11px]">Copyright © 2026</p>
+        </div>
+        <div className="text-center">
+          <p className="text-slate-500 text-[10px] leading-relaxed">
+            免费开源软件，您可以在遵循许可协议的前提下<br />自由使用、修改和分发。
+          </p>
+        </div>
+        <div className="flex justify-center gap-3">
+          <a href="https://github.com/WYeYang/tshock-web-controller" target="_blank" rel="noopener noreferrer" className="text-cyan-400 hover:text-cyan-300 text-xs transition-colors">
+            GitHub
+          </a>
+          <span className="text-slate-600 text-xs">•</span>
+          <a href="https://www.gnu.org/licenses/" target="_blank" rel="noopener noreferrer" className="text-cyan-400 hover:text-cyan-300 text-xs transition-colors">
+            GPL v3
+          </a>
         </div>
       </div>
     </div>
