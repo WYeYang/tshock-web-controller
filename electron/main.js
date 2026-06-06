@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain, Menu, dialog, shell } from 'electron';
+import { app, BrowserWindow, ipcMain, Menu, dialog, shell, session } from 'electron';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { spawn } from 'child_process';
@@ -45,7 +45,8 @@ function createWindow() {
       preload: path.join(__dirname, 'preload.cjs'),
       contextIsolation: true,
       nodeIntegration: false,
-      sandbox: false
+      sandbox: false,
+      webSecurity: false // 禁用 webSecurity，允许跨域请求（这是 Electron 应用，安全可接受）
     },
     show: false,
     backgroundColor: '#0f172a'
@@ -111,8 +112,10 @@ function createWindow() {
 
   const isDev = !app.isPackaged;
 
+  // 已启用 webSecurity: false，直接请求完整 URL，不需要任何拦截器！
+
   if (isDev) {
-    mainWindow.loadURL('http://localhost:5173');
+    mainWindow.loadFile(path.join(__dirname, '../dist/index.html'));
     mainWindow.webContents.openDevTools();
   } else {
     mainWindow.loadFile(path.join(__dirname, '../dist/index.html'));

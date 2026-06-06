@@ -1,4 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
+import { isElectron } from '../utils/platform';
+import electronBridge from '../services/electronBridge';
 
 export type Platform = 'windows' | 'mac' | 'linux' | 'web';
 
@@ -51,12 +53,10 @@ export function usePlatform() {
 
   useEffect(() => {
     const checkPlatform = async () => {
-      const isElectron = !!window.electronAPI;
-
-      if (isElectron && window.electronAPI) {
+      if (isElectron()) {
         try {
-          const platform = await window.electronAPI.app.getPlatform();
-          const version = await window.electronAPI.app.getVersion();
+          const platform = await electronBridge.app.getPlatform();
+          const version = await electronBridge.app.getVersion();
 
           let normalizedPlatform: Platform = 'web';
           if (platform === 'win32') normalizedPlatform = 'windows';
@@ -89,22 +89,22 @@ export function usePlatform() {
   }, []);
 
   const selectFile = useCallback(async (options: any) => {
-    if (window.electronAPI) {
-      return await window.electronAPI.app.selectFile(options);
+    if (isElectron()) {
+      return await electronBridge.app.selectFile(options);
     }
     return null;
   }, []);
 
   const getStore = useCallback(async (key: string) => {
-    if (window.electronAPI) {
-      return await window.electronAPI.app.getStore(key);
+    if (isElectron()) {
+      return await electronBridge.app.getStore(key);
     }
     return null;
   }, []);
 
   const setStore = useCallback(async (key: string, value: any) => {
-    if (window.electronAPI) {
-      return await window.electronAPI.app.setStore(key, value);
+    if (isElectron()) {
+      return await electronBridge.app.setStore(key, value);
     }
     return false;
   }, []);
@@ -115,6 +115,6 @@ export function usePlatform() {
     selectFile,
     getStore,
     setStore,
-    hasElectronAPI: !!window.electronAPI
+    hasElectronAPI: isElectron()
   };
 }

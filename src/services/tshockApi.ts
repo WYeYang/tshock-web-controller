@@ -1,5 +1,6 @@
 import type { ServerStatus, Player, CommandResult, ServerInfo, BanRecord, Group, User } from '../types/tshock';
 import type { AppConfig } from '../types/config';
+import { isElectron } from '../utils/platform';
 
 const STORAGE_KEY = 'tshock-web-config';
 
@@ -50,6 +51,7 @@ class DetailedErrorLogger {
 export class TShockApi {
   constructor() {}
 
+  // ==================== 配置相关 ====================
   private getConfigFromStorage(): { serverUrl: string; token: string } {
     const config = getConfig();
     if (!config) {
@@ -61,16 +63,86 @@ export class TShockApi {
     };
   }
 
-  private getHeaders(tshockUrl: string): Record<string, string> {
-    return {
-      'Content-Type': 'application/json',
-      'X-TShock-Url': tshockUrl,
-    };
+  // ==================== Header 相关 ====================
+  private mergeHeaders(baseHeaders: Record<string, string>, additionalHeaders?: RequestInit['headers']): Record<string, string> {
+    if (!additionalHeaders) return baseHeaders;
+    
+    const merged = { ...baseHeaders };
+    const headerEntries = Array.from(
+      additionalHeaders instanceof Headers 
+        ? additionalHeaders.entries() 
+        : Object.entries(additionalHeaders as Record<string, string>)
+    );
+    headerEntries.forEach(([key, value]) => {
+      merged[key] = value;
+    });
+    return merged;
   }
 
+  private getHeaders(tshockUrl?: string): Record<string, string> {
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+    };
+    
+    // 在非 Electron 环境（纯浏览器）里，添加 X-TShock-Url header
+    if (!isElectron() && tshockUrl) {
+      headers['X-TShock-Url'] = tshockUrl;
+    }
+    
+    return headers;
+  }
+
+  // ==================== URL 相关 ====================
+  private addTokenToPath(path: string, token: string): string {
+    if (!token) return path;
+    const separator = path.includes('?') ? '&' : '?';
+    return `${path}${separator}token=${encodeURIComponent(token)}`;
+  }
+
+  private buildUrl(path: string, tshockUrl: string): string {
+    if (isElectron()) {
+      // 在 Electron 环境里，直接请求完整 URL，配合 webSecurity: false
+      const targetPath = path.replace(/^\/api/, '');
+      return `${tshockUrl}${targetPath}`;
+    } else {
+      // 在纯浏览器环境里，请求相对路径 + header，由 Vite proxy 或云端代理处理
+      return path;
+    }
+  }
+
+  // ==================== 错误处理 ====================
+  private async parseErrorResponse(response: Response): Promise<string> {
+    let errorMessage = `HTTP error! status: ${response.status}`;
+    try {
+      const errorText = await response.text();
+      if (errorText) {
+        try {
+          const errorData = JSON.parse(errorText);
+          if (errorData.error) {
+            errorMessage = errorData.error;
+          } else {
+            errorMessage = errorText;
+          }
+        } catch {
+          errorMessage = errorText;
+        }
+      }
+    } catch {
+      // 忽略
+    }
+    return errorMessage;
+  }
+
+  private checkApiStatus(data: any): void {
+    if (data.status !== '200') {
+      throw new Error(data.error || 'API request failed');
+    }
+  }
+
+  // ==================== 核心请求方法 ====================
   async getToken(username: string, password: string): Promise<string> {
     const { serverUrl } = this.getConfigFromStorage();
-    const url = `/api/v2/token/create?username=${encodeURIComponent(username)}&password=${encodeURIComponent(password)}`;
+    const url = this.buildUrl(`/api/v2/token/create?username=${encodeURIComponent(username)}&password=${encodeURIComponent(password)}`, serverUrl);
     
     try {
       const response = await fetch(url, {
@@ -79,31 +151,7 @@ export class TShockApi {
       });
       
       if (!response.ok) {
-        let errorMessage = `HTTP error! status: ${response.status}`;
-        try {
-          // 尝试解析JSON格式的错误
-          const errorData = await response.json();
-          if (errorData.error) {
-            errorMessage = errorData.error;
-          }
-        } catch {
-          // 如果解析失败，尝试读取文本
-          try {
-            const errorText = await response.text();
-            if (errorText) {
-              try {
-                const errorJson = JSON.parse(errorText);
-                if (errorJson.error) {
-                  errorMessage = errorJson.error;
-                }
-              } catch {
-                errorMessage = errorText || errorMessage;
-              }
-            }
-          } catch {
-            // 忽略
-          }
-        }
+        const errorMessage = await this.parseErrorResponse(response);
         DetailedErrorLogger.log('GET', url, {
           action: 'getToken',
           tshockUrl: serverUrl,
@@ -114,16 +162,7 @@ export class TShockApi {
       }
       
       const data: TokenResponse = await response.json();
-      if (data.status !== '200') {
-        DetailedErrorLogger.log('GET', url, {
-          action: 'getToken',
-          tshockUrl: serverUrl,
-          apiStatus: data.status,
-          apiError: data.error,
-          response: data.response
-        });
-        throw new Error(data.error || 'Failed to get token');
-      }
+      this.checkApiStatus(data);
       
       const token = data.token || data.response;
       return token;
@@ -140,25 +179,10 @@ export class TShockApi {
 
   private async request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
     const { serverUrl, token } = this.getConfigFromStorage();
-    const url = `/api${endpoint}`;
-    const headers = this.getHeaders(serverUrl);
-
-    if (options.headers) {
-      const headerEntries = Array.from(
-        options.headers instanceof Headers 
-          ? options.headers.entries() 
-          : Object.entries(options.headers as Record<string, string>)
-      );
-      headerEntries.forEach(([key, value]) => {
-        headers[key] = value;
-      });
-    }
-
-    let fullUrl = url;
-    if (token) {
-      const separator = url.includes('?') ? '&' : '?';
-      fullUrl = `${url}${separator}token=${encodeURIComponent(token)}`;
-    }
+    const basePath = `/api${endpoint}`;
+    const headers = this.mergeHeaders(this.getHeaders(serverUrl), options.headers);
+    const fullPath = this.addTokenToPath(basePath, token);
+    const fullUrl = this.buildUrl(fullPath, serverUrl);
 
     try {
       const response = await fetch(fullUrl, {
@@ -200,18 +224,7 @@ export class TShockApi {
       }
 
       const data: any = await response.json();
-      
-      if (data.status !== '200') {
-        DetailedErrorLogger.log('FETCH', fullUrl, {
-          action: 'request',
-          tshockUrl: serverUrl,
-          method: options.method || 'GET',
-          apiStatus: data.status,
-          apiError: data.error,
-          response: data.response,
-        });
-        throw new Error(data.error || 'API request failed');
-      }
+      this.checkApiStatus(data);
 
       return data;
     } catch (error) {
@@ -226,6 +239,7 @@ export class TShockApi {
     }
   }
 
+  // ==================== API 方法 ====================
   async getServerStatus(): Promise<ServerStatus> {
     const data: any = await this.request<any>('/v2/server/status');
     // /v2/server/status 返回的数据直接在根级别

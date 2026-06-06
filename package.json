@@ -10,12 +10,14 @@
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "electron:dev": "concurrently -k \"vite\" \"electron .\"",
+    "electron:dev": "npm run build && electron .",
     "electron:start": "electron .",
     "electron:build": "npm run build && electron-builder",
     "electron:build:win": "npm run build && electron-builder --win",
     "electron:build:mac": "npm run build && electron-builder --mac",
     "electron:build:linux": "npm run build && electron-builder --linux",
+    "electron:build:win:dir": "npm run build && electron-builder --win --dir",
+    "electron:build:win:zip": "npm run build && electron-builder --win --publish never",
     "postinstall": "electron-builder install-app-deps"
   },
   "dependencies": {
@@ -68,6 +70,13 @@
     ],
     "extraResources": [
       {
+        "from": "dist/",
+        "to": "dist/",
+        "filter": [
+          "**/*"
+        ]
+      },
+      {
         "from": "public/",
         "to": "public/",
         "filter": [
@@ -86,7 +95,7 @@
       "icon": "public/favicon.ico",
       "target": [
         {
-          "target": "nsis",
+          "target": "zip",
           "arch": [
             "x64"
           ]
