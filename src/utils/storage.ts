@@ -31,10 +31,6 @@ export const defaultConfig: AppConfig = {
     password: '',
     useCredentials: true,
   },
-  llm: {
-    apiUrl: '',
-    apiKey: '',
-  },
 };
 
 export const saveConfig = (config: AppConfig): void => {
@@ -61,10 +57,6 @@ export const loadConfig = (): AppConfig | null => {
         ...defaultConfig.tshock,
         ...saved.tshock,
         serverUrl: saved.tshock?.serverUrl || defaultConfig.tshock.serverUrl,
-      },
-      llm: {
-        ...defaultConfig.llm,
-        ...saved.llm,
       },
     };
   } catch (error) {

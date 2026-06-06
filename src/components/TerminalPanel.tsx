@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { electronBridge, type TerminalOutput } from '../services/electronBridge';
-import { usePlatform } from '../hooks/usePlatform';
+import type { TerminalOutput } from '../services/electronBridge';
+import type { TerminalStream } from '../hooks/useTerminalStream';
 
 // ANSI 256色标准色表
 const ANSI_COLORS: string[] = [
@@ -30,7 +30,9 @@ const ansiToHtml = (str: string): string => {
   text = text.replace(/\x1b\][^\x07]*\x07/g, '');
   text = text.replace(/\x1b\][^\x1b]*\x1b\\/g, '');
   text = text.replace(/\x1b[^[\]].?/g, '');
-
+  text = text.replace(/[\r\n]+/g, '\n');
+  // 去掉开头的换行
+  text = text.replace(/^[\r\n]+/, '');
   let fg = '';
   let bg = '';
   let bold = false;
@@ -122,16 +124,21 @@ const formatTime = (timestamp: number) => {
 };
 
 interface TerminalPanelProps {
+  /** 终端数据流 */
+  stream: TerminalStream;
   /** 是否显示命令输入框 */
   showInput?: boolean;
   /** 是否显示复制/清除按钮 */
   showActions?: boolean;
   /** 自定义类名 */
   className?: string;
+  /** 快捷命令输入（外部传入时自动填入输入框） */
+  quickCommandInput?: string;
+  /** 快捷命令被消费后的回调 */
+  onQuickCommandConsumed?: () => void;
 }
 
-export const TerminalPanel = ({ showInput = true, showActions = true, className = '' }: TerminalPanelProps) => {
-  const { isElectron } = usePlatform();
+export const TerminalPanel = ({ stream, showInput = true, showActions = true, className = '', quickCommandInput, onQuickCommandConsumed }: TerminalPanelProps) => {
   const [outputs, setOutputs] = useState<TerminalOutput[]>([]);
   const [inputValue, setInputValue] = useState('');
   const [hasSelection, setHasSelection] = useState(false);
@@ -166,29 +173,49 @@ export const TerminalPanel = ({ showInput = true, showActions = true, className 
   }, []);
 
   useEffect(() => {
-    if (!isElectron) return;
+    if (quickCommandInput) {
+      setInputValue(quickCommandInput);
+      onQuickCommandConsumed?.();
+    }
+  }, [quickCommandInput, onQuickCommandConsumed]);
 
-    const unsubscribeOutput = electronBridge.terminal.onOutput((data) => {
-      setOutputs(prev => [...prev, data]);
+  // 检查输出是否是空的（没有可见内容）
+  const isEmptyOutput = (data: string): boolean => {
+    const stripped = data
+      .replace(/\x1b\[[0-9;]*[A-Za-z]/g, '')
+      .replace(/\x1b\[\?[0-9;]*[a-zA-Z]/g, '')
+      .replace(/\x1b\][^\x07]*\x07/g, '')
+      .replace(/\x1b\][^\x1b]*\x1b\\/g, '')
+      .replace(/\x1b[^[\]].?/g, '')
+      .replace(/[\r\n\s]/g, '');
+    return !stripped;
+  };
+
+  useEffect(() => {
+    const unsubscribeOutput = stream.onOutput((data) => {
+      if (!isEmptyOutput(data.data)) {
+        setOutputs(prev => [...prev, data]);
+      }
     });
 
-    electronBridge.terminal.sync();
+    if (stream.sync) {
+      stream.sync();
+    }
 
     return () => {
       unsubscribeOutput();
     };
-  }, [isElectron]);
+  }, [stream]);
 
   const handleSendCommand = useCallback(async () => {
-    if (!isElectron) return;
     const command = inputValue;
     setInputValue('');
     try {
-      await electronBridge.terminal.send(command);
+      await stream.send(command);
     } catch (err) {
       console.error('命令发送失败:', err);
     }
-  }, [inputValue, isElectron]);
+  }, [inputValue, stream]);
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -197,8 +224,11 @@ export const TerminalPanel = ({ showInput = true, showActions = true, className 
     }
   };
 
-  const handleClearOutput = () => {
+  const handleClearOutput = async () => {
     setOutputs([]);
+    if (stream.clear) {
+      await stream.clear();
+    }
   };
 
   const handleCopyOutput = async () => {
@@ -288,6 +318,7 @@ export const TerminalPanel = ({ showInput = true, showActions = true, className 
                   output.type === 'info' ? 'text-blue-400' :
                   'text-slate-300'
                 }
+                style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}
                 dangerouslySetInnerHTML={{ __html: ansiToHtml(output.data) }}
               />
             </div>
@@ -308,7 +339,6 @@ export const TerminalPanel = ({ showInput = true, showActions = true, className 
             />
             <button
               onClick={handleSendCommand}
-              disabled={false}
               className="px-4 py-2 bg-gradient-to-r from-green-500 to-emerald-500 rounded-lg text-white font-medium hover:opacity-90 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             >
               发送

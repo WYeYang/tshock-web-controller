@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Sidebar } from './Sidebar';
 import type { ViewType } from './Sidebar';
-import { CommandAssistantView } from './CommandAssistantView';
 import { ServerStatusView } from './ServerStatusView';
 import { HelpDocView } from './HelpDocView';
 import { DocView } from './DocView';
@@ -23,9 +22,9 @@ export const Dashboard = () => {
   const isConfigured = !!(config.tshock.serverUrl && config.tshock.token);
 
   useEffect(() => {
-    // 如果从未配置变为已配置，自动跳转到命令助手
+    // 如果从未配置变为已配置，自动跳转到终端
     if (isConfigured && !previousConfigured && (currentView === 'help' || currentView === 'docs' || currentView === 'config')) {
-      setCurrentView('command');
+      setCurrentView('terminal');
     }
     // 只有未配置且当前不在帮助文档、文档中心或配置面板时，才强制跳转到帮助文档
     else if (!isConfigured && currentView !== 'help' && currentView !== 'docs' && currentView !== 'config') {
@@ -47,7 +46,7 @@ export const Dashboard = () => {
       return <ConfigView />;
     }
 
-    if (currentView === 'terminal' && isElectron) {
+    if (currentView === 'terminal') {
       return <TerminalView />;
     }
 
@@ -61,8 +60,6 @@ export const Dashboard = () => {
     }
 
     switch (currentView) {
-      case 'command':
-        return <CommandAssistantView />;
       case 'server':
         return <ServerStatusView onGoToConfig={() => setCurrentView('config')} />;
       case 'help':
@@ -70,7 +67,7 @@ export const Dashboard = () => {
       case 'docs':
         return <DocView onGoToConfig={() => setCurrentView('config')} initialDocId={selectedDocId} />;
       default:
-        return <CommandAssistantView />;
+        return <TerminalView />;
     }
   };
 
@@ -84,7 +81,7 @@ export const Dashboard = () => {
         <SetupWizard
           onComplete={() => {
             setShowSetupWizard(false);
-            setCurrentView('command');
+            setCurrentView('terminal');
           }}
         />
       )}
@@ -126,7 +123,6 @@ export const Dashboard = () => {
             </svg>
           </button>
           <h1 className="text-xl font-bold text-gradient">
-            {currentView === 'command' && '命令助手'}
             {currentView === 'terminal' && '终端'}
             {currentView === 'server' && '服务器状态'}
             {currentView === 'help' && '帮助文档'}

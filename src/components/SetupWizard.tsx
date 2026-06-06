@@ -1,10 +1,11 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useMemo } from 'react';
 import { electronBridge, isElectronAvailable } from '../services/electronBridge';
 import { TShockApi } from '../services/tshockApi';
 import { useConfig } from '../hooks/useConfig';
 import { usePlatform } from '../hooks/usePlatform';
 import { WizardConfigEditorModal } from './WizardConfigEditorModal';
 import { TerminalPanel } from './TerminalPanel';
+import { ElectronTerminalStream } from '../hooks/useTerminalStream';
 
 interface SetupWizardProps {
   onComplete: () => void;
@@ -16,6 +17,7 @@ export const SetupWizard = ({ onComplete }: SetupWizardProps) => {
   const [error, setError] = useState('');
   const { updateTshockConfig } = useConfig();
   const { selectFile } = usePlatform();
+  const electronStream = useMemo(() => new ElectronTerminalStream(), []);
   const [builtinInfo, setBuiltinInfo] = useState<any>(null);
   const [showConfigEditor, setShowConfigEditor] = useState(false);
   const [detectedOptions, setDetectedOptions] = useState<string[]>([]);
@@ -739,7 +741,7 @@ export const SetupWizard = ({ onComplete }: SetupWizardProps) => {
             <>
               {/* Terminal Display */}
               <div className="flex-1 min-h-0 mb-4 overflow-hidden">
-                <TerminalPanel showInput={true} showActions={true} className="h-full border border-slate-700/50 rounded-lg" />
+                <TerminalPanel stream={electronStream} showInput={true} showActions={true} className="h-full border border-slate-700/50 rounded-lg" />
               </div>
 
               {error && (
