@@ -1,12 +1,15 @@
 import * as pty from 'node-pty';
-import treeKill from 'tree-kill';
 import path from 'path';
 import fs from 'fs';
+import { execFile } from 'child_process';
+import { promisify } from 'util';
 import { ipcMain, app } from 'electron';
 import { registry, parseCommandArgs } from './commands.js';
 import { UnzipCommandHandler } from './command-handlers/unzip.js';
 import { getTShockRootDir, getExecutablePath, getConfigPath } from './config.js';
 import iconv from 'iconv-lite';
+
+const execFileAsync = promisify(execFile);
 
 let shellProcess = null;
 let mainWindow = null;
@@ -38,39 +41,11 @@ function updateStatus(status, error = null) {
 }
 
 function sendOutput(type, data) {
-  let outputString;
-
-  // 在 Windows 平台下，现在终端已经设置为 UTF-8 编码
-  if (process.platform === 'win32') {
-    try {
-      if (Buffer.isBuffer(data)) {
-        // 如果是 buffer，直接用 UTF-8 解码
-        outputString = data.toString('utf8');
-      } else if (typeof data === 'string') {
-        // 如果已经是字符串，直接使用
-        outputString = data;
-      } else {
-        outputString = String(data);
-      }
-    } catch (e) {
-      // 如果编码转换失败，回退到原始数据
-      console.warn('[sendOutput] 编码转换失败，使用原始数据:', e);
-      outputString = String(data);
-    }
-  } else {
-    // 其他平台直接转换
-    outputString = data.toString();
-  }
-
   const outputData = {
     type,
-    data: outputString,
+    data: data,
     timestamp: Date.now()
   };
-  outputBuffer.push(outputData);
-  if (outputBuffer.length > MAX_BUFFER) {
-    outputBuffer.shift();
-  }
   if (mainWindow && !mainWindow.isDestroyed()) {
     mainWindow.webContents.send('terminal:output', outputData);
   }
@@ -95,38 +70,18 @@ function startShell() {
 
       const env = { ...process.env };
 
-      // Windows 下设置正确的编码环境变量，防止中文乱码
-      if (process.platform === 'win32') {
-        env.LANG = 'zh_CN.UTF-8';
-        env.LC_ALL = 'zh_CN.UTF-8';
-        env.LC_CTYPE = 'zh_CN.UTF-8';
-        env.CHCP = '65001'; // 设置控制台代码页为UTF-8
-      }
-
       const spawnOptions = {
         name: 'xterm-color',
         cols: 120,
         rows: 50,
         cwd: appPath,
         env: env,
-        encoding: 'utf8'
       };
 
       shellProcess = pty.spawn(shell, [], spawnOptions);
 
-      // Windows 下先设置代码页为UTF-8
-      if (process.platform === 'win32') {
-        shellProcess.write('chcp 65001\r\n');
-      }
-
       shellProcess.onData((data) => {
-        // 对于 Windows 下的原始终端数据，我们需要确保是 Buffer 形式传递给 sendOutput
-        let processedData = data;
-        if (process.platform === 'win32' && typeof data === 'string') {
-          // 如果是字符串，尝试以 Buffer 的方式处理
-          processedData = Buffer.from(data, 'binary');
-        }
-        sendOutput('stdout', processedData);
+        sendOutput('stdout', data);
       });
 
       shellProcess.onExit(({ exitCode, signal }) => {
@@ -270,7 +225,7 @@ function startTshock(worldPath) {
 }
 
 function stopShell() {
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve) => {
     if (!shellProcess) {
       resolve({ success: true, message: 'Shell is not running' });
       return;
@@ -278,37 +233,29 @@ function stopShell() {
 
     updateStatus(TShockStatus.STOPPING);
 
-    const pid = shellProcess.pid;
-
     try {
+      // Windows 下先尝试发送 Ctrl+C 给 shell 中的进程
+      if (process.platform === 'win32') {
+        try {
+          shellProcess.write('\x03'); // Ctrl+C
+        } catch (e) {
+          // 忽略错误
+        }
+      }
+
+      // 直接 kill 掉 pty 进程
       shellProcess.kill();
     } catch (e) {
-      console.error('Error killing shell:', e);
+      console.error('Error stopping shell:', e);
     }
 
-    treeKill(pid, 'SIGTERM', (err) => {
-      if (err) {
-        console.error('Error killing shell:', err);
-        treeKill(pid, 'SIGKILL', (killErr) => {
-          if (killErr) {
-            updateStatus(TShockStatus.ERROR, killErr.message);
-            reject(killErr);
-          } else {
-            updateStatus(TShockStatus.STOPPED);
-            shellProcess = null;
-            processMode = null;
-            resolve({ success: true, message: 'Shell stopped (forced)' });
-          }
-        });
-      } else {
-        setTimeout(() => {
-          updateStatus(TShockStatus.STOPPED);
-          shellProcess = null;
-          processMode = null;
-          resolve({ success: true, message: 'Shell stopped gracefully' });
-        }, 1000);
-      }
-    });
+    // 等待一段时间让进程退出
+    setTimeout(() => {
+      updateStatus(TShockStatus.STOPPED);
+      shellProcess = null;
+      processMode = null;
+      resolve({ success: true, message: 'Shell stopped' });
+    }, 1500);
   });
 }
 
