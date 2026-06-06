@@ -319,7 +319,7 @@ export const TerminalPanel = ({ stream, showInput = true, showActions = true, cl
                   'text-slate-300'
                 }
                 style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}
-                dangerouslySetInnerHTML={{ __html: ansiToHtml(output.data) }}
+                dangerouslySetInnerHTML={{ __html: ansiToHtml(output.type === 'command' ? '> ' + output.data : output.data) }}
               />
             </div>
           ))

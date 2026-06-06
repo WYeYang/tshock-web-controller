@@ -11,18 +11,11 @@ const maskToken = (token: string): string => {
 };
 
 export const ConfigPanel = () => {
-  const { config, updateTshockConfig, save } = useConfig();
+  const { config, updateTshockConfig } = useConfig();
   const { loading, fetchAndSaveToken, clearError } = useTShock();
-  const [showSuccess, setShowSuccess] = useState(false);
   const [tokenMessage, setTokenMessage] = useState<string | null>(null);
   const [showRegenerate, setShowRegenerate] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-
-  const handleSave = () => {
-    save(config);
-    setShowSuccess(true);
-    setTimeout(() => setShowSuccess(false), 3000);
-  };
 
   const handleTshockChange = (field: string, value: string) => {
     updateTshockConfig({ [field]: value });
@@ -59,17 +52,6 @@ export const ConfigPanel = () => {
 
   return (
     <div className="w-full">
-      {showSuccess && (
-        <div className="fixed top-24 left-1/2 -translate-x-1/2 z-50 glass-card px-6 py-3 neon-cyan animate-fade-in">
-          <span className="text-cyan-400 font-semibold flex items-center gap-2">
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-            </svg>
-            配置保存成功！
-          </span>
-        </div>
-      )}
-
       <div className="glass-card neon-border">
         <div className="p-6 space-y-6">
           <div className="space-y-6">
@@ -171,13 +153,6 @@ export const ConfigPanel = () => {
               )}
             </div>
           </div>
-
-          <button
-            onClick={handleSave}
-            className="w-full py-4 bg-gradient-to-r from-cyan-500 via-purple-500 to-pink-500 rounded-lg text-white font-bold text-lg hover:opacity-90 transition-all transform hover:scale-[1.02] active:scale-[0.98] neon-pulse"
-          >
-            保存配置
-          </button>
         </div>
       </div>
     </div>
