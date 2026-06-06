@@ -1,6 +1,4 @@
-import { useState, useEffect } from 'react';
 import { electronBridge, type TerminalOutput } from '../services/electronBridge';
-import { usePlatform } from './usePlatform';
 import { TShockApi } from '../services/tshockApi';
 import type { CommandResult } from '../types/tshock';
 import { loadCommandHistory, addCommandToHistory } from '../utils/storage';

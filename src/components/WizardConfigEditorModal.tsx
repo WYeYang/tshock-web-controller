@@ -36,7 +36,6 @@ function renderMotdPreview(text: string): string {
   
   // 正则匹配 [c/HEX:文本] 格式
   const colorPattern = /\[c\/([0-9a-fA-F]{6}):([^\]]*)\]/g;
-  let result = text;
   let lastIndex = 0;
   let html = '';
   

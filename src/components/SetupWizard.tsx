@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { electronBridge, isElectronAvailable } from '../services/electronBridge';
 import { TShockApi } from '../services/tshockApi';
 import { useConfig } from '../hooks/useConfig';
@@ -20,13 +20,6 @@ export const SetupWizard = ({ onComplete }: SetupWizardProps) => {
   const electronStream = useMemo(() => new ElectronTerminalStream(), []);
   const [builtinInfo, setBuiltinInfo] = useState<any>(null);
   const [showConfigEditor, setShowConfigEditor] = useState(false);
-  const [detectedOptions, setDetectedOptions] = useState<string[]>([]);
-  const [pendingInput, setPendingInput] = useState<{prompt: string, type: 'text' | 'password'} | null>(null);
-  const [inputValue, setInputValue] = useState('');
-  const [showSkipButton, setShowSkipButton] = useState(false);
-  const [skipMode, setSkipMode] = useState(false);
-  const [worldSize, setWorldSize] = useState<number | null>(null);
-  const [serverReady, setServerReady] = useState(false);
   const [adminUsername, setAdminUsername] = useState(() => {
     try {
       const data = localStorage.getItem('tshock-web-config');
@@ -49,30 +42,18 @@ export const SetupWizard = ({ onComplete }: SetupWizardProps) => {
   });
 
   const [setupComplete, setSetupComplete] = useState(false);
-  const [configExists, setConfigExists] = useState(false);
-  const [terminalStatus, setTerminalStatus] = useState<string>('stopped');
-  const [commandInput, setCommandInput] = useState('');
   const [savedPath, setSavedPath] = useState<string | null>(null);
   const [selectedOption, setSelectedOption] = useState<'builtin' | 'saved' | 'new' | null>(null);
   const [worldPath, setWorldPath] = useState<string | null>(null);
   const [reinstall, setReinstall] = useState(true);
   const [skipConfig, setSkipConfig] = useState(() => localStorage.getItem('tshock_skip_config') === 'true');
 
-  // 默认值配置
-  const DEFAULT_VALUES = {
-    port: '7777',
-    maxPlayers: '8',
-    worldName: '',
-    password: '',
-    autoAccept: 'y'
-  };
-
   // 在组件加载时获取内置 TShock 信息，并且在第一步就启动终端
   useEffect(() => {
     if (isElectronAvailable()) {
       electronBridge.app.getBuiltinTShockInfo().then(info => {
         setBuiltinInfo(info);
-      }).catch(err => {
+      }).catch(() => {
         setBuiltinInfo({ exists: false });
       });
 
@@ -104,107 +85,11 @@ export const SetupWizard = ({ onComplete }: SetupWizardProps) => {
     }
   }, [savedPath, builtinInfo]);
 
-  // 检测选项
-  const detectOptions = (text: string): string[] => {
-    const options: string[] = [];
-    
-    // 检测 [Y/N] 格式
-    const yesNoMatch = text.match(/\[([YNyn])\]/g);
-    if (yesNoMatch) {
-      yesNoMatch.forEach(match => {
-        const letter = match[1].toUpperCase();
-        if (!options.includes(letter)) {
-          options.push(letter);
-        }
-      });
-    }
-    
-    // 检测 [数字] 格式
-    const numberMatch = text.match(/\[(\d+)\]/g);
-    if (numberMatch) {
-      numberMatch.forEach(match => {
-        const num = match.slice(1, -1);
-        if (!options.includes(num)) {
-          options.push(num);
-        }
-      });
-    }
-    
-    // 检测不带方括号的纯数字选项（世界列表）
-    const pureNumberMatch = text.match(/^\s*(\d+)\s+/gm);
-    if (pureNumberMatch) {
-      pureNumberMatch.forEach(match => {
-        const num = match.trim();
-        if (!options.includes(num)) {
-          options.push(num);
-        }
-      });
-    }
-    
-    // 检测特殊选项 n（新建世界）和 d（删除世界）
-    if (text.includes('n\t\t新建世界') && !options.includes('n')) {
-      options.push('n');
-    }
-    if (text.includes('d <number>') && !options.includes('d')) {
-      options.push('d');
-    }
-    
-    return options;
-  };
-
-  // 检测文本输入
-  const detectTextInput = (text: string): {prompt: string, type: 'text' | 'password'} | null => {
-    const lowerText = text.toLowerCase();
-    
-    if (/password|密码/.test(lowerText)) {
-      return { prompt: '请输入密码:', type: 'password' };
-    }
-    
-    if (/port|端口/.test(lowerText)) {
-      return { prompt: '请输入端口:', type: 'text' };
-    }
-    
-    if (/name|名称/.test(lowerText)) {
-      return { prompt: '请输入名称:', type: 'text' };
-    }
-    
-    if (/players|玩家/.test(lowerText)) {
-      return { prompt: '请输入最大玩家数:', type: 'text' };
-    }
-    
-    return null;
-  };
-
-  // 处理选项点击
-  const handleOptionClick = async (option: string) => {
-    if (!isElectronAvailable()) return;
-    await electronBridge.terminal.send(option);
-    setDetectedOptions([]);
-  };
-
-  // 处理文本输入提交
-  const handleSubmitInput = async () => {
-    if (!isElectronAvailable() || !inputValue) return;
-    await electronBridge.terminal.send(inputValue);
-    setInputValue('');
-    setPendingInput(null);
-  };
-
-  // 监听终端状态变化
+  // 监听终端输出
   useEffect(() => {
     if (!isElectronAvailable) return;
 
-    const unsubscribeStatus = electronBridge.terminal.onStatusChange((data) => {
-      setTerminalStatus(data.status);
-    });
-
     const unsubscribeOutput = electronBridge.terminal.onOutput((data) => {
-      // 检测服务器就绪
-      if (data.data.includes('Listening on') || 
-          data.data.includes('Server started, waiting for connections')) {
-        setServerReady(true);
-      }
-      
       // 检测解压完成
       if (data.data.includes('✓ 解压完成') || data.data.includes('Extraction complete')) {
         setLoading(false);
@@ -218,23 +103,10 @@ export const SetupWizard = ({ onComplete }: SetupWizardProps) => {
       }
     });
 
-    // 初始获取状态
-    electronBridge.terminal.getStatus().then((statusData) => {
-      setTerminalStatus(statusData.status);
-    });
-
     return () => {
-      unsubscribeStatus();
       unsubscribeOutput();
     };
-  }, []);
-
-  // 处理命令发送
-  const handleSendCommand = async () => {
-    if (!isElectronAvailable()) return;
-    await electronBridge.terminal.send(commandInput);
-    setCommandInput('');
-  };
+  }, [savedPath, builtinInfo]);
 
   const handleAutoRunInstaller = async () => {
     if (!isElectronAvailable()) return;
@@ -254,7 +126,7 @@ export const SetupWizard = ({ onComplete }: SetupWizardProps) => {
         
         const result = await electronBridge.terminal.startTShock();
         if (result.success) {
-          setConfigExists(true);
+          // 配置已生成
         } else {
           setError(result.error || 'Installer 执行失败');
         }
@@ -262,7 +134,6 @@ export const SetupWizard = ({ onComplete }: SetupWizardProps) => {
         setLoading(false);
       } else {
         console.log('[SetupWizard] 配置已存在');
-        setConfigExists(true);
       }
       
       // 先发送两次 Ctrl+C 终止指令
@@ -350,27 +221,6 @@ export const SetupWizard = ({ onComplete }: SetupWizardProps) => {
     }
   };
 
-  const handleRunInstaller = async () => {
-    if (!isElectronAvailable()) return;
-
-    setLoading(true);
-
-    try {
-      const result = await electronBridge.terminal.startTShock();
-
-      if (result.success) {
-        setStep(3);
-        setShowConfigEditor(true);
-      } else {
-        setError(result.error || 'Installer 执行失败');
-      }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : '运行 Installer 失败');
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const handleConfigConfirm = async (config: any) => {
     setLoading(true);
 
@@ -407,18 +257,6 @@ export const SetupWizard = ({ onComplete }: SetupWizardProps) => {
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : '保存配置失败');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleConfigureRest = async () => {
-    setLoading(true);
-
-    try {
-      setShowConfigEditor(true);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : '打开配置编辑器失败');
     } finally {
       setLoading(false);
     }

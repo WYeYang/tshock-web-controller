@@ -2,7 +2,6 @@ import { useState, useCallback } from 'react';
 import { TShockApi } from '../services/tshockApi';
 import { useConfig } from './useConfig';
 import type { ServerStatus, Player, CommandResult, ServerInfo, BanRecord, Group, User } from '../types/tshock';
-import { electronBridge, isElectronAvailable } from '../services/electronBridge';
 
 export const useTShock = () => {
   const { updateTshockConfig } = useConfig();
