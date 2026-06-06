@@ -40,16 +40,15 @@ function updateStatus(status, error = null) {
 function sendOutput(type, data) {
   let outputString;
 
-  // 在 Windows 平台下尝试处理 GBK 编码转换为 UTF-8
+  // 在 Windows 平台下，现在终端已经设置为 UTF-8 编码
   if (process.platform === 'win32') {
     try {
       if (Buffer.isBuffer(data)) {
-        // 如果是 buffer，使用 iconv-lite 转换 GBK 到 UTF-8
-        outputString = iconv.decode(data, 'cp936');
+        // 如果是 buffer，直接用 UTF-8 解码
+        outputString = data.toString('utf8');
       } else if (typeof data === 'string') {
-        // 如果已经是字符串，先尝试用 GBK 解码再用 UTF-8 编码
-        const buffer = Buffer.from(data, 'binary');
-        outputString = iconv.decode(buffer, 'cp936');
+        // 如果已经是字符串，直接使用
+        outputString = data;
       } else {
         outputString = String(data);
       }
@@ -101,6 +100,7 @@ function startShell() {
         env.LANG = 'zh_CN.UTF-8';
         env.LC_ALL = 'zh_CN.UTF-8';
         env.LC_CTYPE = 'zh_CN.UTF-8';
+        env.CHCP = '65001'; // 设置控制台代码页为UTF-8
       }
 
       const spawnOptions = {
@@ -113,6 +113,11 @@ function startShell() {
       };
 
       shellProcess = pty.spawn(shell, [], spawnOptions);
+
+      // Windows 下先设置代码页为UTF-8
+      if (process.platform === 'win32') {
+        shellProcess.write('chcp 65001\r\n');
+      }
 
       shellProcess.onData((data) => {
         // 对于 Windows 下的原始终端数据，我们需要确保是 Buffer 形式传递给 sendOutput
