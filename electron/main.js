@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain, Menu, Tray, dialog, nativeImage } from 'electron';
+import { app, BrowserWindow, ipcMain, Menu, dialog, shell } from 'electron';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { spawn } from 'child_process';
@@ -10,7 +10,6 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 let mainWindow = null;
-let tray = null;
 
 const store = new Store({
   name: 'tshock-controller-config',
@@ -41,6 +40,7 @@ function createWindow() {
     height: windowConfig.height,
     minWidth: 800,
     minHeight: 600,
+    title: 'TShock 服务器控制器',
     webPreferences: {
       preload: path.join(__dirname, 'preload.cjs'),
       contextIsolation: true,
@@ -58,6 +58,23 @@ function createWindow() {
   }
 
   mainWindow = new BrowserWindow(windowOptions);
+  
+  // 隐藏菜单栏
+  mainWindow.setMenuBarVisibility(false);
+
+  // 处理外部链接，在浏览器打开
+  mainWindow.webContents.setWindowOpenHandler(({ url }) => {
+    shell.openExternal(url);
+    return { action: 'deny' };
+  });
+
+  // 处理<a>标签点击导航到外部链接
+  mainWindow.webContents.on('will-navigate', (event, url) => {
+    if (!url.startsWith('http://localhost') && !url.startsWith('file://')) {
+      event.preventDefault();
+      shell.openExternal(url);
+    }
+  });
 
   mainWindow.once('ready-to-show', () => {
     mainWindow.show();
@@ -74,10 +91,7 @@ function createWindow() {
   });
 
   mainWindow.on('close', async (event) => {
-    if (!app.isQuitting && store.get('app.minimizeToTray') && tray) {
-      event.preventDefault();
-      mainWindow.hide();
-    } else if (!app.isQuitting) {
+    if (!app.isQuitting) {
       event.preventDefault();
       app.isQuitting = true;
       
@@ -85,10 +99,6 @@ function createWindow() {
         await stopShellOnQuit();
       } catch (error) {
         console.error('Error stopping shell on window close:', error);
-      }
-      
-      if (tray) {
-        tray.destroy();
       }
       
       app.quit();
@@ -106,59 +116,6 @@ function createWindow() {
     mainWindow.webContents.openDevTools();
   } else {
     mainWindow.loadFile(path.join(__dirname, '../dist/index.html'));
-  }
-}
-
-function createTray() {
-  try {
-    tray = new Tray(nativeImage.createEmpty());
-
-    const contextMenu = Menu.buildFromTemplate([
-      {
-        label: '显示窗口',
-        click: () => {
-          if (mainWindow) {
-            mainWindow.show();
-            mainWindow.focus();
-          }
-        }
-      },
-      {
-        label: '启动TShock',
-        click: () => {
-          if (mainWindow) {
-            mainWindow.webContents.send('terminal:start-request');
-          }
-        }
-      },
-      {
-        label: '停止TShock',
-        click: () => {
-          if (mainWindow) {
-            mainWindow.webContents.send('terminal:stop-request');
-          }
-        }
-      },
-      { type: 'separator' },
-      {
-        label: '退出',
-        click: () => {
-          app.quit();
-        }
-      }
-    ]);
-
-    tray.setToolTip('TShock Controller');
-    tray.setContextMenu(contextMenu);
-
-    tray.on('double-click', () => {
-      if (mainWindow) {
-        mainWindow.show();
-        mainWindow.focus();
-      }
-    });
-  } catch (error) {
-    console.error('Failed to create tray:', error);
   }
 }
 
@@ -210,16 +167,7 @@ function createMenu() {
       label: '窗口',
       submenu: [
         { role: 'minimize' },
-        { role: 'close' },
-        { type: 'separator' },
-        {
-          label: '最小化到托盘',
-          type: 'checkbox',
-          checked: store.get('app.minimizeToTray'),
-          click: (menuItem) => {
-            store.set('app.minimizeToTray', menuItem.checked);
-          }
-        }
+        { role: 'close' }
       ]
     },
     {
@@ -230,8 +178,8 @@ function createMenu() {
           click: () => {
             dialog.showMessageBox(mainWindow, {
               type: 'info',
-              title: '关于 TShock Controller',
-              message: 'TShock Controller',
+              title: '关于 TShock 服务器控制器',
+              message: 'TShock 服务器控制器',
               detail: '版本 1.0.0\n\n一个基于Electron的TShock服务器管理工具。'
             });
           }
@@ -246,7 +194,6 @@ function createMenu() {
 
 app.whenReady().then(() => {
   createWindow();
-  createTray();
   createMenu();
 
   setupTshockIpc(mainWindow, store);
@@ -293,7 +240,5 @@ app.on('will-quit', (event) => {
   if (!app.isQuitting) {
     event.preventDefault();
     app.isQuitting = true;
-    // 清理逻辑已经在 window close 事件中处理
-    // 这里只是确保不会重复清理
   }
 });

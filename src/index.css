@@ -19,11 +19,21 @@
   html, body, #root {
     height: 100%;
     overflow: hidden;
+    background: transparent;
   }
   
   body {
-    @apply bg-slate-950 text-slate-200;
+    @apply text-slate-200;
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  }
+
+  /* 可拖拽区域 */
+  .drag-region {
+    -webkit-app-region: drag;
+  }
+  
+  .no-drag {
+    -webkit-app-region: no-drag;
   }
 
   /* 强制 placeholder 颜色为灰色 */
