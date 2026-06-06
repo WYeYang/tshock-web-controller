@@ -142,7 +142,7 @@ export const useTShock = () => {
     try {
       const api = new TShockApi();
       const token = await api.getToken(username, password);
-      const updateData: any = { token, username, password };
+      const updateData: any = { token };
       if (serverUrl) {
         updateData.serverUrl = serverUrl;
       }

@@ -6,6 +6,7 @@ import { usePlatform } from '../hooks/usePlatform';
 import { WizardConfigEditorModal } from './WizardConfigEditorModal';
 import { TerminalPanel } from './TerminalPanel';
 import { ElectronTerminalStream } from '../hooks/useTerminalStream';
+import { DEFAULT_SERVER_URL, mergeWithDefaultRestApiSettings } from '../config/tshock-config';
 
 interface SetupWizardProps {
   onComplete: () => void;
@@ -15,31 +16,13 @@ export const SetupWizard = ({ onComplete }: SetupWizardProps) => {
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const { updateTshockConfig } = useConfig();
+  const { config, updateTshockConfig } = useConfig();
   const { selectFile } = usePlatform();
   const electronStream = useMemo(() => new ElectronTerminalStream(), []);
   const [builtinInfo, setBuiltinInfo] = useState<any>(null);
   const [showConfigEditor, setShowConfigEditor] = useState(false);
-  const [adminUsername, setAdminUsername] = useState(() => {
-    try {
-      const data = localStorage.getItem('tshock-web-config');
-      if (data) {
-        const parsed = JSON.parse(decodeURIComponent(atob(data)));
-        return parsed?.tshock?.username || '';
-      }
-    } catch {}
-    return '';
-  });
-  const [adminPassword, setAdminPassword] = useState(() => {
-    try {
-      const data = localStorage.getItem('tshock-web-config');
-      if (data) {
-        const parsed = JSON.parse(decodeURIComponent(atob(data)));
-        return parsed?.tshock?.password || '';
-      }
-    } catch {}
-    return '';
-  });
+  const [adminUsername, setAdminUsername] = useState(config.tshock.username || '');
+  const [adminPassword, setAdminPassword] = useState(config.tshock.password || '');
 
   const [setupComplete, setSetupComplete] = useState(false);
   const [savedPath, setSavedPath] = useState<string | null>(null);
@@ -47,6 +30,17 @@ export const SetupWizard = ({ onComplete }: SetupWizardProps) => {
   const [worldPath, setWorldPath] = useState<string | null>(null);
   const [reinstall, setReinstall] = useState(true);
   const [skipConfig, setSkipConfig] = useState(() => localStorage.getItem('tshock_skip_config') === 'true');
+
+  // 输入时立即保存用户名和密码
+  const handleUsernameChange = (value: string) => {
+    setAdminUsername(value);
+    updateTshockConfig({ username: value });
+  };
+
+  const handlePasswordChange = (value: string) => {
+    setAdminPassword(value);
+    updateTshockConfig({ password: value });
+  };
 
   // 在组件加载时获取内置 TShock 信息，并且在第一步就启动终端
   useEffect(() => {
@@ -84,6 +78,14 @@ export const SetupWizard = ({ onComplete }: SetupWizardProps) => {
       setSelectedOption('builtin');
     }
   }, [savedPath, builtinInfo]);
+
+  // 当切换选项时重置跳过配置为关闭
+  useEffect(() => {
+    if (selectedOption) {
+      setSkipConfig(false);
+      localStorage.setItem('tshock_skip_config', 'false');
+    }
+  }, [selectedOption]);
 
   // 监听终端输出
   useEffect(() => {
@@ -145,7 +147,9 @@ export const SetupWizard = ({ onComplete }: SetupWizardProps) => {
       // 配置已就绪
       if (skipConfig) {
         const config = await electronBridge.config.read('config.json');
-        await handleConfigConfirm(config);
+        // 确保 REST API 配置被设置为默认值
+        const mergedConfig = mergeWithDefaultRestApiSettings(config);
+        await handleConfigConfirm(mergedConfig);
       } else {
         setShowConfigEditor(true);
       }
@@ -229,10 +233,9 @@ export const SetupWizard = ({ onComplete }: SetupWizardProps) => {
       
       if (writeResult.success) {
         updateTshockConfig({
-          serverUrl: 'http://localhost:7878',
-          token: '',
-          username: '',
-          password: ''
+          serverUrl: DEFAULT_SERVER_URL,
+          token: ''
+          // 不清空 username 和 password，保持它们
         });
         setShowConfigEditor(false);
         
@@ -284,12 +287,10 @@ export const SetupWizard = ({ onComplete }: SetupWizardProps) => {
       const api = new TShockApi();
       const token = await api.getToken(adminUsername, adminPassword);
 
-      // 4. 保存 url、用户名、密码和 token
+      // 4. 只保存 url 和 token（用户名和密码已经在输入时保存了）
       updateTshockConfig({
-        serverUrl: 'http://localhost:7878',
-        token: token,
-        username: adminUsername,
-        password: adminPassword
+        serverUrl: DEFAULT_SERVER_URL,
+        token: token
       });
 
       onComplete();
@@ -367,7 +368,20 @@ export const SetupWizard = ({ onComplete }: SetupWizardProps) => {
           {step === 1 && !showConfigEditor ? (
             <div className="flex flex-col flex-1 min-h-0">
               <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-4 flex-1 flex flex-col">
-                <h3 className="text-white font-medium mb-3">选择 TShock 安装方式</h3>
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="text-white font-medium">选择 TShock 安装方式</h3>
+                  <a
+                    href="https://github.com/Pryaxis/TShock/releases/latest"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-400 hover:to-indigo-400 text-white text-xs font-medium rounded-lg transition-all shadow-lg shadow-blue-500/20"
+                  >
+                    <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+                    </svg>
+                    下载最新版本
+                  </a>
+                </div>
                 <div className="space-y-2 flex-1">
                   {builtinInfo?.exists && (
                     <label 
@@ -552,17 +566,43 @@ export const SetupWizard = ({ onComplete }: SetupWizardProps) => {
                 </div>
 
                 {/* 跳过配置确认开关 */}
-                <div className="mt-3 pt-3 border-t border-slate-700/50 flex items-center justify-between">
-                  <span className="text-slate-400 text-xs">跳过配置确认</span>
-                  <div
-                    className={`w-8 h-4 rounded-full transition-colors relative cursor-pointer ${skipConfig ? 'bg-cyan-500' : 'bg-slate-600'}`}
-                    onClick={() => {
-                      const newVal = !skipConfig;
-                      setSkipConfig(newVal);
-                      localStorage.setItem('tshock_skip_config', String(newVal));
-                    }}
-                  >
-                    <div className={`absolute top-0.5 w-3 h-3 rounded-full bg-white transition-transform ${skipConfig ? 'translate-x-4' : 'translate-x-0.5'}`} />
+                <div className="mt-4 pt-4 border-t border-slate-700/50">
+                  <div className={`p-3 rounded-lg border-2 transition-all ${
+                    skipConfig 
+                      ? 'bg-green-500/10 border-green-500/30' 
+                      : 'bg-slate-700/30 border-slate-600/50'
+                  }`}>
+                    <div className="flex items-center justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2">
+                          <span className={`text-sm font-medium ${skipConfig ? 'text-green-400' : 'text-white'}`}>
+                            跳过配置确认
+                          </span>
+                          {skipConfig && (
+                            <span className="px-2 py-0.5 bg-green-500/20 text-green-400 text-xs rounded-full">
+                              已启用
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-slate-400 text-xs mt-1">
+                          确认过配置后将自动启用
+                        </p>
+                      </div>
+                      <div
+                        className={`w-12 h-6 rounded-full transition-all relative cursor-pointer shadow-lg ${
+                          skipConfig 
+                            ? 'bg-gradient-to-r from-green-500 to-emerald-500' 
+                            : 'bg-slate-600'
+                        }`}
+                        onClick={() => {
+                          const newVal = !skipConfig;
+                          setSkipConfig(newVal);
+                          localStorage.setItem('tshock_skip_config', String(newVal));
+                        }}
+                      >
+                        <div className={`absolute top-1 w-4 h-4 rounded-full bg-white shadow-md transition-transform ${skipConfig ? 'translate-x-6' : 'translate-x-1'}`} />
+                      </div>
+                    </div>
                   </div>
                 </div>
 
@@ -626,7 +666,7 @@ export const SetupWizard = ({ onComplete }: SetupWizardProps) => {
                           <input
                             type="text"
                             value={adminUsername}
-                            onChange={(e) => setAdminUsername(e.target.value)}
+                            onChange={(e) => handleUsernameChange(e.target.value)}
                             placeholder="输入用户名"
                             className="w-full px-3 py-2 bg-slate-900 border border-slate-600 rounded text-white text-sm"
                           />
@@ -636,7 +676,7 @@ export const SetupWizard = ({ onComplete }: SetupWizardProps) => {
                           <input
                             type="password"
                             value={adminPassword}
-                            onChange={(e) => setAdminPassword(e.target.value)}
+                            onChange={(e) => handlePasswordChange(e.target.value)}
                             placeholder="输入密码"
                             className="w-full px-3 py-2 bg-slate-900 border border-slate-600 rounded text-white text-sm"
                           />

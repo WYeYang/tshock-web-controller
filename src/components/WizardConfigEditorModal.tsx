@@ -4,6 +4,7 @@ import { usePlatform } from '../hooks/usePlatform';
 import { ItemSlot } from './ItemSlot';
 import { ItemSelectorModal } from './ItemSelectorModal';
 import { CONFIG_DESCRIPTIONS } from '../config/descriptions';
+import { DEFAULT_REST_API_SETTINGS, mergeWithDefaultRestApiSettings } from '../config/tshock-config';
 
 interface TShockConfig {
   [key: string]: any;
@@ -16,13 +17,7 @@ interface WizardConfigEditorModalProps {
 
 const DEFAULT_SETTINGS = {
   ServerPassword: '',
-  RestApiEnabled: true,
-  RestApiPort: 7878,
-  EnableTokenEndpointAuthentication: false,
-  LogRest: true,
-  RESTMaximumRequestsPerInterval: 50,
-  RESTRequestBucketDecreaseIntervalMinutes: 1,
-  ApplicationRestTokens: {}
+  ...DEFAULT_REST_API_SETTINGS
 };
 
 const DEFAULT_CONFIG: TShockConfig = {
@@ -91,18 +86,8 @@ export const WizardConfigEditorModal = ({ isOpen, onConfirm }: WizardConfigEdito
     try {
       // 加载主配置
       const configResult = await electronBridge.config.read('config.json');
-      if (configResult && typeof configResult === 'object' && configResult.Settings) {
-        const mergedSettings = {
-          ...configResult.Settings,
-          RestApiEnabled: true,
-          RestApiPort: 7878,
-          EnableTokenEndpointAuthentication: false,
-          LogRest: true,
-          RESTMaximumRequestsPerInterval: 50,
-          RESTRequestBucketDecreaseIntervalMinutes: 1,
-          ApplicationRestTokens: {}
-        };
-        setConfig({ Settings: mergedSettings });
+      if (configResult && typeof configResult === 'object') {
+        setConfig(mergeWithDefaultRestApiSettings(configResult));
       }
 
       // 加载 sscconfig.json

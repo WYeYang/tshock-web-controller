@@ -102,8 +102,7 @@ export class TShockApi {
   private buildUrl(path: string, tshockUrl: string): string {
     if (isElectron()) {
       // 在 Electron 环境里，直接请求完整 URL，配合 webSecurity: false
-      const targetPath = path.replace(/^\/api/, '');
-      return `${tshockUrl}${targetPath}`;
+      return `${tshockUrl}${path}`;
     } else {
       // 在纯浏览器环境里，请求相对路径 + header，由 Vite proxy 或云端代理处理
       return path;
@@ -142,7 +141,9 @@ export class TShockApi {
   // ==================== 核心请求方法 ====================
   async getToken(username: string, password: string): Promise<string> {
     const { serverUrl } = this.getConfigFromStorage();
-    const url = this.buildUrl(`/api/v2/token/create?username=${encodeURIComponent(username)}&password=${encodeURIComponent(password)}`, serverUrl);
+    const endpoint = `/v2/token/create?username=${encodeURIComponent(username)}&password=${encodeURIComponent(password)}`;
+    const path = isElectron() ? endpoint : `/api${endpoint}`;
+    const url = this.buildUrl(path, serverUrl);
     
     try {
       const response = await fetch(url, {
@@ -179,7 +180,7 @@ export class TShockApi {
 
   private async request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
     const { serverUrl, token } = this.getConfigFromStorage();
-    const basePath = `/api${endpoint}`;
+    const basePath = isElectron() ? endpoint : `/api${endpoint}`;
     const headers = this.mergeHeaders(this.getHeaders(serverUrl), options.headers);
     const fullPath = this.addTokenToPath(basePath, token);
     const fullUrl = this.buildUrl(fullPath, serverUrl);

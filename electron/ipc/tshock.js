@@ -6,6 +6,7 @@ import { ipcMain, app } from 'electron';
 import { registry, parseCommandArgs } from './commands.js';
 import { UnzipCommandHandler } from './command-handlers/unzip.js';
 import { getTShockRootDir, getExecutablePath, getConfigPath } from './config.js';
+import iconv from 'iconv-lite';
 
 let shellProcess = null;
 let mainWindow = null;
@@ -37,9 +38,34 @@ function updateStatus(status, error = null) {
 }
 
 function sendOutput(type, data) {
+  let outputString;
+  
+  // 在 Windows 平台下尝试处理 GBK 编码转换为 UTF-8
+  if (process.platform === 'win32') {
+    try {
+      if (Buffer.isBuffer(data)) {
+        // 如果是 buffer，使用 iconv-lite 转换 GBK 到 UTF-8
+        outputString = iconv.decode(data, 'cp936');
+      } else if (typeof data === 'string') {
+        // 如果已经是字符串，先尝试用 GBK 解码再用 UTF-8 编码
+        const buffer = Buffer.from(data, 'binary');
+        outputString = iconv.decode(buffer, 'cp936');
+      } else {
+        outputString = String(data);
+      }
+    } catch (e) {
+      // 如果编码转换失败，回退到原始数据
+      console.warn('[sendOutput] 编码转换失败，使用原始数据:', e);
+      outputString = String(data);
+    }
+  } else {
+    // 其他平台直接转换
+    outputString = data.toString();
+  }
+
   const outputData = {
     type,
-    data: data.toString(),
+    data: outputString,
     timestamp: Date.now()
   };
   outputBuffer.push(outputData);
@@ -68,18 +94,34 @@ function startShell() {
         ? path.dirname(app.getPath('exe'))
         : process.cwd();
       
+      const env = { ...process.env };
+      
+      // Windows 下设置正确的编码环境变量，防止中文乱码
+      if (process.platform === 'win32') {
+        env.LANG = 'zh_CN.UTF-8';
+        env.LC_ALL = 'zh_CN.UTF-8';
+        env.LC_CTYPE = 'zh_CN.UTF-8';
+      }
+      
       const spawnOptions = {
         name: 'xterm-color',
         cols: 120,
         rows: 50,
         cwd: appPath,
-        env: { ...process.env }
+        env: env,
+        encoding: 'utf8'
       };
 
       shellProcess = pty.spawn(shell, [], spawnOptions);
 
       shellProcess.onData((data) => {
-        sendOutput('stdout', data);
+        // 对于 Windows 下的原始终端数据，我们需要确保是 Buffer 形式传递给 sendOutput
+        let processedData = data;
+        if (process.platform === 'win32' && typeof data === 'string') {
+          // 如果是字符串，尝试以 Buffer 的方式处理
+          processedData = Buffer.from(data, 'binary');
+        }
+        sendOutput('stdout', processedData);
       });
 
       shellProcess.onExit(({ exitCode, signal }) => {
