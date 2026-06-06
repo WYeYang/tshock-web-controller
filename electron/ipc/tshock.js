@@ -40,39 +40,52 @@ function updateStatus(status, error = null) {
 function sendOutput(type, data) {
   let outputString;
   
-  // 在 Windows 平台下尝试处理 GBK 编码转换为 UTF-8
   if (process.platform === 'win32') {
     try {
-      // 确保数据是 Buffer 类型
       let buffer;
       if (Buffer.isBuffer(data)) {
         buffer = data;
       } else if (typeof data === 'string') {
-        // 如果是字符串，以 binary 方式转成 Buffer（保留原始字节）
-        buffer = Buffer.from(data, 'binary');
-      } else {
-        buffer = Buffer.from(String(data), 'binary');
-      }
-      
-      // 先尝试用 cp936 (GBK) 解码
-      try {
-        outputString = iconv.decode(buffer, 'cp936');
-      } catch (e) {
-        // 如果 GBK 失败，尝试用 gbk
+        // 如果 node-pty 返回了字符串，尝试多种方式获取原始字节
         try {
-          outputString = iconv.decode(buffer, 'gbk');
-        } catch (e2) {
-          // 如果都失败，直接用 utf8
-          outputString = buffer.toString('utf8');
+          buffer = Buffer.from(data, 'latin1');
+        } catch {
+          buffer = Buffer.from(data, 'binary');
+        }
+      } else {
+        buffer = Buffer.from(String(data));
+      }
+
+      // 尝试多种编码方式，找到最合适的
+      let decoded = null;
+      const encodings = ['cp936', 'gbk', 'gb18030', 'utf8'];
+      
+      for (const enc of encodings) {
+        try {
+          const test = iconv.decode(buffer, enc);
+          // 简单检测：如果解码后没有乱码字符（过多的�），就用这个
+          const badChars = (test.match(/�/g) || []).length;
+          const totalChars = test.length;
+          if (totalChars > 0 && badChars / totalChars < 0.1) {
+            decoded = test;
+            break;
+          }
+        } catch {
+          continue;
         }
       }
+
+      if (decoded) {
+        outputString = decoded;
+      } else {
+        // 如果都不行，先用 utf8 试试
+        outputString = buffer.toString('utf8');
+      }
     } catch (e) {
-      // 如果编码转换失败，回退到原始数据
-      console.warn('[sendOutput] 编码转换失败，使用原始数据:', e);
+      console.warn('[sendOutput] encoding conversion failed:', e);
       outputString = String(data);
     }
   } else {
-    // 其他平台直接转换
     outputString = data.toString();
   }
 
@@ -102,20 +115,11 @@ function startShell() {
   return new Promise((resolve, reject) => {
     try {
       const shell = process.platform === 'win32' ? 'cmd.exe' : 'bash';
-      // 启动时使用 APP 根目录，解压后再 cd 到 TShock 目录
       const appPath = app.isPackaged
         ? path.dirname(app.getPath('exe'))
         : process.cwd();
       
       const env = { ...process.env };
-      
-      // Windows 下设置正确的编码环境变量，防止中文乱码
-      if (process.platform === 'win32') {
-        env.LANG = 'zh_CN.UTF-8';
-        env.LC_ALL = 'zh_CN.UTF-8';
-        env.LC_CTYPE = 'zh_CN.UTF-8';
-        env.Chcp = '65001'; // 设置控制台代码页为 UTF-8
-      }
       
       const spawnOptions = {
         name: 'xterm-color',
@@ -123,15 +127,10 @@ function startShell() {
         rows: 50,
         cwd: appPath,
         env: env,
-        encoding: null // 重要：让 pty 返回原始 Buffer
+        encoding: null // 获取原始 Buffer
       };
 
       shellProcess = pty.spawn(shell, [], spawnOptions);
-
-      // Windows 下先设置代码页
-      if (process.platform === 'win32') {
-        shellProcess.write('chcp 65001\r\n');
-      }
 
       shellProcess.onData((data) => {
         sendOutput('stdout', data);
