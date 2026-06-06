@@ -178,20 +178,20 @@ export const HelpDocView = ({ onGoToConfig, onGoToDocs }: HelpDocViewProps) => {
         >
           <div className="space-y-3">
             <p className="text-slate-300 text-sm">
-              如果服务器在内网，需要使用远程控制工具进行管理。推荐使用向日葵：
+              如果服务器在内网，需要使用内网穿透工具。推荐使用花生壳：
             </p>
             <div className="bg-slate-800/30 rounded-lg p-4">
-              <h4 className="text-white font-medium mb-2">向日葵远程控制</h4>
-              <p className="text-slate-400 text-xs mb-2">免费易用的远程控制软件，适合 Windows 服务器</p>
-              <a href="https://service.oray.com/question/15507.html" target="_blank" rel="noopener noreferrer" className="text-cyan-400 hover:text-cyan-300 text-xs underline">
-                内网穿透教程
+              <h4 className="text-white font-medium mb-2">花生壳内网穿透</h4>
+              <p className="text-slate-400 text-xs mb-2">免费易用的内网穿透工具，适合游戏服务器</p>
+              <a href="https://hsk.oray.com/" target="_blank" rel="noopener noreferrer" className="text-cyan-400 hover:text-cyan-300 text-xs underline">
+                花生壳官网
               </a>
             </div>
             <div className="bg-yellow-900/30 border border-yellow-500/30 rounded-lg p-3">
               <h4 className="text-yellow-400 font-medium mb-2">端口映射配置（TCP）</h4>
               <ul className="text-xs text-slate-300 space-y-1 list-disc list-inside">
                 <li>7777 - Terraria 游戏服务器端口</li>
-                <li>7878 - TShock REST API 端口</li>
+                <li>7878 - TShock REST API 端口（开放远程控制需要）</li>
               </ul>
               <p className="text-slate-400 text-xs mt-2">协议类型：TCP（用于远程访问和准确性要求高的数据传输）</p>
             </div>
@@ -211,11 +211,13 @@ export const HelpDocView = ({ onGoToConfig, onGoToDocs }: HelpDocViewProps) => {
             <div className="bg-cyan-900/30 border border-cyan-500/30 rounded-lg p-3">
               <h4 className="text-cyan-400 font-medium mb-2">其他人加入联机</h4>
               <p className="text-slate-300 text-xs mb-2">让其他玩家加入服务器，需要告诉他们：</p>
-              <p className="text-slate-300 text-xs mb-1">游戏内 → 多人游戏 → 邀请好友 → 输入以下地址：</p>
+              <p className="text-slate-400 text-xs">游戏内 → 多人游戏 → 通过IP加入 → 输入以下地址和端口：</p>
               <div className="bg-slate-900/50 rounded p-2 mt-2">
-                <code className="text-green-400 text-xs">域名:端口</code>
+                <code className="text-green-400 text-xs">地址：域名</code>
+                <br />
+                <code className="text-green-400 text-xs">端口：端口号</code>
               </div>
-              <p className="text-slate-300 text-xs mt-2">示例：<code className="text-cyan-400">xxx.oicp.vip:12345</code></p>
+              <p className="text-slate-300 text-xs mt-2">示例：<code className="text-cyan-400">xxx.oicp.vip</code> 端口：<code className="text-cyan-400">12345</code></p>
             </div>
           </div>
         </CollapsibleSection>
