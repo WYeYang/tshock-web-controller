@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { electronBridge, isElectronAvailable } from '../services/electronBridge';
 import { TShockApi } from '../services/tshockApi';
 import { useConfig } from '../hooks/useConfig';
@@ -30,6 +30,7 @@ export const SetupWizard = ({ onComplete }: SetupWizardProps) => {
   const [worldPath, setWorldPath] = useState<string | null>(null);
   const [reinstall, setReinstall] = useState(true);
   const [skipConfig, setSkipConfig] = useState(() => localStorage.getItem('tshock_skip_config') === 'true');
+  const prevOptionRef = useRef<string | null>(null);
 
   // 输入时立即保存用户名和密码
   const handleUsernameChange = (value: string) => {
@@ -79,12 +80,13 @@ export const SetupWizard = ({ onComplete }: SetupWizardProps) => {
     }
   }, [savedPath, builtinInfo]);
 
-  // 当切换选项时重置跳过配置为关闭
+  // 当切换选项时重置跳过配置为关闭（只在真正切换选项时）
   useEffect(() => {
-    if (selectedOption) {
+    if (selectedOption && prevOptionRef.current && selectedOption !== prevOptionRef.current) {
       setSkipConfig(false);
       localStorage.setItem('tshock_skip_config', 'false');
     }
+    prevOptionRef.current = selectedOption;
   }, [selectedOption]);
 
   // 监听终端输出
