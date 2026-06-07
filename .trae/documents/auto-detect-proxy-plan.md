@@ -1,4 +1,4 @@
-# 自动检测代理方案分析
+# Web版与桌面版REST请求地址统一方案
 
 ## 问题背景
 
@@ -6,73 +6,57 @@
 - 桌面版（Electron）：直接请求完整 URL（`http://localhost:7878/v2/server/status`）
 - Web 版：请求相对路径（`/api/v2/server/status`）由代理转发
 
-## 解决方案：直接请求 + 失败自动降级
+## 解决方案
 
-### 核心思路
+### 环境变量配置
 
-1. **Web 版直接用完整 URL 请求**（与桌面版一致）
-2. **如果请求失败**（特别是 CORS 错误），**自动用代理路径重试一次**
-3. **缓存检测结果**，后续请求直接使用成功的方式，不再重试
+使用构建时环境变量 `VITE_USE_DIRECT_REQUEST`：
+- **未设置或 = false**：直接请求用户输入的完整地址，并在 UI 提示跨域问题
+- **= true**：请求代理路径 `/api/*`
 
 ### 实现细节
 
-#### 1. 缓存机制
+#### 1. 修改 tshockApi.ts
 
-- 使用 localStorage 或内存缓存记录检测结果
-- 缓存键：`tshock-direct-request-{serverUrl}`
-- 缓存值：`'success' | 'failed' | null`
+- 移除 `isElectron()` 平台判断逻辑
+- 统一使用环境变量 `import.meta.env.VITE_USE_DIRECT_REQUEST` 判断
+- 重构 `buildUrl`、`getHeaders`、`request` 等方法
 
-#### 2. 请求流程
+#### 2. 添加跨域提示
 
-```typescript
-// 伪代码
-async request(endpoint, options) {
-  const cacheKey = `tshock-direct-request-${serverUrl}`;
-  const cachedResult = localStorage.getItem(cacheKey);
-  
-  // 根据缓存决定初始策略
-  let useDirect = cachedResult !== 'failed';
-  
-  while (true) {
-    try {
-      const url = useDirect 
-        ? `${serverUrl}${endpoint}`  // 直接请求
-        : `/api${endpoint}`;        // 代理路径
-      
-      const response = await fetch(url, options);
-      
-      // 成功，更新缓存
-      if (useDirect) {
-        localStorage.setItem(cacheKey, 'success');
-      }
-      return response;
-      
-    } catch (error) {
-      // 如果是直接请求失败，尝试代理路径
-      if (useDirect && cachedResult !== 'failed') {
-        localStorage.setItem(cacheKey, 'failed');
-        useDirect = false;
-        continue; // 重试
-      }
-      throw error;
-    }
-  }
-}
+在 UI 中添加提示信息（如配置面板）：
+- 当使用直接请求模式时，提示用户可能遇到跨域问题
+- 提供 TShock 跨域配置的解决方案说明
+
+#### 3. 环境变量使用示例
+
+```bash
+# 使用代理路径（推荐用于生产部署）
+VITE_USE_DIRECT_REQUEST=true npm run build
+
+# 直接请求（默认，开发环境）
+npm run build
+# 或
+VITE_USE_DIRECT_REQUEST=false npm run build
 ```
 
 ### 修改文件
 
-- [tshockApi.ts](file:///workspace/src/services/tshockApi.ts)：核心逻辑修改
+1. [tshockApi.ts](file:///workspace/src/services/tshockApi.ts)：核心逻辑修改
+2. 相关 UI 组件（如配置面板）：添加跨域提示
 
-### 优势
+### TShock 跨域配置说明（提示文案）
 
-- ✅ 代码逻辑统一，Web 版和桌面版一致
-- ✅ 只有在直接请求失败时才会有第二次请求
-- ✅ 缓存机制，后续请求无需重试
-- ✅ 性能最优：成功时只有一次请求
+如需在 Web 版直接请求 TShock API，需要在 TShock 配置中添加 CORS 头：
 
-### 实现步骤
+1. 编辑 TShock 配置文件（通常在 `tshock/config.json`）
+2. 添加或修改 `RestApiOptions` 配置：
+   ```json
+   "RestApiOptions": {
+     "EnableCors": true,
+     "CorsOrigins": "*"
+   }
+   ```
+3. 重启 TShock 服务器
 
-1. 添加缓存机制（localStorage）
-2. 修改 `request` 方法支持自动降级重试
-3. 移除平台相关的特殊处理逻辑
+或使用 Nginx/Cloudflare 等反向代理添加 CORS 头。
