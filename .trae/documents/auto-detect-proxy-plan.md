@@ -60,3 +60,24 @@ VITE_USE_DIRECT_REQUEST=false npm run build
 3. 重启 TShock 服务器
 
 或使用 Nginx/Cloudflare 等反向代理添加 CORS 头。
+# Web# Web版与桌面版REST请求地址统一方案
+
+## 问题背景
+
+当前 Web 版和# Web版与桌面版REST请求地址统一方案
+
+## 问题背景
+
+当前 Web 版和桌面版的 REST 请求地址处理方式不一致：
+- 桌面版（Electron）：# Web版与桌面版REST请求地址统一方案
+
+## 问题背景
+
+当前 Web 版和桌面版的 REST 请求地址处理方式不一致：
+- 桌面版（Electron）：直接请求完整 URL（`http://localhost:7878/v2/server/status`）# Web版与桌面版REST请求地址统一方案
+
+## 问题背景
+
+当前 Web 版和桌面版的 REST 请求地址处理方式不一致：
+- 桌面版（Electron）：直接请求完整 URL（`http://localhost:7878/v2/server/status`）
+- Web 版：请求相对路径（`/api/v2/server/status`）由
