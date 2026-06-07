@@ -52,7 +52,7 @@ export class TShockApi {
   constructor() {}
 
   private shouldUseDirectRequest(): boolean {
-    return isElectron() || !import.meta.env.VITE_TSHOCK_USE_PROXY;
+    return isElectron() || import.meta.env.VITE_TSHOCK_USE_PROXY !== 'true';
   }
 
   // ==================== 配置相关 ====================

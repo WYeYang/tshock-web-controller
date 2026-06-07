@@ -19,7 +19,7 @@ export const ConfigPanel = () => {
   const [showRegenerate, setShowRegenerate] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
-  const shouldShowCorsHint = !isElectron && !import.meta.env.VITE_TSHOCK_USE_PROXY;
+  const shouldShowCorsHint = !isElectron && import.meta.env.VITE_TSHOCK_USE_PROXY !== 'true';
 
   const handleTshockChange = (field: string, value: string) => {
     updateTshockConfig({ [field]: value });
