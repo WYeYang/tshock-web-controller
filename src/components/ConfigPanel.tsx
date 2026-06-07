@@ -89,6 +89,7 @@ export const ConfigPanel = () => {
                         <p className="text-amber-400 font-medium">跨域提示</p>
                         <p className="text-amber-200 text-sm">直接请求TShock API时可能遇到浏览器跨域限制。</p>
                         <p className="text-amber-300 text-sm">解决方法：安装浏览器 CORS 扩展（仅用于开发环境），在浏览器扩展商店搜索 "CORS" 或 "跨域" 关键词插件，安装并启用扩展即可解决跨域问题。</p>
+                        <p className="text-red-400 text-sm mt-2">⚠️ 安全提示：解除跨域限制有安全风险，使用完毕后请及时关闭扩展。</p>
                       </div>
                     </div>
                   </div>
