@@ -36,7 +36,7 @@ private shouldUseDirectRequest(): boolean {
 
 在 UI 中添加提示信息（如配置面板）：
 - 当 Web 版使用直接请求模式时，提示用户可能遇到跨域问题
-- 提供解决方案说明：配置 TShock 服务器的跨域或者关闭浏览器跨域
+- 提供解决方案：临时关闭浏览器跨域安全限制
 
 #### 3. 环境变量使用示例
 
@@ -57,23 +57,8 @@ VITE_TSHOCK_USE_PROXY=false npm run build
 
 ### TShock 跨域配置说明（提示文案）
 
-直接请求 TShock API 时可能遇到浏览器跨域限制。解决方案：
+直接请求 TShock API 时可能遇到浏览器跨域限制。
 
-1. **配置反向代理添加 CORS 头**（推荐）
-   - 使用 Nginx、Cloudflare 或其他反向代理服务
-   - 在代理服务器上配置添加 CORS 响应头
-   - Web 前端通过代理访问 TShock API
-
-2. **关闭浏览器跨域安全限制**（仅用于开发环境）
-   - Chrome: `chrome --disable-web-security --user-data-dir=/tmp/chrome-dev`
-   - Firefox: 配置 `about:config` 中的 `security.fileuri.strict_origin_policy` 为 false
-
-**Nginx 配置示例：**
-```nginx
-location /tshock/ {
-    proxy_pass http://localhost:7878/;
-    add_header Access-Control-Allow-Origin *;
-    add_header Access-Control-Allow-Methods "GET, POST, OPTIONS";
-    add_header Access-Control-Allow-Headers "Content-Type, Authorization";
-}
-```
+**临时关闭浏览器跨域安全限制（仅用于开发环境）：**
+- Chrome/Edge: 以 `--disable-web-security --user-data-dir=/tmp/chrome-dev` 参数启动浏览器
+- Firefox: 访问 `about:config`，设置 `security.fileuri.strict_origin_policy` 为 `false`
