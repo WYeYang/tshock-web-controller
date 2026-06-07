@@ -101,8 +101,7 @@
             "x64"
           ]
         }
-      ],
-      "artifactName": "${productName}-${version}-${arch}.${ext}"
+      ]
     },
     "mac": {
       "target": [
