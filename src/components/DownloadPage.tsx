@@ -38,9 +38,9 @@ export function DownloadPage() {
               功能强大的 TShock 服务器管理工具，让你的泰拉瑞亚服务器管理更简单
             </p>
             <div className="inline-flex items-center gap-3 px-5 py-2 bg-slate-900/40 backdrop-blur-xl border border-slate-700/50 rounded-2xl">
-              <span className="w-2.5 h-2.5 bg-emerald-400 rounded-full animate-pulse"></span>
+              <span className="w-2.5 h-2.5 bg-blue-400 rounded-full animate-pulse"></span>
               <span className="text-slate-300">最新版本</span>
-              <span className="font-bold text-lg text-gradient">v1.0.0</span>
+              <span className="font-bold text-lg text-blue-400">v1.0.0</span>
             </div>
           </div>
 
@@ -57,7 +57,7 @@ export function DownloadPage() {
               <div className="flex flex-col items-center gap-5">
                 <a
                   href="./download/TShock-Controller-win-x64.zip"
-                  className="inline-flex items-center gap-3 px-10 py-4 rounded-xl font-semibold text-lg btn-gradient neon-cyan hover:opacity-90 transition-all transform hover:scale-[1.02] active:scale-[0.98]"
+                  className="inline-flex items-center gap-3 px-10 py-4 rounded-xl font-semibold text-lg bg-blue-500 hover:bg-blue-600 text-white hover:opacity-90 transition-all transform hover:scale-[1.02] active:scale-[0.98]"
                 >
                   <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
