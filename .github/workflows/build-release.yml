@@ -22,7 +22,7 @@ jobs:
         run: npm ci
 
       - name: Build Electron for Windows
-        run: npm run electron:build:win
+        run: npm run electron:build:win:zip
 
       - name: Upload Electron artifacts
         uses: actions/upload-artifact@v4

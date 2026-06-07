@@ -59,7 +59,10 @@ npm run build
 为不同平台构建桌面应用：
 
 ```bash
-# Windows
+# Windows (Zip)
+npm run electron:build:win:zip
+
+# Windows (完整构建)
 npm run electron:build:win
 
 # macOS
