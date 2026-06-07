@@ -8,6 +8,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
+    "build:proxy": "tsc -b && VITE_TSHOCK_USE_PROXY=true vite build",
     "lint": "eslint .",
     "preview": "vite preview",
     "electron:dev": "concurrently -k \"npm run build && electron .\"",
