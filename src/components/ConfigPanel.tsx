@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useConfig } from '../hooks/useConfig';
 import { useTShock } from '../hooks/useTShock';
+import { usePlatform } from '../hooks/usePlatform';
 
 const maskToken = (token: string): string => {
   if (!token) return '';
@@ -13,9 +14,12 @@ const maskToken = (token: string): string => {
 export const ConfigPanel = () => {
   const { config, updateTshockConfig } = useConfig();
   const { loading, fetchAndSaveToken, clearError } = useTShock();
+  const { isElectron } = usePlatform();
   const [tokenMessage, setTokenMessage] = useState<string | null>(null);
   const [showRegenerate, setShowRegenerate] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+
+  const shouldShowCorsHint = !isElectron && !import.meta.env.VITE_TSHOCK_USE_PROXY;
 
   const handleTshockChange = (field: string, value: string) => {
     updateTshockConfig({ [field]: value });
@@ -74,7 +78,21 @@ export const ConfigPanel = () => {
                   placeholder="http://localhost:7878"
                   className="w-full px-4 py-3 bg-slate-900/50 border border-cyan-500/30 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20 transition-all"
                 />
-                <p className="text-slate-500 text-sm mt-1">输入TShock服务器的地址，API请求会通过后端代理转发</p>
+                <p className="text-slate-500 text-sm mt-1">输入TShock服务器的地址</p>
+                {shouldShowCorsHint && (
+                  <div className="mt-3 p-3 bg-amber-500/10 border border-amber-500/30 rounded-lg">
+                    <div className="flex items-start gap-2">
+                      <svg className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                      </svg>
+                      <div>
+                        <p className="text-amber-400 font-medium">跨域提示</p>
+                        <p className="text-amber-200 text-sm">直接请求TShock API时可能遇到浏览器跨域限制。</p>
+                        <p className="text-amber-300 text-sm">解决方法：安装浏览器 CORS 扩展（仅用于开发环境），在浏览器扩展商店搜索 "CORS" 或 "跨域" 关键词插件，安装并启用扩展即可解决跨域问题。</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
 
               {hasToken && !showRegenerate ? (

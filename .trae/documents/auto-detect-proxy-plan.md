@@ -60,5 +60,5 @@ VITE_TSHOCK_USE_PROXY=false npm run build
 直接请求 TShock API 时可能遇到浏览器跨域限制。
 
 **解决方法：安装浏览器 CORS 扩展（仅用于开发环境）**
-- 在浏览器扩展商店搜索 "CORS" 相关扩展
+- 在浏览器扩展商店搜索 "CORS" 或 "跨域" 关键词插件
 - 安装并启用扩展即可解决跨域问题
