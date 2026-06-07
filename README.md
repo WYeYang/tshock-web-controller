@@ -1,7 +1,6 @@
 # TShock Web Controller
 
-![Build and Release Electron App](https://github.com/WYeYang/tshock-web-controller/actions/workflows/build-release.yml/badge.svg)
-![Deploy to GitHub Pages](https://github.com/WYeYang/tshock-web-controller/actions/workflows/deploy-pages.yml/badge.svg)
+![Build and Release](https://github.com/WYeYang/tshock-web-controller/actions/workflows/release.yml/badge.svg)
 
 TShock Web Controller 是一个用于管理 TShock 服务器的 Web 前端界面，同时支持以桌面应用程序运行。
 
@@ -11,7 +10,8 @@ https://wyeyang.github.io/tshock-web-controller/
 
 ## 下载
 
-- [最新版本下载](https://github.com/WYeYang/tshock-web-controller/releases/latest)
+- [下载页面](https://wyeyang.github.io/tshock-web-controller/download)
+- [GitHub Releases](https://github.com/WYeYang/tshock-web-controller/releases/latest)
 
 ## 快速开始
 
