@@ -142,11 +142,12 @@ export const useTShock = () => {
     try {
       const api = new TShockApi();
       const token = await api.getToken(username, password);
-      const updateData: any = { token, username, password };
+      const updateData: any = { token };
       if (serverUrl) {
         updateData.serverUrl = serverUrl;
       }
       updateTshockConfig(updateData);
+
       return token;
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : '获取Token失败';

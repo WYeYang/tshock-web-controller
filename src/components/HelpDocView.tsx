@@ -178,20 +178,20 @@ export const HelpDocView = ({ onGoToConfig, onGoToDocs }: HelpDocViewProps) => {
         >
           <div className="space-y-3">
             <p className="text-slate-300 text-sm">
-              如果服务器在内网，需要使用远程控制工具进行管理。推荐使用向日葵：
+              如果服务器在内网，需要使用内网穿透工具。推荐使用花生壳：
             </p>
             <div className="bg-slate-800/30 rounded-lg p-4">
-              <h4 className="text-white font-medium mb-2">向日葵远程控制</h4>
-              <p className="text-slate-400 text-xs mb-2">免费易用的远程控制软件，适合 Windows 服务器</p>
-              <a href="https://service.oray.com/question/15507.html" target="_blank" rel="noopener noreferrer" className="text-cyan-400 hover:text-cyan-300 text-xs underline">
-                内网穿透教程
+              <h4 className="text-white font-medium mb-2">花生壳内网穿透</h4>
+              <p className="text-slate-400 text-xs mb-2">免费易用的内网穿透工具，适合游戏服务器</p>
+              <a href="https://hsk.oray.com/" target="_blank" rel="noopener noreferrer" className="text-cyan-400 hover:text-cyan-300 text-xs underline">
+                花生壳官网
               </a>
             </div>
             <div className="bg-yellow-900/30 border border-yellow-500/30 rounded-lg p-3">
               <h4 className="text-yellow-400 font-medium mb-2">端口映射配置（TCP）</h4>
               <ul className="text-xs text-slate-300 space-y-1 list-disc list-inside">
                 <li>7777 - Terraria 游戏服务器端口</li>
-                <li>7878 - TShock REST API 端口</li>
+                <li>7878 - TShock REST API 端口（开放远程控制需要）</li>
               </ul>
               <p className="text-slate-400 text-xs mt-2">协议类型：TCP（用于远程访问和准确性要求高的数据传输）</p>
             </div>
@@ -211,11 +211,13 @@ export const HelpDocView = ({ onGoToConfig, onGoToDocs }: HelpDocViewProps) => {
             <div className="bg-cyan-900/30 border border-cyan-500/30 rounded-lg p-3">
               <h4 className="text-cyan-400 font-medium mb-2">其他人加入联机</h4>
               <p className="text-slate-300 text-xs mb-2">让其他玩家加入服务器，需要告诉他们：</p>
-              <p className="text-slate-300 text-xs mb-1">游戏内 → 多人游戏 → 邀请好友 → 输入以下地址：</p>
+              <p className="text-slate-400 text-xs">游戏内 → 多人游戏 → 通过IP加入 → 输入以下地址和端口：</p>
               <div className="bg-slate-900/50 rounded p-2 mt-2">
-                <code className="text-green-400 text-xs">域名:端口</code>
+                <code className="text-green-400 text-xs">地址：域名</code>
+                <br />
+                <code className="text-green-400 text-xs">端口：端口号</code>
               </div>
-              <p className="text-slate-300 text-xs mt-2">示例：<code className="text-cyan-400">xxx.oicp.vip:12345</code></p>
+              <p className="text-slate-300 text-xs mt-2">示例：<code className="text-cyan-400">xxx.oicp.vip</code> 端口：<code className="text-cyan-400">12345</code></p>
             </div>
           </div>
         </CollapsibleSection>
@@ -280,15 +282,32 @@ export const HelpDocView = ({ onGoToConfig, onGoToDocs }: HelpDocViewProps) => {
               <p className="text-slate-400 text-sm mt-4">其他所需权限可以在命令助手中根据需要添加。</p>
             </div>
 
-            <div className="bg-slate-800/30 rounded-lg p-4">
-              <h3 className="text-cyan-400 font-medium mb-2">快速配置步骤</h3>
-              <ol className="list-decimal list-inside space-y-2 text-sm">
-                <li>编辑 <span className="font-mono text-cyan-400">config.json</span>，确保 REST API 已启用</li>
+            <div className="bg-gradient-to-r from-purple-900/50 via-pink-900/50 to-purple-900/50 border-2 border-purple-500/50 rounded-lg p-4 neon-purple">
+              <h3 className="text-purple-300 font-bold mb-3 flex items-center gap-2">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
+                快速配置步骤
+              </h3>
+              <ol className="list-decimal list-inside space-y-2 text-sm text-slate-200">
+                <li>编辑 <span className="font-mono text-cyan-400 bg-slate-800 px-1 rounded">config.json</span>，确保 REST API 已启用</li>
                 <li>重启 TShock 服务器</li>
                 <li>在游戏中或控制台执行权限添加命令</li>
                 <li>确保您使用的账户在 <span className="font-mono text-cyan-400">owner</span> 组或有相应权限</li>
                 <li>在控制器中填写服务器地址、用户名和密码获取 Token</li>
               </ol>
+              {onGoToConfig && (
+                <button
+                  onClick={onGoToConfig}
+                  className="mt-4 flex items-center justify-center gap-2 px-4 py-2 bg-gradient-to-r from-cyan-500 to-purple-500 rounded-lg text-white font-semibold text-sm hover:opacity-90 transition-all"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426-1.756-2.924-1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                  </svg>
+                  前往配置
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -313,6 +332,9 @@ export const HelpDocView = ({ onGoToConfig, onGoToDocs }: HelpDocViewProps) => {
                 <li>检查服务器地址和端口是否正确</li>
                 <li className="text-yellow-400">
                   <strong>触发限流（常见403原因）:</strong> TShock 默认每分钟最多5个请求
+                </li>
+                <li className="text-orange-300">
+                  <strong>重启后需重新获取:</strong> 每次重启 TShock 服务器后，Token 会失效，需要重新获取
                 </li>
               </ul>
             </div>

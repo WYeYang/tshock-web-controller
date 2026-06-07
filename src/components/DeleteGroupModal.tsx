@@ -31,7 +31,7 @@ export const DeleteGroupModal = ({
   if (!isOpen || !groupName) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 lg:pl-[280px]">
+    <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
       <div className="glass-card neon-border p-4 sm:p-6 md:p-8 max-w-full sm:max-w-md w-full transform transition-all">
         <h3 className="text-xl sm:text-2xl font-bold text-white mb-4 sm:mb-6">
           删除用户组
