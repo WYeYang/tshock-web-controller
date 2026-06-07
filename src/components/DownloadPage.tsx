@@ -26,7 +26,7 @@ export function DownloadPage() {
     <div className="min-h-screen bg-slate-950 relative overflow-auto">
       {/* Background - Soft gradient */}
       <div className="absolute inset-0" style={{
-        backgroundImage: 'linear-gradient(rgba(100, 116, 139, 0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(100, 116, 139, 0.03) 1px, transparent 1px)',
+        backgroundImage: 'linear-gradient(rgba(56, 189, 248, 0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(56, 189, 248, 0.04) 1px, transparent 1px)',
         backgroundSize: '50px 50px'
       }}></div>
       <div className="absolute inset-0" style={{
@@ -41,7 +41,7 @@ export function DownloadPage() {
               <img src="/favicon.svg" alt="TShock 服务器控制器" className="w-24 h-24" />
             </div>
             <h1 className="text-4xl md:text-5xl font-bold mb-4" style={{
-              background: 'linear-gradient(135deg, #94a3b8 0%, #818cf8 50%, #a78bfa 100%)',
+              background: 'linear-gradient(135deg, #7dd3fc 0%, #60a5fa 50%, #a78bfa 100%)',
               WebkitBackgroundClip: 'text',
               WebkitTextFillColor: 'transparent'
             }}>
@@ -51,10 +51,10 @@ export function DownloadPage() {
               功能强大的 TShock 服务器管理工具，让你的泰拉瑞亚服务器管理更简单
             </p>
             <div className="inline-flex items-center gap-3 px-5 py-2 glass-card">
-              <span className="w-2.5 h-2.5 bg-emerald-500 rounded-full animate-pulse"></span>
+              <span className="w-2.5 h-2.5 bg-emerald-400 rounded-full animate-pulse"></span>
               <span className="text-slate-300">最新版本</span>
               <span className="font-bold text-lg" style={{
-                background: 'linear-gradient(135deg, #94a3b8 0%, #818cf8 50%, #a78bfa 100%)',
+                background: 'linear-gradient(135deg, #7dd3fc 0%, #60a5fa 50%, #a78bfa 100%)',
                 WebkitBackgroundClip: 'text',
                 WebkitTextFillColor: 'transparent'
               }}>v1.0.0</span>
@@ -72,8 +72,8 @@ export function DownloadPage() {
                   href="./download/TShock-Controller-win-x64.zip"
                   className="inline-flex items-center gap-3 px-10 py-4 rounded-xl font-semibold text-lg hover:opacity-90 transition-opacity"
                   style={{
-                    background: 'linear-gradient(135deg, #475569 0%, #6366f1 50%, #7c3aed 100%)',
-                    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)'
+                    background: 'linear-gradient(135deg, #0ea5e9 0%, #3b82f6 50%, #8b5cf6 100%)',
+                    boxShadow: '0 4px 6px -1px rgba(14, 165, 233, 0.15), 0 2px 4px -1px rgba(14, 165, 233, 0.08)'
                   }}
                 >
                   <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -83,7 +83,7 @@ export function DownloadPage() {
                 </a>
                 <div className="flex items-center gap-3 text-slate-400">
                   <span>或者访问</span>
-                  <a href="https://github.com/WYeYang/tshock-web-controller/releases/latest" target="_blank" rel="noopener noreferrer" className="text-indigo-400 hover:text-indigo-300 font-medium hover:underline transition-colors">
+                  <a href="https://github.com/WYeYang/tshock-web-controller/releases/latest" target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:text-blue-300 font-medium hover:underline transition-colors">
                     GitHub Releases
                   </a>
                 </div>
@@ -94,7 +94,7 @@ export function DownloadPage() {
           {/* Features Section */}
           <div className="mb-16">
             <h2 className="text-3xl font-bold mb-10 text-center" style={{
-              background: 'linear-gradient(135deg, #94a3b8 0%, #818cf8 50%, #a78bfa 100%)',
+              background: 'linear-gradient(135deg, #7dd3fc 0%, #60a5fa 50%, #a78bfa 100%)',
               WebkitBackgroundClip: 'text',
               WebkitTextFillColor: 'transparent'
             }}>
@@ -102,12 +102,12 @@ export function DownloadPage() {
             </h2>
             <div className="grid md:grid-cols-2 gap-5">
               {[
-                { icon: 'M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z', color: '#64748b', title: '服务器状态监控', desc: '实时查看服务器运行状态和玩家在线情况' },
-                { icon: 'M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z', color: '#818cf8', title: '用户和用户组管理', desc: '完整的用户权限管理和用户组配置' },
+                { icon: 'M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z', color: '#38bdf8', title: '服务器状态监控', desc: '实时查看服务器运行状态和玩家在线情况' },
+                { icon: 'M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z', color: '#60a5fa', title: '用户和用户组管理', desc: '完整的用户权限管理和用户组配置' },
                 { icon: 'M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z', color: '#a78bfa', title: '玩家信息查看', desc: '查看和管理玩家详细信息' },
-                { icon: 'M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37.996.608 2.296.07 2.572-1.065z', color: '#94a3b8', title: '配置面板', desc: '简单易用的服务器配置界面' },
-                { icon: 'M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z', color: '#64748b', title: '终端面板', desc: '内置终端支持直接执行服务器命令' },
-                { icon: 'M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z', color: '#94a3b8', title: '内置 TShock 服务器', desc: '桌面版包含完整的 TShock 服务器（仅桌面版）' }
+                { icon: 'M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37.996.608 2.296.07 2.572-1.065z', color: '#38bdf8', title: '配置面板', desc: '简单易用的服务器配置界面' },
+                { icon: 'M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z', color: '#60a5fa', title: '终端面板', desc: '内置终端支持直接执行服务器命令' },
+                { icon: 'M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z', color: '#a78bfa', title: '内置 TShock 服务器', desc: '桌面版包含完整的 TShock 服务器（仅桌面版）' }
               ].map((feature, i) => (
                 <div key={i} className="bg-slate-900/50 backdrop-blur-xl border border-slate-700/50 rounded-2xl p-6 hover:border-slate-600/70 transition-colors">
                   <div className="w-12 h-12 bg-slate-800 rounded-xl flex items-center justify-center mb-4">
@@ -126,7 +126,7 @@ export function DownloadPage() {
           <div className="mb-16">
             <div className="bg-slate-900/50 backdrop-blur-xl border border-slate-700/50 rounded-2xl p-8">
               <h2 className="text-2xl font-bold mb-8 text-center" style={{
-                background: 'linear-gradient(135deg, #94a3b8 0%, #818cf8 50%, #a78bfa 100%)',
+                background: 'linear-gradient(135deg, #7dd3fc 0%, #60a5fa 50%, #a78bfa 100%)',
                 WebkitBackgroundClip: 'text',
                 WebkitTextFillColor: 'transparent'
               }}>
@@ -134,10 +134,10 @@ export function DownloadPage() {
               </h2>
               <div className="space-y-5">
                 {[
-                  { step: 1, color: '#64748b', title: '下载', desc: '点击上方下载按钮，下载 Windows 压缩包' },
-                  { step: 2, color: '#818cf8', title: '解压', desc: '将下载的 zip 文件解压到任意文件夹' },
+                  { step: 1, color: '#38bdf8', title: '下载', desc: '点击上方下载按钮，下载 Windows 压缩包' },
+                  { step: 2, color: '#60a5fa', title: '解压', desc: '将下载的 zip 文件解压到任意文件夹' },
                   { step: 3, color: '#a78bfa', title: '运行', desc: '双击运行应用程序' },
-                  { step: 4, color: '#94a3b8', title: '配置', desc: '首次启动会自动进入设置向导，按照提示完成配置' }
+                  { step: 4, color: '#38bdf8', title: '配置', desc: '首次启动会自动进入设置向导，按照提示完成配置' }
                 ].map((item, i) => (
                   <div key={i} className="flex items-start gap-5 p-5 bg-slate-900/60 rounded-xl border border-slate-700/50">
                     <div className="flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg" style={{ background: item.color }}>
