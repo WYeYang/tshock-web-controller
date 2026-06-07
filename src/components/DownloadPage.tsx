@@ -1,6 +1,27 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 
 export function DownloadPage() {
+  useEffect(() => {
+    // Allow scroll for download page
+    document.documentElement.style.overflow = 'auto';
+    document.body.style.overflow = 'auto';
+    const root = document.getElementById('root');
+    if (root) {
+      root.style.overflow = 'auto';
+      root.style.height = 'auto';
+    }
+    
+    return () => {
+      // Restore when leaving
+      document.documentElement.style.overflow = 'hidden';
+      document.body.style.overflow = 'hidden';
+      if (root) {
+        root.style.overflow = 'hidden';
+        root.style.height = '100%';
+      }
+    };
+  }, []);
+
   return (
     <div className="min-h-screen bg-slate-950 relative overflow-auto">
       {/* Background */}
