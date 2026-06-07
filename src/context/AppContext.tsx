@@ -7,7 +7,6 @@ interface AppContextType {
   config: AppConfig;
   setConfig: (config: AppConfig) => void;
   updateTshockConfig: (updates: Partial<AppConfig['tshock']>) => void;
-  updateLLMConfig: (updates: Partial<AppConfig['llm']>) => void;
   saveConfigToStorage: () => void;
 }
 
@@ -43,31 +42,16 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     });
   };
 
-  const updateLLMConfig = (updates: Partial<AppConfig['llm']>) => {
-    setConfigState(prev => {
-      const newConfig = {
-        ...prev,
-        llm: {
-          ...prev.llm,
-          ...updates,
-        },
-      };
-      saveConfig(newConfig);
-      return newConfig;
-    });
-  };
-
   const saveConfigToStorage = () => {
     saveConfig(config);
   };
 
   return (
-    <AppContext.Provider value={{ 
-      config, 
-      setConfig, 
-      updateTshockConfig, 
-      updateLLMConfig, 
-      saveConfigToStorage 
+    <AppContext.Provider value={{
+      config,
+      setConfig,
+      updateTshockConfig,
+      saveConfigToStorage
     }}>
       {children}
     </AppContext.Provider>

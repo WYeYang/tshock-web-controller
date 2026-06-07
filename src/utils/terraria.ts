@@ -7,8 +7,20 @@ export interface ItemInfo {
   tooltip: string;
 }
 
+// TShock负ID到正ID的映射
+const NEGATIVE_ID_MAP = new Map<number, number>([
+  [-15, 3507], // 铜短剑
+  [-13, 3506], // 铜斧
+  [-16, 3509], // 铜镐
+]);
+
+export function getMappedItemId(netId: number): number {
+  return NEGATIVE_ID_MAP.get(netId) || netId;
+}
+
 export function getItemInfo(netId: number, prefixId: number = 0): ItemInfo | null {
-  const data = ITEM_DATA[netId];
+  const mappedId = getMappedItemId(netId);
+  const data = ITEM_DATA[mappedId];
   if (!data) return null;
   
   const name = data.zh || data.en;
@@ -22,19 +34,21 @@ export function getItemInfo(netId: number, prefixId: number = 0): ItemInfo | nul
   return {
     netId,
     name: fullName,
-    iconUrl: getItemIconUrlFromData(netId),
+    iconUrl: getItemIconUrlFromData(mappedId),
     tooltip
   };
 }
 
 export function getItemIconUrl(netId: number): string {
-  return getItemIconUrlFromData(netId);
+  const mappedId = getMappedItemId(netId);
+  return getItemIconUrlFromData(mappedId);
 }
 
 export { getItemName };
 
 export function getItemTooltip(netId: number): string {
-  const data = ITEM_DATA[netId];
+  const mappedId = getMappedItemId(netId);
+  const data = ITEM_DATA[mappedId];
   if (!data) return `ID: ${netId}`;
   let tooltip = `ID: ${netId}`;
   if (data.zh) tooltip += ` | ${data.zh}`;

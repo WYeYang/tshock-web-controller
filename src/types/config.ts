@@ -6,12 +6,6 @@ export interface TShockConfig {
   useCredentials: boolean;
 }
 
-export interface LLMConfig {
-  apiUrl: string;
-  apiKey: string;
-}
-
 export interface AppConfig {
   tshock: TShockConfig;
-  llm: LLMConfig;
 }
