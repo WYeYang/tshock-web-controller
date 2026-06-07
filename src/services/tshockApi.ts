@@ -157,12 +157,6 @@ export class TShockApi {
       
       if (!response.ok) {
         const errorMessage = await this.parseErrorResponse(response);
-        DetailedErrorLogger.log('GET', url, {
-          action: 'getToken',
-          tshockUrl: serverUrl,
-          status: response.status,
-          error: errorMessage
-        });
         throw new Error(errorMessage);
       }
       
@@ -197,14 +191,6 @@ export class TShockApi {
 
       if (!response.ok) {
         const errorText = await response.text();
-        DetailedErrorLogger.log('FETCH', fullUrl, {
-          action: 'request',
-          tshockUrl: serverUrl,
-          method: options.method || 'GET',
-          status: response.status,
-          statusText: response.statusText,
-          response: errorText,
-        });
         
         // 尝试解析 JSON 错误信息
         let errorMessage = `HTTP error! status: ${response.status}`;
