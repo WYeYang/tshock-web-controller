@@ -27,7 +27,7 @@
 
 在 UI 中添加提示信息（如配置面板）：
 - 当 Web 版使用直接请求模式时，提示用户可能遇到跨域问题
-- 提供 TShock 跨域配置的解决方案说明
+- 提供解决方案说明
 
 #### 3. 环境变量使用示例
 
@@ -48,16 +48,23 @@ VITE_TSHOCK_USE_PROXY=false npm run build
 
 ### TShock 跨域配置说明（提示文案）
 
-如需在 Web 版直接请求 TShock API，需要在 TShock 配置中添加 CORS 头：
+TShock REST API 本身不支持 CORS 配置。如需在 Web 版直接请求 TShock API，有以下解决方案：
 
-1. 编辑 TShock 配置文件（通常在 `tshock/config.json`）
-2. 添加或修改 `RestApiOptions` 配置：
-   ```json
-   "RestApiOptions": {
-     "EnableCors": true,
-     "CorsOrigins": "*"
-   }
-   ```
-3. 重启 TShock 服务器
+**方案一：使用反向代理（推荐）**
+- 使用 Nginx、Cloudflare 或其他反向代理服务
+- 在代理服务器上配置添加 CORS 响应头
+- Web 前端通过代理访问 TShock API
 
-或使用 Nginx/Cloudflare 等反向代理添加 CORS 头。
+**方案二：使用本工具的代理模式**
+- 构建时设置 `VITE_TSHOCK_USE_PROXY=true`
+- 通过后端代理转发请求，避免浏览器跨域限制
+
+**Nginx 配置示例：**
+```nginx
+location /tshock/ {
+    proxy_pass http://localhost:7878/;
+    add_header Access-Control-Allow-Origin *;
+    add_header Access-Control-Allow-Methods "GET, POST, OPTIONS";
+    add_header Access-Control-Allow-Headers "Content-Type, Authorization";
+}
+```
