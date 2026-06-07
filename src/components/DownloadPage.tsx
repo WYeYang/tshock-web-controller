@@ -21,9 +21,9 @@ export function DownloadPage() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-slate-950 relative overflow-auto">
-      <div className="absolute inset-0 cyber-grid"></div>
-      <div className="absolute inset-0 bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950"></div>
+    <div className="min-h-screen bg-slate-950 relative">
+      <div className="fixed inset-0 cyber-grid pointer-events-none"></div>
+      <div className="fixed inset-0 bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 pointer-events-none"></div>
 
       <div className="relative z-10 py-16 px-6">
         <div className="max-w-4xl mx-auto">
