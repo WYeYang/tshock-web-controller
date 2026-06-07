@@ -13,6 +13,22 @@ https://wyeyang.github.io/tshock-web-controller/
 
 - [最新版本下载](https://github.com/WYeYang/tshock-web-controller/releases/latest)
 
+## 快速开始
+
+### 桌面版（推荐）
+
+1. 前往 [最新版本下载](https://github.com/WYeYang/tshock-web-controller/releases/latest)
+2. 下载对应系统的压缩包（Windows 下载 `.zip` 文件）
+3. 解压到任意目录
+4. 运行 `TShock Controller.exe`（Windows）或对应可执行文件
+5. 首次启动会自动进入设置向导，按照提示配置即可
+
+### Web 版
+
+1. 访问 [在线演示](https://wyeyang.github.io/tshock-web-controller/)
+2. 在配置页面输入 TShock 服务器地址和 Token
+3. 开始使用
+
 ## 功能特性
 
 - 服务器状态监控
