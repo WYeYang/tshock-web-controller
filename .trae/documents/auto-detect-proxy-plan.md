@@ -10,34 +10,35 @@
 
 ### 环境变量配置
 
-使用构建时环境变量 `VITE_USE_DIRECT_REQUEST`：
-- **未设置或 = false**：直接请求用户输入的完整地址，并在 UI 提示跨域问题
-- **= true**：请求代理路径 `/api/*`
+使用构建时环境变量 `VITE_TSHOCK_USE_PROXY`：
+- **未设置或 = false**（Web 版默认）：直接请求用户输入的完整地址，并在 UI 提示跨域问题
+- **= true**（Web 版）：请求代理路径 `/api/*`
+- **Electron（桌面版）**：始终直接请求完整 URL，不受环境变量影响
 
 ### 实现细节
 
 #### 1. 修改 tshockApi.ts
 
-- 移除 `isElectron()` 平台判断逻辑
-- 统一使用环境变量 `import.meta.env.VITE_USE_DIRECT_REQUEST` 判断
+- 保留 `isElectron()` 判断（桌面版始终直接请求）
+- Web 版使用环境变量 `import.meta.env.VITE_TSHOCK_USE_PROXY` 判断
 - 重构 `buildUrl`、`getHeaders`、`request` 等方法
 
 #### 2. 添加跨域提示
 
 在 UI 中添加提示信息（如配置面板）：
-- 当使用直接请求模式时，提示用户可能遇到跨域问题
+- 当 Web 版使用直接请求模式时，提示用户可能遇到跨域问题
 - 提供 TShock 跨域配置的解决方案说明
 
 #### 3. 环境变量使用示例
 
 ```bash
 # 使用代理路径（推荐用于生产部署）
-VITE_USE_DIRECT_REQUEST=true npm run build
+VITE_TSHOCK_USE_PROXY=true npm run build
 
 # 直接请求（默认，开发环境）
 npm run build
 # 或
-VITE_USE_DIRECT_REQUEST=false npm run build
+VITE_TSHOCK_USE_PROXY=false npm run build
 ```
 
 ### 修改文件
@@ -60,24 +61,3 @@ VITE_USE_DIRECT_REQUEST=false npm run build
 3. 重启 TShock 服务器
 
 或使用 Nginx/Cloudflare 等反向代理添加 CORS 头。
-# Web# Web版与桌面版REST请求地址统一方案
-
-## 问题背景
-
-当前 Web 版和# Web版与桌面版REST请求地址统一方案
-
-## 问题背景
-
-当前 Web 版和桌面版的 REST 请求地址处理方式不一致：
-- 桌面版（Electron）：# Web版与桌面版REST请求地址统一方案
-
-## 问题背景
-
-当前 Web 版和桌面版的 REST 请求地址处理方式不一致：
-- 桌面版（Electron）：直接请求完整 URL（`http://localhost:7878/v2/server/status`）# Web版与桌面版REST请求地址统一方案
-
-## 问题背景
-
-当前 Web 版和桌面版的 REST 请求地址处理方式不一致：
-- 桌面版（Electron）：直接请求完整 URL（`http://localhost:7878/v2/server/status`）
-- Web 版：请求相对路径（`/api/v2/server/status`）由
