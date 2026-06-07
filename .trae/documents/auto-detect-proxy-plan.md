@@ -19,9 +19,15 @@
 
 #### 1. 修改 tshockApi.ts
 
-- 保留 `isElectron()` 判断（桌面版始终直接请求）
-- Web 版使用环境变量 `import.meta.env.VITE_TSHOCK_USE_PROXY` 判断
-- 重构 `buildUrl`、`getHeaders`、`request` 等方法
+修改判断逻辑：
+- `isElectron() → 改成 `isElectron() || !import.meta.env.VITE_TSHOCK_USE_PROXY`（使用直接请求的情况
+- 不需要重构方法本身
+
+修改位置：
+- `getHeaders` (第 88 行)`：`!isElectron() && tshockUrl` → `!isElectron() && import.meta.env.VITE_TSHOCK_USE_PROXY && tshockUrl`
+- `buildUrl (第 103 行)`：`isElectron()` → `isElectron() || !import.meta.env.VITE_TSHOCK_USE_PROXY`
+- `getToken (第 145 行)`：`isElectron() ? endpoint : /api${endpoint}` → `(isElectron() || !import.meta.env.VITE_TSHOCK_USE_PROXY) ? endpoint : /api${endpoint}`
+- `request (第 183 行)`：`isElectron() ? endpoint : /api${endpoint}` → `(isElectron() || !import.meta.env.VITE_TSHOCK_USE_PROXY) ? endpoint : /api${endpoint}`
 
 #### 2. 添加跨域提示
 
@@ -43,7 +49,7 @@ VITE_TSHOCK_USE_PROXY=false npm run build
 
 ### 修改文件
 
-1. [tshockApi.ts](file:///workspace/src/services/tshockApi.ts)：核心逻辑修改
+1. [tshockApi.ts](file:///workspace/src/services/tshockApi.ts)：修改判断逻辑
 2. 相关 UI 组件（如配置面板）：添加跨域提示
 
 ### TShock 跨域配置说明（提示文案）
