@@ -54,16 +54,12 @@ VITE_TSHOCK_USE_PROXY=false npm run build
 
 ### TShock 跨域配置说明（提示文案）
 
-TShock REST API 本身不支持 CORS 配置。如需在 Web 版直接请求 TShock API，有以下解决方案：
+TShock REST API 本身不支持 CORS 配置。如需在 Web 版直接请求 TShock API，需要使用反向代理添加 CORS 响应头。
 
-**方案一：使用反向代理（推荐）**
+**使用反向代理：**
 - 使用 Nginx、Cloudflare 或其他反向代理服务
 - 在代理服务器上配置添加 CORS 响应头
 - Web 前端通过代理访问 TShock API
-
-**方案二：使用本工具的代理模式**
-- 构建时设置 `VITE_TSHOCK_USE_PROXY=true`
-- 通过后端代理转发请求，避免浏览器跨域限制
 
 **Nginx 配置示例：**
 ```nginx
