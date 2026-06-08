@@ -1,34 +1,8 @@
-import { useEffect, useMemo } from 'react';
+import { useEffect } from 'react';
 import packageInfo from '../../package.json';
-import { getItemIconUrl } from '../utils/terraria';
-
-// 装饰性物品ID列表
-const DECORATIVE_ITEMS = [
-  4956, // 天顶剑
-  3507, // 铜短剑
-  3506, // 铜斧
-  3509, // 铜镐
-  1,    // 铁镐
-  4,    // 铁阔剑
-  75,   // 泰拉瑞亚
-  12,   // 铜矿
-  11,   // 铁矿
-  13,   // 银矿
-  14,   // 金矿
-  8,    // 火把
-  9,    // 木材
-];
-
-// 随机选择装饰物品
-function getRandomDecorativeItems(count: number) {
-  const shuffled = [...DECORATIVE_ITEMS].sort(() => Math.random() - 0.5);
-  return shuffled.slice(0, count);
-}
+import { ItemRain } from './ItemRain';
 
 export function DownloadPage() {
-  const topDecorativeItems = useMemo(() => getRandomDecorativeItems(8), []);
-  const bottomDecorativeItems = useMemo(() => getRandomDecorativeItems(10), []);
-
   useEffect(() => {
     document.documentElement.style.overflow = 'auto';
     document.body.style.overflow = 'auto';
@@ -48,26 +22,9 @@ export function DownloadPage() {
     };
   }, []);
 
-  // 装饰性物品组件
-  const DecorativeItemRow = ({ itemIds }: { itemIds: number[] }) => (
-    <div className="flex justify-center items-center gap-4 flex-wrap opacity-60">
-      {itemIds.map((itemId, index) => (
-        <img
-          key={`${itemId}-${index}`}
-          src={getItemIconUrl(itemId)}
-          alt=""
-          className="w-10 h-10 object-contain hover:scale-125 transition-transform duration-300"
-          loading="lazy"
-          onError={(e) => {
-            (e.target as HTMLImageElement).style.display = 'none';
-          }}
-        />
-      ))}
-    </div>
-  );
-
   return (
     <div className="min-h-screen bg-slate-950 relative">
+      <ItemRain />
       <div className="fixed inset-0 cyber-grid pointer-events-none"></div>
       <div className="fixed inset-0 bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 pointer-events-none"></div>
 
@@ -77,8 +34,7 @@ export function DownloadPage() {
             <div className="flex justify-center mb-8">
               <img src="/favicon.svg" alt="TShock 服务器控制器" className="w-24 h-24" />
             </div>
-            <DecorativeItemRow itemIds={topDecorativeItems} />
-            <h1 className="text-4xl md:text-5xl font-bold mb-4 mt-6 text-gradient">
+            <h1 className="text-4xl md:text-5xl font-bold mb-4 text-gradient">
               TShock 服务器控制器
             </h1>
             <p className="text-xl text-slate-400 mb-8 max-w-2xl mx-auto">
@@ -263,11 +219,6 @@ export function DownloadPage() {
                 })}
               </div>
             </div>
-          </div>
-
-          {/* 底部装饰 */}
-          <div className="text-center">
-            <DecorativeItemRow itemIds={bottomDecorativeItems} />
           </div>
 
         </div>
