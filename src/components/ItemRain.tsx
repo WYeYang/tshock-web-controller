@@ -1,18 +1,17 @@
-import { useEffect, useState, useRef, useMemo, useCallback } from 'react';
+import { useEffect, useState, useRef, useMemo } from 'react';
 import { ITEM_DATA, getItemName, getItemIconUrl } from '../data';
 
 interface FallingItem {
   id: number;
-  x: number; // 百分比 0-100
-  y: number; // 百分比 0-100
+  x: number;
+  y: number;
   speed: number;
-  size: number; // 像素
+  size: number;
   rotation: number;
   rotationSpeed: number;
-  hovered: boolean;
 }
 
-interface ItemTooltipProps {
+interface ItemTooltipData {
   itemId: number;
   x: number;
   y: number;
@@ -20,17 +19,17 @@ interface ItemTooltipProps {
 
 export function ItemRain() {
   const [items, setItems] = useState<FallingItem[]>([]);
-  const [tooltip, setTooltip] = useState<ItemTooltipProps | null>(null);
-  const [isPaused, setIsPaused] = useState(false);
+  const [tooltip, setTooltip] = useState<ItemTooltipData | null>(null);
+  const [hoveredId, setHoveredId] = useState<number | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const animationRef = useRef<number | undefined>(undefined);
-  const lastTimeRef = useRef<number | undefined>(undefined);
+  const lastTimeRef = useRef<number>(0);
 
   // 随机选择掉落物品
   const selectedItemIds = useMemo(() => {
     const allIds = Object.keys(ITEM_DATA).map(Number);
     const shuffled = allIds.sort(() => Math.random() - 0.5);
-    return shuffled.slice(0, 500); // 选择500个不同物品
+    return shuffled.slice(0, 500);
   }, []);
 
   // 初始化掉落物品
@@ -41,136 +40,114 @@ export function ItemRain() {
       const itemId = selectedItemIds[i % selectedItemIds.length];
       initialItems.push({
         id: itemId,
-        x: Math.random() * 100,
-        y: Math.random() * 120 - 10, // 初始位置稍微分散
-        speed: 0.01 + Math.random() * 0.02,
-        size: 28 + Math.random() * 16,
+        x: Math.random() * (window.innerWidth - 60),
+        y: Math.random() * window.innerHeight,
+        speed: 0.3 + Math.random() * 0.5,
+        size: 36 + Math.random() * 16,
         rotation: Math.random() * 360,
-        rotationSpeed: (Math.random() - 0.5) * 1.5,
-        hovered: false,
+        rotationSpeed: (Math.random() - 0.5) * 2,
       });
     }
     setItems(initialItems);
   }, [selectedItemIds]);
 
   // 动画循环
-  const animate = useCallback((timestamp: number) => {
-    if (!lastTimeRef.current) lastTimeRef.current = timestamp;
-    const deltaTime = timestamp - lastTimeRef.current;
-    lastTimeRef.current = timestamp;
+  useEffect(() => {
+    const animate = (timestamp: number) => {
+      if (!lastTimeRef.current) lastTimeRef.current = timestamp;
+      const deltaTime = (timestamp - lastTimeRef.current) / 16.67; // 标准化到60fps
+      lastTimeRef.current = timestamp;
 
-    if (!isPaused) {
       setItems(prevItems => 
         prevItems.map(item => {
-          if (item.hovered) return item;
+          if (hoveredId === item.id) return item;
           
-          let newY = item.y + (item.speed * deltaTime * 0.05);
+          let newY = item.y + item.speed * deltaTime;
           let newRotation = item.rotation + item.rotationSpeed;
           
           // 重置到底部
-          if (newY > 110) {
-            newY = -10;
-            return { ...item, y: newY, rotation: newRotation, x: Math.random() * 100 };
+          if (newY > window.innerHeight + 50) {
+            newY = -50;
+            return { 
+              ...item, 
+              y: newY, 
+              rotation: newRotation, 
+              x: Math.random() * (window.innerWidth - 60),
+              id: selectedItemIds[Math.floor(Math.random() * selectedItemIds.length)]
+            };
           }
           
           return { ...item, y: newY, rotation: newRotation };
         })
       );
-    }
-    
-    animationRef.current = requestAnimationFrame(animate);
-  }, [isPaused]);
+      
+      animationRef.current = requestAnimationFrame(animate);
+    };
 
-  useEffect(() => {
     animationRef.current = requestAnimationFrame(animate);
+    
     return () => {
       if (animationRef.current) {
         cancelAnimationFrame(animationRef.current);
       }
     };
-  }, [animate]);
+  }, [hoveredId, selectedItemIds]);
 
-  // 鼠标位置检测 - 使用像素坐标计算
-  const handleMouseMove = (e: React.MouseEvent) => {
-    if (!containerRef.current) return;
-    
-    const rect = containerRef.current.getBoundingClientRect();
-    const mouseScreenX = e.clientX;
-    const mouseScreenY = e.clientY;
-
-    let foundHover = false;
-    let newTooltip: ItemTooltipProps | null = null;
-
-    setItems(prevItems => {
-      return prevItems.map(item => {
-        // 将百分比坐标转换为屏幕像素坐标
-        const itemScreenX = rect.left + (item.x / 100) * rect.width;
-        const itemScreenY = rect.top + (item.y / 100) * rect.height;
-        
-        // 计算鼠标到物品中心的像素距离
-        const dx = mouseScreenX - itemScreenX;
-        const dy = mouseScreenY - itemScreenY;
-        const pixelDistance = Math.sqrt(dx * dx + dy * dy);
-        
-        // 使用物品尺寸的 60% 作为检测半径（确保容易点击）
-        const hitRadius = item.size * 0.6;
-        
-        const isHovered = pixelDistance < hitRadius && !foundHover;
-        if (isHovered) foundHover = true;
-        
-        if (isHovered && !item.hovered) {
-          newTooltip = { itemId: item.id, x: e.clientX, y: e.clientY };
-        }
-        
-        return { ...item, hovered: isHovered };
-      });
+  // 鼠标进入物品
+  const handleItemMouseEnter = (e: React.MouseEvent, item: FallingItem) => {
+    e.stopPropagation();
+    setHoveredId(item.id);
+    setTooltip({ 
+      itemId: item.id, 
+      x: e.clientX, 
+      y: e.clientY 
     });
-
-    // 在 setItems 之外更新 tooltip
-    if (newTooltip) {
-      setTooltip(newTooltip);
-    } else if (!foundHover) {
-      setTooltip(null);
-    }
   };
 
-  const handleMouseEnter = () => {
-    setIsPaused(true);
+  // 鼠标在物品上移动
+  const handleItemMouseMove = (e: React.MouseEvent, item: FallingItem) => {
+    e.stopPropagation();
+    setTooltip({ 
+      itemId: item.id, 
+      x: e.clientX, 
+      y: e.clientY 
+    });
   };
 
-  const handleMouseLeave = () => {
-    setIsPaused(false);
+  // 鼠标离开物品
+  const handleItemMouseLeave = () => {
+    setHoveredId(null);
     setTooltip(null);
-    setItems(prevItems => prevItems.map(item => ({ ...item, hovered: false })));
   };
 
   return (
     <div 
       ref={containerRef}
-      className="fixed inset-0 overflow-hidden"
-      onMouseMove={handleMouseMove}
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
+      className="fixed inset-0 overflow-hidden pointer-events-none"
       style={{ zIndex: 1 }}
     >
       {items.map((item, index) => (
         <div
           key={`${item.id}-${index}`}
-          className={`absolute transition-all duration-300`}
+          className="absolute pointer-events-auto"
           style={{
-            left: `${item.x}%`,
-            top: `${item.y}%`,
-            transform: `translate(-50%, -50%) rotate(${item.rotation}deg)`,
-            opacity: item.hovered ? 1 : 0.5,
-            zIndex: item.hovered ? 50 : 1,
+            left: `${item.x}px`,
+            top: `${item.y}px`,
+            transform: `rotate(${item.rotation}deg)`,
+            opacity: hoveredId === item.id ? 1 : 0.6,
+            zIndex: hoveredId === item.id ? 50 : 1,
+            transition: 'transform 0.15s, opacity 0.15s',
           }}
+          onMouseEnter={(e) => handleItemMouseEnter(e, item)}
+          onMouseMove={(e) => handleItemMouseMove(e, item)}
+          onMouseLeave={handleItemMouseLeave}
         >
           <div 
             className={`
-              relative rounded border-2 transition-all cursor-pointer
-              ${item.hovered 
-                ? 'border-cyan-400/80 bg-slate-900/95 shadow-lg shadow-cyan-500/30 scale-125' 
-                : 'border-slate-500/50 bg-slate-900/50'
+              relative rounded border-2 cursor-pointer
+              ${hoveredId === item.id 
+                ? 'border-cyan-400 bg-slate-900 shadow-lg shadow-cyan-500/30 scale-110' 
+                : 'border-slate-500/60 bg-slate-900/60'
               }
             `}
             style={{
@@ -197,7 +174,7 @@ export function ItemRain() {
           className="fixed z-[1000] pointer-events-none"
           style={{
             left: `${Math.min(tooltip.x + 16, window.innerWidth - 200)}px`,
-            top: `${Math.min(tooltip.y + 16, window.innerHeight - 80)}px`,
+            top: `${Math.min(tooltip.y + 16, window.innerHeight - 100)}px`,
           }}
         >
           <div className="bg-slate-900/95 border border-cyan-500/40 rounded-lg shadow-xl shadow-cyan-500/10 p-3 min-w-[180px]">
@@ -221,12 +198,10 @@ export function ItemRain() {
         </div>
       )}
 
-      {/* 暂停提示 */}
-      {isPaused && (
-        <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 bg-slate-900/80 backdrop-blur-sm border border-cyan-500/30 rounded-full px-4 py-2 text-cyan-400 text-sm">
-          暂停中 - 移动鼠标查看物品信息
-        </div>
-      )}
+      {/* 底部提示 */}
+      <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 bg-slate-900/80 backdrop-blur-sm border border-cyan-500/30 rounded-full px-4 py-2 text-cyan-400 text-sm">
+        鼠标悬停查看物品信息
+      </div>
     </div>
   );
 }
