@@ -124,7 +124,7 @@ export function ItemRain() {
     <div 
       ref={containerRef}
       className="fixed inset-0 overflow-hidden pointer-events-none"
-      style={{ zIndex: 1 }}
+      style={{ zIndex: 5 }}
     >
       {items.map((item, index) => (
         <div
