@@ -23,12 +23,12 @@ export function DownloadPage() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-slate-950 relative">
+    <div className="min-h-screen bg-slate-950 relative" style={{ pointerEvents: 'none' }}>
       <div className="fixed inset-0 cyber-grid pointer-events-none z-0"></div>
       <div className="fixed inset-0 bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 pointer-events-none z-0"></div>
       <ItemRain />
 
-      <div className="relative z-10 py-16 px-6" style={{ pointerEvents: 'none' }}>
+      <div className="relative z-10 py-16 px-6">
         <div className="max-w-4xl mx-auto" style={{ pointerEvents: 'auto' }}>
           <div className="text-center mb-16">
             <div className="flex justify-center mb-8">
