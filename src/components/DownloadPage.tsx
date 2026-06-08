@@ -28,8 +28,8 @@ export function DownloadPage() {
       <div className="fixed inset-0 bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 pointer-events-none z-0"></div>
       <ItemRain />
 
-      <div className="relative z-10 py-16 px-6">
-        <div className="max-w-4xl mx-auto">
+      <div className="relative z-10 py-16 px-6" style={{ pointerEvents: 'none' }}>
+        <div className="max-w-4xl mx-auto" style={{ pointerEvents: 'auto' }}>
           <div className="text-center mb-16">
             <div className="flex justify-center mb-8">
               <img src="/favicon.svg" alt="TShock 服务器控制器" className="w-24 h-24" />
