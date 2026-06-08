@@ -1,5 +1,6 @@
 import { useEffect, useState, useRef, useMemo } from 'react';
 import { ITEM_DATA, getItemIconUrl } from '../data';
+import { createPortal } from 'react-dom';
 
 interface FallingItem {
   id: number;
@@ -11,9 +12,16 @@ interface FallingItem {
   rotationSpeed: number;
 }
 
+interface HoverTooltip {
+  id: number;
+  x: number;
+  y: number;
+}
+
 export function ItemRain() {
   const [items, setItems] = useState<FallingItem[]>([]);
   const [hoveredId, setHoveredId] = useState<number | null>(null);
+  const [tooltip, setTooltip] = useState<HoverTooltip | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const animationRef = useRef<number | undefined>(undefined);
   const lastTimeRef = useRef<number>(0);
@@ -87,13 +95,22 @@ export function ItemRain() {
   }, [hoveredId, selectedItemIds]);
 
   // 鼠标进入物品
-  const handleItemMouseEnter = (item: FallingItem) => {
+  const handleItemMouseEnter = (item: FallingItem, e: React.MouseEvent) => {
     setHoveredId(item.id);
+    setTooltip({ id: item.id, x: e.clientX + 15, y: e.clientY + 15 });
+  };
+
+  // 鼠标移动
+  const handleItemMouseMove = (e: React.MouseEvent) => {
+    if (hoveredId) {
+      setTooltip({ id: hoveredId, x: e.clientX + 15, y: e.clientY + 15 });
+    }
   };
 
   // 鼠标离开物品
   const handleItemMouseLeave = () => {
     setHoveredId(null);
+    setTooltip(null);
   };
 
   return (
@@ -116,7 +133,8 @@ export function ItemRain() {
             cursor: 'pointer',
             pointerEvents: 'auto',
           }}
-          onMouseEnter={() => handleItemMouseEnter(item)}
+          onMouseEnter={(e) => handleItemMouseEnter(item, e)}
+          onMouseMove={handleItemMouseMove}
           onMouseLeave={handleItemMouseLeave}
         >
           <div 
@@ -145,6 +163,52 @@ export function ItemRain() {
         </div>
       ))}
 
+      {/* 悬浮提示框 */}
+      {tooltip && (() => {
+        const itemData = ITEM_DATA[tooltip.id];
+        const displayName = itemData?.zh || itemData?.en || `Item ${tooltip.id}`;
+        
+        return createPortal(
+          <div
+            className="fixed pointer-events-none bg-slate-900 border border-slate-700 rounded-lg p-4 shadow-xl min-w-[240px] z-[1000]"
+            style={{
+              left: tooltip.x,
+              top: tooltip.y,
+            }}
+          >
+            <div className="flex gap-3 items-start">
+              <div className="flex-shrink-0">
+                <img
+                  src={getItemIconUrl(tooltip.id)}
+                  alt=""
+                  className="w-12 h-12 object-contain"
+                  onError={(e) => (e.currentTarget.style.display = 'none')}
+                />
+              </div>
+              
+              <div className="flex-1 min-w-0">
+                <h3 className="text-lg font-bold text-white mb-1">
+                  {displayName}
+                </h3>
+                
+                {itemData?.zh && itemData?.en && itemData.zh !== itemData.en && (
+                  <p className="text-xs text-slate-400 mb-2">
+                    {itemData.en}
+                  </p>
+                )}
+                
+                <div className="space-y-1 text-sm">
+                  <div className="flex items-center gap-2 text-slate-300">
+                    <span className="text-slate-500">ID:</span>
+                    <span className="font-mono">{tooltip.id}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>,
+          document.body
+        );
+      })()}
 
     </div>
   );
