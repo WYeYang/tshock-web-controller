@@ -122,7 +122,7 @@ export function ItemRain() {
     <div 
       ref={containerRef}
       className="fixed inset-0 overflow-hidden"
-      style={{ zIndex: 5 }}
+      style={{ zIndex: 5, pointerEvents: 'none' }}
     >
       {items.map((item, index) => (
         <div
@@ -136,6 +136,7 @@ export function ItemRain() {
             zIndex: hoveredId === item.id ? 50 : 1,
             transition: 'transform 0.15s, opacity 0.15s',
             cursor: 'pointer',
+            pointerEvents: 'auto',
           }}
           onMouseEnter={() => handleItemMouseEnter(item)}
           onMouseMove={(e) => handleItemMouseMove(e, item)}
