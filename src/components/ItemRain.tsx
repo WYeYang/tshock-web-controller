@@ -3,10 +3,10 @@ import { ITEM_DATA, getItemName, getItemIconUrl } from '../data';
 
 interface FallingItem {
   id: number;
-  x: number;
-  y: number;
+  x: number; // 百分比 0-100
+  y: number; // 百分比 0-100
   speed: number;
-  size: number;
+  size: number; // 像素
   rotation: number;
   rotationSpeed: number;
   hovered: boolean;
@@ -30,30 +30,23 @@ export function ItemRain() {
   const selectedItemIds = useMemo(() => {
     const allIds = Object.keys(ITEM_DATA).map(Number);
     const shuffled = allIds.sort(() => Math.random() - 0.5);
-    return shuffled.slice(0, 100); // 选择100个不同物品
+    return shuffled.slice(0, 500); // 选择500个不同物品
   }, []);
 
   // 初始化掉落物品
   useEffect(() => {
     const initialItems: FallingItem[] = [];
-    const usedIds = new Set<number>();
     
-    for (let i = 0; i < 30; i++) {
-      // 选择一个未使用的物品ID
-      let itemId: number;
-      do {
-        itemId = selectedItemIds[Math.floor(Math.random() * selectedItemIds.length)];
-      } while (usedIds.has(itemId) && usedIds.size < selectedItemIds.length);
-      usedIds.add(itemId);
-      
+    for (let i = 0; i < 150; i++) {
+      const itemId = selectedItemIds[i % selectedItemIds.length];
       initialItems.push({
         id: itemId,
         x: Math.random() * 100,
-        y: Math.random() * 100,
-        speed: 0.02 + Math.random() * 0.03,
-        size: 24 + Math.random() * 16,
+        y: Math.random() * 120 - 10, // 初始位置稍微分散
+        speed: 0.01 + Math.random() * 0.02,
+        size: 28 + Math.random() * 16,
         rotation: Math.random() * 360,
-        rotationSpeed: (Math.random() - 0.5) * 2,
+        rotationSpeed: (Math.random() - 0.5) * 1.5,
         hovered: false,
       });
     }
@@ -97,34 +90,52 @@ export function ItemRain() {
     };
   }, [animate]);
 
-  // 鼠标位置检测
+  // 鼠标位置检测 - 使用像素坐标计算
   const handleMouseMove = (e: React.MouseEvent) => {
     if (!containerRef.current) return;
     
     const rect = containerRef.current.getBoundingClientRect();
-    const mouseX = ((e.clientX - rect.left) / rect.width) * 100;
-    const mouseY = ((e.clientY - rect.top) / rect.height) * 100;
+    const mouseScreenX = e.clientX;
+    const mouseScreenY = e.clientY;
 
     let foundHover = false;
+    let newTooltip: ItemTooltipProps | null = null;
+
     setItems(prevItems => {
       return prevItems.map(item => {
-        const dx = mouseX - item.x;
-        const dy = mouseY - item.y;
-        const distance = Math.sqrt(dx * dx + dy * dy);
-        const hitRadius = item.size / 2 + 2;
+        // 将百分比坐标转换为屏幕像素坐标
+        const itemScreenX = rect.left + (item.x / 100) * rect.width;
+        const itemScreenY = rect.top + (item.y / 100) * rect.height;
         
-        const isHovered = distance < hitRadius && !foundHover;
+        // 计算鼠标到物品中心的像素距离
+        const dx = mouseScreenX - itemScreenX;
+        const dy = mouseScreenY - itemScreenY;
+        const pixelDistance = Math.sqrt(dx * dx + dy * dy);
+        
+        // 使用物品尺寸的 60% 作为检测半径（确保容易点击）
+        const hitRadius = item.size * 0.6;
+        
+        const isHovered = pixelDistance < hitRadius && !foundHover;
         if (isHovered) foundHover = true;
         
         if (isHovered && !item.hovered) {
-          setTooltip({ itemId: item.id, x: e.clientX, y: e.clientY });
-        } else if (!isHovered && item.hovered) {
-          setTooltip(null);
+          newTooltip = { itemId: item.id, x: e.clientX, y: e.clientY };
         }
         
         return { ...item, hovered: isHovered };
       });
     });
+
+    // 在 setItems 之外更新 tooltip
+    if (newTooltip) {
+      setTooltip(newTooltip);
+    } else if (!foundHover) {
+      setTooltip(null);
+    }
+  };
+
+  const handleMouseEnter = () => {
+    setIsPaused(true);
   };
 
   const handleMouseLeave = () => {
@@ -138,27 +149,28 @@ export function ItemRain() {
       ref={containerRef}
       className="fixed inset-0 overflow-hidden"
       onMouseMove={handleMouseMove}
-      onMouseEnter={() => setIsPaused(true)}
+      onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
       style={{ zIndex: 1 }}
     >
       {items.map((item, index) => (
         <div
           key={`${item.id}-${index}`}
-          className={`absolute transition-opacity ${isPaused ? '' : 'duration-300'}`}
+          className={`absolute transition-all duration-300`}
           style={{
             left: `${item.x}%`,
             top: `${item.y}%`,
             transform: `translate(-50%, -50%) rotate(${item.rotation}deg)`,
-            opacity: item.hovered ? 1 : 0.3,
+            opacity: item.hovered ? 1 : 0.5,
+            zIndex: item.hovered ? 50 : 1,
           }}
         >
           <div 
             className={`
-              relative rounded border-2 transition-all
+              relative rounded border-2 transition-all cursor-pointer
               ${item.hovered 
-                ? 'border-cyan-400/60 bg-slate-900/90 shadow-lg shadow-cyan-500/20 scale-110 z-50' 
-                : 'border-slate-600/40 bg-slate-900/30'
+                ? 'border-cyan-400/80 bg-slate-900/95 shadow-lg shadow-cyan-500/30 scale-125' 
+                : 'border-slate-500/50 bg-slate-900/50'
               }
             `}
             style={{
