@@ -10,9 +10,10 @@ import { DEFAULT_SERVER_URL, mergeWithDefaultRestApiSettings } from '../config/t
 
 interface SetupWizardProps {
   onComplete: () => void;
+  onSkip: () => void;
 }
 
-export const SetupWizard = ({ onComplete }: SetupWizardProps) => {
+export const SetupWizard = ({ onComplete, onSkip }: SetupWizardProps) => {
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -32,7 +33,7 @@ export const SetupWizard = ({ onComplete }: SetupWizardProps) => {
   const [skipConfig, setSkipConfig] = useState(() => localStorage.getItem('tshock_skip_config') === 'true');
 
   const handleSkip = () => {
-    onComplete();
+    onSkip();
   };
   const prevOptionRef = useRef<string | null>(null);
 
@@ -296,7 +297,8 @@ export const SetupWizard = ({ onComplete }: SetupWizardProps) => {
       // 4. 只保存 url 和 token（用户名和密码已经在输入时保存了）
       updateTshockConfig({
         serverUrl: DEFAULT_SERVER_URL,
-        token: token
+        token: token,
+        useBuiltinServer: true
       });
 
       onComplete();

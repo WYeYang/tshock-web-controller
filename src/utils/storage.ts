@@ -30,6 +30,7 @@ export const defaultConfig: AppConfig = {
     username: '',
     password: '',
     useCredentials: true,
+    useBuiltinServer: false,
   },
 };
 

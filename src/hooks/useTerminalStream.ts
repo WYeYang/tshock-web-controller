@@ -91,7 +91,10 @@ class RestTerminalStream implements TerminalStream {
   };
 }
 
-export const useTerminalStream = (): TerminalStream => {
+export const useTerminalStream = (useBuiltinServer?: boolean): TerminalStream => {
   const isElectron = typeof window !== 'undefined' && !!window.electronAPI;
-  return isElectron ? new ElectronTerminalStream() : new RestTerminalStream();
+  if (isElectron && useBuiltinServer) {
+    return new ElectronTerminalStream();
+  }
+  return new RestTerminalStream();
 };

@@ -83,6 +83,9 @@ export const Dashboard = () => {
             setShowSetupWizard(false);
             setCurrentView('terminal');
           }}
+          onSkip={() => {
+            setShowSetupWizard(false);
+          }}
         />
       )}
 
