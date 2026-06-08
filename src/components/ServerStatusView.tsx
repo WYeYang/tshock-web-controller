@@ -1,6 +1,7 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useTShock } from '../hooks/useTShock';
+import { useAppContext } from '../context/AppContext';
 import type { Player, BanRecord, Group } from '../types/tshock';
 import { GroupList } from './GroupList';
 import { GroupEditModal } from './GroupEditModal';
@@ -15,6 +16,7 @@ interface ServerStatusViewProps {
 }
 
 export function ServerStatusView({ onGoToConfig }: ServerStatusViewProps) {
+  const { config } = useAppContext();
   const {
     loading,
     error,
@@ -40,6 +42,16 @@ export function ServerStatusView({ onGoToConfig }: ServerStatusViewProps) {
     updateExistingGroup,
     deleteExistingGroup,
   } = useTShock();
+
+  // 从 serverUrl 解析主机名
+  const getServerHost = () => {
+    try {
+      const url = new URL(config.tshock.serverUrl);
+      return url.hostname;
+    } catch (e) {
+      return '127.0.0.1';
+    }
+  };
   const [serverInfo, setServerInfo] = useState<any>(null);
   const [players, setPlayers] = useState<Player[]>([]);
   const [banList, setBanList] = useState<BanRecord[]>([]);
@@ -118,6 +130,15 @@ export function ServerStatusView({ onGoToConfig }: ServerStatusViewProps) {
   }, [playerDetailModalOpen, confirmDialog.isOpen, groupEditModalOpen, createGroupDialogOpen, confirmDeleteGroup, fetchData]);
 
   const showToast = (message: string, type: 'success' | 'error' | 'info') => setToast({ message, type });
+
+  const handleCopy = async (text: string, label: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      showToast(`${label}已复制到剪贴板`, 'success');
+    } catch (e) {
+      showToast('复制失败', 'error');
+    }
+  };
 
   // 用户组编辑相关函数
   const openGroupEditModal = async (group: Group, initialTab?: 'basic' | 'permissions' | 'members') => {
@@ -462,22 +483,40 @@ export function ServerStatusView({ onGoToConfig }: ServerStatusViewProps) {
 
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
         <div className="glass-card neon-border p-6">
-          <div className="flex items-center gap-2 mb-4">
-            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-cyan-500/20 to-purple-600/20 flex items-center justify-center neon-pulse">
-              ⚡
+          <div className="flex items-center justify-between gap-4 mb-4">
+            <div className="flex items-center gap-2">
+              <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-cyan-500/20 to-purple-600/20 flex items-center justify-center neon-pulse">
+                ⚡
+              </div>
+              <h2 className="text-lg font-bold text-white">服务器信息</h2>
             </div>
-            <h2 className="text-lg font-bold text-white">服务器信息</h2>
+            {/* 连接地址 */}
+            {serverInfo && (
+              <div className="flex items-center gap-2 bg-slate-800/30 rounded-lg px-3 py-2">
+                <span className="text-slate-400 text-sm">连接地址:</span>
+                <span className="text-cyan-300 font-medium font-mono text-sm">{getServerHost()}:{serverInfo.port}</span>
+                <button
+                  onClick={() => handleCopy(`${getServerHost()}:${serverInfo.port}`, '连接地址')}
+                  className="text-slate-400 hover:text-cyan-400 focus:text-cyan-400 transition-colors p-1 rounded focus:outline-none focus:ring-2 focus:ring-cyan-500/50"
+                  title="复制"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                  </svg>
+                </button>
+              </div>
+            )}
           </div>
 
           {loading && !serverInfo ? (
             <div className="space-y-3">加载中...</div>
           ) : serverInfo ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
               <div className="flex items-center justify-between gap-3 p-3 bg-slate-800/30 rounded-lg"><span className="text-slate-400 text-sm">服务器名称</span><span className="text-white font-medium text-right truncate">{serverInfo.name}</span></div>
               <div className="flex items-center justify-between gap-3 p-3 bg-slate-800/30 rounded-lg"><span className="text-slate-400 text-sm">版本</span><span className="text-cyan-400 font-medium text-right">{serverInfo.serverversion}</span></div>
               <div className="flex items-center justify-between gap-3 p-3 bg-slate-800/30 rounded-lg"><span className="text-slate-400 text-sm">在线玩家</span><span className="text-green-400 font-medium text-right">{serverInfo.playercount} / {serverInfo.maxplayers}</span></div>
               <div className="flex items-center justify-between gap-3 p-3 bg-slate-800/30 rounded-lg"><span className="text-slate-400 text-sm">运行时间</span><span className="text-white font-medium text-right">{serverInfo.uptime}</span></div>
-              <div className="flex items-center justify-between gap-3 p-3 bg-slate-800/30 rounded-lg md:col-span-2"><span className="text-slate-400 text-sm">世界</span><span className="text-white font-medium text-right truncate">{serverInfo.world}</span></div>
+              <div className="flex items-center justify-between gap-3 p-3 bg-slate-800/30 rounded-lg lg:col-span-2"><span className="text-slate-400 text-sm">世界</span><span className="text-white font-medium text-right truncate">{serverInfo.world}</span></div>
             </div>
           ) : null}
         </div>

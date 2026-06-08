@@ -1,8 +1,10 @@
 import { useTerminalStream } from '../hooks/useTerminalStream';
 import { TerminalPanel } from './TerminalPanel';
+import { useConfig } from '../hooks/useConfig';
 
 export const TerminalView = () => {
-  const stream = useTerminalStream();
+  const { config } = useConfig();
+  const stream = useTerminalStream(config.tshock.useBuiltinServer);
 
   return (
     <div className="flex flex-col h-full">

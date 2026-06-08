@@ -4,6 +4,7 @@ export interface TShockConfig {
   username: string;
   password: string;
   useCredentials: boolean;
+  useBuiltinServer?: boolean;
 }
 
 export interface AppConfig {

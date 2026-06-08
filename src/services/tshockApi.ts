@@ -51,6 +51,10 @@ class DetailedErrorLogger {
 export class TShockApi {
   constructor() {}
 
+  private shouldUseDirectRequest(): boolean {
+    return isElectron() || import.meta.env.VITE_TSHOCK_USE_PROXY !== 'true';
+  }
+
   // ==================== 配置相关 ====================
   private getConfigFromStorage(): { serverUrl: string; token: string } {
     const config = getConfig();
@@ -83,12 +87,12 @@ export class TShockApi {
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
     };
-    
-    // 在非 Electron 环境（纯浏览器）里，添加 X-TShock-Url header
-    if (!isElectron() && tshockUrl) {
+
+    // 使用代理模式时，添加 X-TShock-Url header
+    if (!this.shouldUseDirectRequest() && tshockUrl) {
       headers['X-TShock-Url'] = tshockUrl;
     }
-    
+
     return headers;
   }
 
@@ -100,11 +104,11 @@ export class TShockApi {
   }
 
   private buildUrl(path: string, tshockUrl: string): string {
-    if (isElectron()) {
-      // 在 Electron 环境里，直接请求完整 URL，配合 webSecurity: false
+    if (this.shouldUseDirectRequest()) {
+      // 直接请求完整 URL
       return `${tshockUrl}${path}`;
     } else {
-      // 在纯浏览器环境里，请求相对路径 + header，由 Vite proxy 或云端代理处理
+      // 使用代理路径，由 Vite proxy 或云端代理处理
       return path;
     }
   }
@@ -142,7 +146,7 @@ export class TShockApi {
   async getToken(username: string, password: string): Promise<string> {
     const { serverUrl } = this.getConfigFromStorage();
     const endpoint = `/v2/token/create?username=${encodeURIComponent(username)}&password=${encodeURIComponent(password)}`;
-    const path = isElectron() ? endpoint : `/api${endpoint}`;
+    const path = this.shouldUseDirectRequest() ? endpoint : `/api${endpoint}`;
     const url = this.buildUrl(path, serverUrl);
     
     try {
@@ -153,12 +157,6 @@ export class TShockApi {
       
       if (!response.ok) {
         const errorMessage = await this.parseErrorResponse(response);
-        DetailedErrorLogger.log('GET', url, {
-          action: 'getToken',
-          tshockUrl: serverUrl,
-          status: response.status,
-          error: errorMessage
-        });
         throw new Error(errorMessage);
       }
       
@@ -180,7 +178,7 @@ export class TShockApi {
 
   private async request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
     const { serverUrl, token } = this.getConfigFromStorage();
-    const basePath = isElectron() ? endpoint : `/api${endpoint}`;
+    const basePath = this.shouldUseDirectRequest() ? endpoint : `/api${endpoint}`;
     const headers = this.mergeHeaders(this.getHeaders(serverUrl), options.headers);
     const fullPath = this.addTokenToPath(basePath, token);
     const fullUrl = this.buildUrl(fullPath, serverUrl);
@@ -193,14 +191,6 @@ export class TShockApi {
 
       if (!response.ok) {
         const errorText = await response.text();
-        DetailedErrorLogger.log('FETCH', fullUrl, {
-          action: 'request',
-          tshockUrl: serverUrl,
-          method: options.method || 'GET',
-          status: response.status,
-          statusText: response.statusText,
-          response: errorText,
-        });
         
         // 尝试解析 JSON 错误信息
         let errorMessage = `HTTP error! status: ${response.status}`;
