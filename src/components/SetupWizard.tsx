@@ -30,6 +30,10 @@ export const SetupWizard = ({ onComplete }: SetupWizardProps) => {
   const [worldPath, setWorldPath] = useState<string | null>(null);
   const [reinstall, setReinstall] = useState(true);
   const [skipConfig, setSkipConfig] = useState(() => localStorage.getItem('tshock_skip_config') === 'true');
+
+  const handleSkip = () => {
+    onComplete();
+  };
   const prevOptionRef = useRef<string | null>(null);
 
   // 输入时立即保存用户名和密码
@@ -608,13 +612,21 @@ export const SetupWizard = ({ onComplete }: SetupWizardProps) => {
                   </div>
                 </div>
 
-                <button
-                  onClick={handleConfirm}
-                  disabled={loading || !selectedOption}
-                  className="mx-auto mt-4 px-8 py-3 bg-gradient-to-r from-cyan-500 to-purple-500 hover:from-cyan-400 hover:to-purple-400 text-white font-medium rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-purple-500/20"
-                >
-                  {loading ? '处理中...' : '确认'}
-                </button>
+                <div className="flex flex-col items-center gap-3 mt-4">
+                  <button
+                    onClick={handleConfirm}
+                    disabled={loading || !selectedOption}
+                    className="px-8 py-3 bg-gradient-to-r from-cyan-500 to-purple-500 hover:from-cyan-400 hover:to-purple-400 text-white font-medium rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-purple-500/20"
+                  >
+                    {loading ? '处理中...' : '确认'}
+                  </button>
+                  <button
+                    onClick={handleSkip}
+                    className="text-slate-400 hover:text-slate-300 text-sm font-medium underline underline-offset-2 transition-colors"
+                  >
+                    已有 TShock 服务器？跳过
+                  </button>
+                </div>
               </div>
             </div>
           ) : (

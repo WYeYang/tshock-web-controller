@@ -1,3 +1,5 @@
+import packageInfo from '../../package.json';
+
 export type ViewType = 'terminal' | 'server' | 'help' | 'docs' | 'config' | 'config-editor';
 
 interface SidebarProps {
@@ -128,13 +130,17 @@ export const Sidebar = ({ currentView, onViewChange, isConfigured, isDesktop = f
             免费开源软件，您可以在遵循许可协议的前提下<br />自由使用、修改和分发。
           </p>
         </div>
-        <div className="flex justify-center gap-3">
+        <div className="flex justify-center gap-3 flex-wrap">
           <a href="https://github.com/WYeYang/tshock-web-controller" target="_blank" rel="noopener noreferrer" className="text-cyan-400 hover:text-cyan-300 text-xs transition-colors">
             GitHub
           </a>
           <span className="text-slate-600 text-xs">•</span>
           <a href="https://www.gnu.org/licenses/" target="_blank" rel="noopener noreferrer" className="text-cyan-400 hover:text-cyan-300 text-xs transition-colors">
             GPL v3
+          </a>
+          <span className="text-slate-600 text-xs">•</span>
+          <a href="https://github.com/WYeYang/tshock-web-controller/releases" target="_blank" rel="noopener noreferrer" className="text-cyan-400 hover:text-cyan-300 text-xs transition-colors">
+            v{packageInfo.version}
           </a>
         </div>
       </div>
