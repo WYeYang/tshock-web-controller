@@ -94,19 +94,17 @@ export function ItemRain() {
   }, [hoveredId, selectedItemIds]);
 
   // 鼠标进入物品
-  const handleItemMouseEnter = (e: React.MouseEvent, item: FallingItem) => {
-    e.stopPropagation();
+  const handleItemMouseEnter = (item: FallingItem) => {
     setHoveredId(item.id);
     setTooltip({ 
       itemId: item.id, 
-      x: e.clientX, 
-      y: e.clientY 
+      x: window.innerWidth / 2, 
+      y: window.innerHeight / 2 
     });
   };
 
   // 鼠标在物品上移动
   const handleItemMouseMove = (e: React.MouseEvent, item: FallingItem) => {
-    e.stopPropagation();
     setTooltip({ 
       itemId: item.id, 
       x: e.clientX, 
@@ -123,13 +121,13 @@ export function ItemRain() {
   return (
     <div 
       ref={containerRef}
-      className="fixed inset-0 overflow-hidden pointer-events-none"
+      className="fixed inset-0 overflow-hidden"
       style={{ zIndex: 5 }}
     >
       {items.map((item, index) => (
         <div
           key={`${item.id}-${index}`}
-          className="absolute pointer-events-auto"
+          className="absolute"
           style={{
             left: `${item.x}px`,
             top: `${item.y}px`,
@@ -137,8 +135,9 @@ export function ItemRain() {
             opacity: hoveredId === item.id ? 1 : 0.6,
             zIndex: hoveredId === item.id ? 50 : 1,
             transition: 'transform 0.15s, opacity 0.15s',
+            cursor: 'pointer',
           }}
-          onMouseEnter={(e) => handleItemMouseEnter(e, item)}
+          onMouseEnter={() => handleItemMouseEnter(item)}
           onMouseMove={(e) => handleItemMouseMove(e, item)}
           onMouseLeave={handleItemMouseLeave}
         >
