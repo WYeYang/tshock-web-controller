@@ -29,8 +29,13 @@ export function DownloadPage() {
       <div className="fixed inset-0 cyber-grid pointer-events-none z-0"></div>
       <div className="fixed inset-0 bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 pointer-events-none z-0"></div>
 
+      {/* ItemRain 层 - 顶层，只在物品上可交互，容器穿透 */}
+      <div className="fixed inset-0 z-15 pointer-events-none">
+        <ItemRain />
+      </div>
+
       {/* 内容层 - 底层，可滚动和交互 */}
-      <div className="relative z-10 py-16 px-6">
+      <div className="relative z-20 py-16 px-6">
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-16">
             <div className="flex justify-center mb-8">
@@ -224,11 +229,6 @@ export function DownloadPage() {
           </div>
 
         </div>
-      </div>
-
-      {/* ItemRain 层 - 顶层，只在物品上可交互，容器穿透 */}
-      <div className="fixed inset-0 z-20 pointer-events-none">
-        <ItemRain />
       </div>
     </div>
   );

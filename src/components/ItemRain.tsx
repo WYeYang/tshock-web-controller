@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef, useMemo } from 'react';
-import { ITEM_DATA, getItemName, getItemIconUrl } from '../data';
+import { ITEM_DATA, getItemIconUrl } from '../data';
 
 interface FallingItem {
   id: number;
@@ -11,15 +11,8 @@ interface FallingItem {
   rotationSpeed: number;
 }
 
-interface ItemTooltipData {
-  itemId: number;
-  x: number;
-  y: number;
-}
-
 export function ItemRain() {
   const [items, setItems] = useState<FallingItem[]>([]);
-  const [tooltip, setTooltip] = useState<ItemTooltipData | null>(null);
   const [hoveredId, setHoveredId] = useState<number | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const animationRef = useRef<number | undefined>(undefined);
@@ -36,7 +29,7 @@ export function ItemRain() {
   useEffect(() => {
     const initialItems: FallingItem[] = [];
     
-    for (let i = 0; i < 150; i++) {
+    for (let i = 0; i < 100; i++) {
       const itemId = selectedItemIds[i % selectedItemIds.length];
       initialItems.push({
         id: itemId,
@@ -96,26 +89,11 @@ export function ItemRain() {
   // 鼠标进入物品
   const handleItemMouseEnter = (item: FallingItem) => {
     setHoveredId(item.id);
-    setTooltip({ 
-      itemId: item.id, 
-      x: window.innerWidth / 2, 
-      y: window.innerHeight / 2 
-    });
-  };
-
-  // 鼠标在物品上移动
-  const handleItemMouseMove = (e: React.MouseEvent, item: FallingItem) => {
-    setTooltip({ 
-      itemId: item.id, 
-      x: e.clientX, 
-      y: e.clientY 
-    });
   };
 
   // 鼠标离开物品
   const handleItemMouseLeave = () => {
     setHoveredId(null);
-    setTooltip(null);
   };
 
   return (
@@ -139,7 +117,6 @@ export function ItemRain() {
             pointerEvents: 'auto',
           }}
           onMouseEnter={() => handleItemMouseEnter(item)}
-          onMouseMove={(e) => handleItemMouseMove(e, item)}
           onMouseLeave={handleItemMouseLeave}
         >
           <div 
@@ -168,40 +145,7 @@ export function ItemRain() {
         </div>
       ))}
 
-      {/* 物品提示框 */}
-      {tooltip && (
-        <div
-          className="fixed z-[1000] pointer-events-none"
-          style={{
-            left: `${Math.min(tooltip.x + 16, window.innerWidth - 200)}px`,
-            top: `${Math.min(tooltip.y + 16, window.innerHeight - 100)}px`,
-          }}
-        >
-          <div className="bg-slate-900/95 border border-cyan-500/40 rounded-lg shadow-xl shadow-cyan-500/10 p-3 min-w-[180px]">
-            <div className="flex items-center gap-2 mb-1">
-              <img
-                src={getItemIconUrl(tooltip.itemId)}
-                alt=""
-                className="w-8 h-8 object-contain"
-              />
-              <div className="flex-1 min-w-0">
-                <p className="text-white font-medium text-sm truncate">{getItemName(tooltip.itemId)}</p>
-                <p className="text-slate-500 text-xs">ID: {tooltip.itemId}</p>
-              </div>
-            </div>
-            {ITEM_DATA[tooltip.itemId]?.desc && (
-              <p className="text-slate-400 text-xs mt-2 border-t border-slate-700/50 pt-2">
-                {ITEM_DATA[tooltip.itemId].desc}
-              </p>
-            )}
-          </div>
-        </div>
-      )}
 
-      {/* 底部提示 */}
-      <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 bg-slate-900/80 backdrop-blur-sm border border-cyan-500/30 rounded-full px-4 py-2 text-cyan-400 text-sm">
-        鼠标悬停查看物品信息
-      </div>
     </div>
   );
 }
