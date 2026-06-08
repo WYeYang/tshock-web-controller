@@ -23,7 +23,7 @@ export function DownloadPage() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-slate-950 relative" style={{ pointerEvents: 'none' }}>
+    <div className="fixed inset-0 bg-slate-950 overflow-auto" style={{ pointerEvents: 'none' }}>
       <div className="fixed inset-0 cyber-grid pointer-events-none z-0"></div>
       <div className="fixed inset-0 bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 pointer-events-none z-0"></div>
       <ItemRain />
