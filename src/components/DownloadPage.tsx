@@ -76,7 +76,7 @@ export function DownloadPage() {
                 </a>
                 <div className="flex items-center gap-4">
                   <a
-                    href="/"
+                    href="#/"
                     className="inline-flex items-center gap-3 px-7 py-3 glass-card neon-border hover:border-cyan-500/30 rounded-2xl font-medium text-slate-100 transition-colors pointer-events-auto"
                   >
                     <svg className="w-5 h-5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
