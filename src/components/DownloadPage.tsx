@@ -66,7 +66,7 @@ export function DownloadPage() {
           </div>
 
           <div className="mb-16">
-            <div className="glass-card neon-border p-8 pointer-events-auto">
+            <div className="glass-card neon-border p-8 pointer-events-auto max-w-lg mx-auto">
               <h2 className="text-2xl font-bold mb-6 text-center text-slate-100 flex items-center justify-center gap-3">
                 <div className="w-10 h-10 rounded-lg bg-cyan-500/20 flex items-center justify-center">
                   <svg className="w-6 h-6 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -80,7 +80,7 @@ export function DownloadPage() {
                   {fileName} · 约 150MB
                 </span>
               </div>
-              <div className="flex flex-col items-center gap-4 w-full max-w-md">
+              <div className="flex flex-col items-center gap-4">
                 <a
                   href={githubUrl}
                   target="_blank"
