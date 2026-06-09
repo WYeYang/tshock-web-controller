@@ -84,29 +84,26 @@ export function DownloadPage() {
       </div>
 
       {/* 右侧固定导航 */}
-      <nav className="fixed right-8 top-1/2 -translate-y-1/2 z-40 hidden md:block">
-        <div className="flex flex-col gap-3">
+      <nav className="fixed right-6 top-1/2 -translate-y-1/2 z-40 pointer-events-none hidden md:block">
+        <div className="flex flex-col items-end gap-3">
           {NAV_ITEMS.map((item) => {
             const isActive = activeSection === item.id;
             return (
-              <button
-                key={item.id}
-                onClick={() => scrollToSection(item.id)}
-                className="group flex items-center justify-end gap-3"
-              >
+              <div key={item.id} className="flex items-center gap-3">
                 <span
                   className={`text-sm font-medium transition-colors duration-300 ${
-                    isActive ? 'text-cyan-400' : 'text-slate-500 hover:text-slate-300'
+                    isActive ? 'text-cyan-400' : 'text-slate-500'
                   }`}
                 >
                   {item.label}
                 </span>
-                <span
-                  className={`flex-shrink-0 h-2 rounded-full transition-all duration-300 cursor-pointer ${
-                    isActive ? 'bg-cyan-400 w-8 shadow-[0_0_10px_rgba(34,211,238,0.6)]' : 'bg-slate-600 w-2 group-hover:bg-slate-400'
+                <button
+                  onClick={() => scrollToSection(item.id)}
+                  className={`pointer-events-auto flex-shrink-0 h-2 rounded-full transition-all duration-300 cursor-pointer hover:scale-110 ${
+                    isActive ? 'bg-cyan-400 w-8 shadow-[0_0_10px_rgba(34,211,238,0.6)]' : 'bg-slate-600 w-2 hover:bg-slate-400'
                   }`}
-                ></span>
-              </button>
+                ></button>
+              </div>
             );
           })}
         </div>
