@@ -84,6 +84,37 @@ export function DownloadPage() {
         <ItemRain />
       </div>
 
+      {/* 右侧固定导航 */}
+      <nav className="fixed right-8 top-1/2 -translate-y-1/2 z-40 hidden md:block">
+        <div className="flex flex-col gap-3">
+          {NAV_ITEMS.map((item) => {
+            const isActive = activeSection === item.id;
+            return (
+              <button
+                key={item.id}
+                onClick={() => scrollToSection(item.id)}
+                className="group flex items-center justify-end gap-3"
+              >
+                <span
+                  className={`text-sm font-medium transition-all duration-300 ${
+                    isActive
+                      ? 'text-cyan-400 opacity-100 translate-x-0'
+                      : 'text-slate-500 opacity-0 translate-x-2 group-hover:opacity-100 group-hover:translate-x-0'
+                  }`}
+                >
+                  {item.label}
+                </span>
+                <span
+                  className={`flex-shrink-0 h-2 rounded-full transition-all duration-300 cursor-pointer ${
+                    isActive ? 'bg-cyan-400 w-8 shadow-[0_0_10px_rgba(34,211,238,0.6)]' : 'bg-slate-600 w-2 group-hover:bg-slate-400'
+                  }`}
+                ></span>
+              </button>
+            );
+          })}
+        </div>
+      </nav>
+
       {/* 内容层 */}
       <div className="relative z-10 py-16 px-6">
         <div className="max-w-4xl mx-auto">
@@ -103,30 +134,6 @@ export function DownloadPage() {
                 <span className="w-2.5 h-2.5 bg-blue-400 rounded-full animate-pulse"></span>
                 <span className="text-slate-300">最新版本</span>
                 <span className="font-bold text-lg text-blue-400">v{packageInfo.version}</span>
-              </div>
-            </div>
-
-            {/* Tab 进度条导航 */}
-            <div className="max-w-lg mx-auto mb-12">
-              <div className="relative">
-                <div className="flex gap-1 p-1 bg-slate-800/60 rounded-xl">
-                  {NAV_ITEMS.map((item) => {
-                    const isActive = activeSection === item.id;
-                    return (
-                      <button
-                        key={item.id}
-                        onClick={() => scrollToSection(item.id)}
-                        className={`flex-1 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-300 cursor-pointer ${
-                          isActive
-                            ? 'bg-slate-700/80 text-cyan-400 shadow-lg'
-                            : 'text-slate-500 hover:text-slate-300'
-                        }`}
-                      >
-                        {item.label}
-                      </button>
-                    );
-                  })}
-                </div>
               </div>
             </div>
 
