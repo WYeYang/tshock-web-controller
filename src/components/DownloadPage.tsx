@@ -47,7 +47,7 @@ export function DownloadPage() {
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-16">
             <div className="flex justify-center mb-8">
-              <img src="/favicon.svg" alt="TShock 服务器控制器" className="w-24 h-24 pointer-events-auto" />
+              <img src={import.meta.env.BASE_URL + 'favicon.svg'} alt="TShock 服务器控制器" className="w-24 h-24 pointer-events-auto" />
             </div>
             <h1 className="text-4xl md:text-5xl font-bold mb-4 text-gradient">
               TShock 服务器控制器

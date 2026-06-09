@@ -94,42 +94,6 @@ export const SetupWizard = ({ onComplete, onSkip }: SetupWizardProps) => {
     prevOptionRef.current = selectedOption;
   }, [selectedOption]);
 
-  // 监听终端输出
-  useEffect(() => {
-    if (!isElectronAvailable) return;
-
-    const unsubscribeOutput = electronBridge.terminal.onOutput((data) => {
-      // 检测解压完成
-      if (data.data.includes('✓ 解压完成') || data.data.includes('Extraction complete')) {
-        setLoading(false);
-        // 解压完成后自动检测配置并执行 Installer
-        handleAutoRunInstaller();
-      }
-      
-      // 检测解压失败
-      if (data.data.includes('ERROR:') || data.data.includes('解压失败')) {
-        setLoading(false);
-        setError('解压失败，请重新开始');
-      }
-      
-      // 检测 dotnet runtime 解压失败
-      if (data.data.includes('Failed to extract')) {
-        setLoading(false);
-        setError('运行时解压失败：' + data.data.trim());
-      }
-      
-      // 检测下载失败
-      if (data.data.includes('Failed to download')) {
-        setLoading(false);
-        setError('下载失败，请检查网络连接后重新开始');
-      }
-    });
-
-    return () => {
-      unsubscribeOutput();
-    };
-  }, [savedPath, builtinInfo]);
-
   const handleAutoRunInstaller = async () => {
     if (!isElectronAvailable()) return;
 
@@ -183,10 +147,8 @@ export const SetupWizard = ({ onComplete, onSkip }: SetupWizardProps) => {
         const command = `unzip "${paths.zipPath}" "${paths.targetDir}"`;
         console.log('[SetupWizard] 发送的命令:', command);
         await electronBridge.terminal.send(command);
-      } else {
-        // 不重新安装：跳过解压，直接走和"使用上次路径"一样的逻辑
-        await handleAutoRunInstaller();
       }
+      await handleAutoRunInstaller();
     } catch (err) {
       setError(err instanceof Error ? err.message : '解压 TShock 失败');
       setLoading(false);
@@ -370,7 +332,7 @@ export const SetupWizard = ({ onComplete, onSkip }: SetupWizardProps) => {
         </div>
 
         <div className="p-6 flex flex-col flex-1 min-h-0 overflow-hidden">
-          {step === 1 && !showConfigEditor ? (
+          {step === 1 ? (
             <div className="flex flex-col flex-1 min-h-0">
               <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-4 flex-1 flex flex-col">
                 <div className="flex items-center justify-between mb-3">
