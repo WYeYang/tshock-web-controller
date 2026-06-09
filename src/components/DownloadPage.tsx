@@ -89,26 +89,22 @@ export function DownloadPage() {
           {NAV_ITEMS.map((item) => {
             const isActive = activeSection === item.id;
             return (
-              <button
-                key={item.id}
-                onClick={() => scrollToSection(item.id)}
-                className="group pointer-events-auto flex items-center justify-end gap-3"
-              >
+              <div key={item.id} className="pointer-events-auto flex items-center justify-end gap-3 cursor-pointer select-none" onClick={() => scrollToSection(item.id)}>
                 <span
                   className={`text-sm font-medium transition-colors duration-300 ${
-                    isActive ? 'text-cyan-400' : 'text-slate-500 group-hover:text-slate-300'
+                    isActive ? 'text-cyan-400' : 'text-slate-500 hover:text-slate-300'
                   }`}
                 >
                   {item.label}
                 </span>
                 <span
-                  className={`flex-shrink-0 h-2 rounded-full transition-all duration-300 cursor-pointer ${
+                  className={`flex-shrink-0 h-2 rounded-full transition-all duration-300 ${
                     isActive
                       ? 'bg-cyan-400 w-8 shadow-[0_0_10px_rgba(34,211,238,0.6)]'
-                      : 'bg-slate-600 w-2 group-hover:bg-slate-400 group-hover:scale-110'
+                      : 'bg-slate-600 w-2 hover:bg-slate-400 hover:scale-110'
                   }`}
                 ></span>
-              </button>
+              </div>
             );
           })}
         </div>
