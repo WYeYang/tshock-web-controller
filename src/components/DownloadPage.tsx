@@ -36,10 +36,11 @@ export function DownloadPage() {
     if (sections.length === 0) return;
 
     const updateActive = () => {
-      const scrollPos = window.scrollY + window.innerHeight * 0.35;
+      const viewportMiddle = window.innerHeight * 0.35;
       let current = sections[0].id;
       for (const section of sections) {
-        if (section.offsetTop <= scrollPos) {
+        const rect = section.getBoundingClientRect();
+        if (rect.top <= viewportMiddle) {
           current = section.id;
         }
       }
@@ -58,9 +59,7 @@ export function DownloadPage() {
   const scrollToSection = (id: string) => {
     const el = document.getElementById(id);
     if (el) {
-      const offset = window.innerHeight * 0.1;
-      const top = el.getBoundingClientRect().top + window.scrollY - offset;
-      window.scrollTo({ top, behavior: 'smooth' });
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
   };
 
@@ -96,10 +95,8 @@ export function DownloadPage() {
                 className="group flex items-center justify-end gap-3"
               >
                 <span
-                  className={`text-sm font-medium transition-all duration-300 ${
-                    isActive
-                      ? 'text-cyan-400 opacity-100 translate-x-0'
-                      : 'text-slate-500 opacity-0 translate-x-2 group-hover:opacity-100 group-hover:translate-x-0'
+                  className={`text-sm font-medium transition-colors duration-300 ${
+                    isActive ? 'text-cyan-400' : 'text-slate-500 hover:text-slate-300'
                   }`}
                 >
                   {item.label}
