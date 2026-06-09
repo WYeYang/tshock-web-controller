@@ -22,7 +22,7 @@ export function DownloadPage() {
     };
   }, []);
 
-  const fileName = `TShock Controller-${packageInfo.version}-win.zip`;
+  const fileName = `TShock.Controller-${packageInfo.version}-win.zip`;
   const encodedFileName = encodeURIComponent(fileName);
   const githubUrl = `https://github.com/WYeYang/tshock-web-controller/releases/download/v${packageInfo.version}/${encodedFileName}`;
   
