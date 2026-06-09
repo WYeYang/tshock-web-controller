@@ -9,6 +9,26 @@ import { setupConfigIpc } from './ipc/config.js';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+// 全局异常捕获
+process.on('uncaughtException', async (err) => {
+  console.error('[uncaughtException]', err);
+  // 尝试优雅退出
+  try {
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.destroy();
+    }
+    const { stopShellOnQuit } = await import('./ipc/tshock.js');
+    await stopShellOnQuit();
+  } catch (e) {
+    console.error('[uncaughtException cleanup]', e);
+  }
+  process.exit(1);
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('[unhandledRejection]', reason);
+});
+
 let mainWindow = null;
 
 const store = new Store({

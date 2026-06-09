@@ -102,6 +102,7 @@ function startShell() {
       sendOutput('info', 'Shell session started');
       resolve({ success: true, pid: shellProcess.pid });
     } catch (error) {
+      console.error('[startTshock] 异常:', error);
       updateStatus(TShockStatus.ERROR, error.message);
       reject(error);
     }
@@ -157,35 +158,6 @@ function sendToShell(data) {
   });
 }
 
-function waitForConfig() {
-  return new Promise((resolve, reject) => {
-    const configPath = getConfigPath();
-    let attempts = 0;
-    const maxAttempts = 120; // 最多等120秒（2分钟）
-    const checkInterval = 1000; // 每1秒检查一次
-
-    const check = () => {
-      attempts++;
-      if (fs.existsSync(configPath)) {
-        console.log('[waitForConfig] 配置文件已生成！');
-        resolve();
-        return;
-      }
-
-      if (attempts >= maxAttempts) {
-        console.log('[waitForConfig] 等待配置文件超时');
-        reject(new Error('等待配置文件生成超时'));
-        return;
-      }
-
-      console.log(`[waitForConfig] 等待配置文件... (${attempts}/${maxAttempts})`);
-      setTimeout(check, checkInterval);
-    };
-
-    check();
-  });
-}
-
 function startTshock(worldPath) {
   return new Promise(async (resolve, reject) => {
     try {
@@ -222,6 +194,7 @@ function startTshock(worldPath) {
       updateStatus(TShockStatus.IDLE);
       resolve({ success: true });
     } catch (error) {
+      console.error('[startTshock] 异常:', error);
       updateStatus(TShockStatus.ERROR, error.message);
       reject(error);
     }
@@ -232,18 +205,11 @@ function waitForConfigWithErrorDetection() {
   return new Promise((resolve, reject) => {
     const configPath = getConfigPath();
     let attempts = 0;
-    const maxAttempts = 120; // 最多等120秒（2分钟）
-    const checkInterval = 1000; // 每1秒检查一次
-    let errorDetected = null;
+    const maxAttempts = 120;
+    const checkInterval = 1000;
 
     const check = () => {
       attempts++;
-      
-      // 检查是否检测到错误
-      if (errorDetected) {
-        reject(new Error(errorDetected));
-        return;
-      }
 
       if (fs.existsSync(configPath)) {
         console.log('[waitForConfigWithErrorDetection] 配置文件已生成！');
@@ -261,50 +227,7 @@ function waitForConfigWithErrorDetection() {
       setTimeout(check, checkInterval);
     };
 
-    // 监听终端输出中的错误信息
-    const errorDetectionHandler = (data) => {
-      if (data.data.includes('Failed to extract')) {
-        errorDetected = '解压失败：' + data.data.trim();
-      } else if (data.data.includes('Failed to download')) {
-        errorDetected = '下载失败：' + data.data.trim();
-      } else if (data.data.includes('Error') || data.data.includes('error')) {
-        // 只捕获严重错误，忽略一般的 info/warning
-        if (data.data.toLowerCase().includes('error')) {
-          errorDetected = '安装过程中发生错误：' + data.data.trim();
-        }
-      }
-    };
-
-    if (shellProcess) {
-      shellProcess.on('data', errorDetectionHandler);
-    }
-
-    const cleanup = () => {
-      if (shellProcess) {
-        shellProcess.removeListener('data', errorDetectionHandler);
-      }
-    };
-
     check();
-
-    // 设置超时清理
-    setTimeout(() => {
-      cleanup();
-    }, maxAttempts * checkInterval + 1000);
-
-    // 在 resolve 或 reject 时清理
-    const originalResolve = resolve;
-    const originalReject = reject;
-    
-    resolve = (value) => {
-      cleanup();
-      originalResolve(value);
-    };
-    
-    reject = (reason) => {
-      cleanup();
-      originalReject(reason);
-    };
   });
 }
 
