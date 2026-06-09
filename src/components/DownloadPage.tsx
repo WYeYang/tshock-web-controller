@@ -25,7 +25,13 @@ export function DownloadPage() {
   const fileName = `TShock Controller-${packageInfo.version}-win.zip`;
   const encodedFileName = encodeURIComponent(fileName);
   const githubUrl = `https://github.com/WYeYang/tshock-web-controller/releases/download/v${packageInfo.version}/${encodedFileName}`;
-  const ghproxyUrl = `https://ghproxy.com/${githubUrl}`;
+  
+  const mirrors = [
+    { name: 'ghproxy', url: `https://ghproxy.com/${githubUrl}`, description: '国内加速' },
+    { name: 'gh-proxy', url: `https://gh-proxy.com/${githubUrl}`, description: '高速镜像' },
+    { name: 'fastgit', url: `https://download.fastgit.org/WYeYang/tshock-web-controller/releases/download/v${packageInfo.version}/${encodedFileName}`, description: 'FastGit' },
+    { name: 'moeyy', url: `https://github.moeyy.xyz/${githubUrl}`, description: 'Moeyy' },
+  ];
 
   return (
     <div className="fixed inset-0 overflow-auto">
@@ -74,30 +80,37 @@ export function DownloadPage() {
                   {fileName} · 约 150MB
                 </span>
               </div>
-              <div className="flex flex-col items-center gap-4">
+              <div className="flex flex-col items-center gap-4 w-full max-w-md">
                 <a
                   href={githubUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-3 px-10 py-4 rounded-xl font-semibold text-lg bg-blue-500 hover:bg-blue-600 text-white hover:opacity-90 transition-all transform hover:scale-[1.02] active:scale-[0.98] pointer-events-auto"
+                  className="inline-flex items-center justify-center gap-3 w-full px-10 py-4 rounded-xl font-semibold text-lg bg-blue-500 hover:bg-blue-600 text-white hover:opacity-90 transition-all transform hover:scale-[1.02] active:scale-[0.98] pointer-events-auto"
                 >
                   <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                   </svg>
                   <span>GitHub 官方下载</span>
                 </a>
-                <a
-                  href={ghproxyUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-3 px-10 py-4 rounded-xl font-semibold text-lg bg-gradient-to-r from-cyan-500/20 to-purple-500/20 border border-cyan-500/30 text-cyan-400 hover:bg-cyan-500/30 transition-all transform hover:scale-[1.02] active:scale-[0.98] pointer-events-auto"
-                >
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-                  </svg>
-                  <span>国内镜像加速下载</span>
-                  <span className="text-xs opacity-70">ghproxy</span>
-                </a>
+                
+                <div className="w-full">
+                  <p className="text-center text-sm text-slate-400 mb-3">国内镜像加速（任选其一）</p>
+                  <div className="grid grid-cols-2 gap-3">
+                    {mirrors.map((mirror) => (
+                      <a
+                        key={mirror.name}
+                        href={mirror.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex flex-col items-center gap-1 px-4 py-3 rounded-xl bg-slate-800/60 border border-slate-700/50 hover:border-cyan-500/30 hover:bg-slate-800/80 transition-all pointer-events-auto"
+                      >
+                        <span className="text-sm font-medium text-slate-200">{mirror.description}</span>
+                        <span className="text-xs text-cyan-400 opacity-80">{mirror.name}</span>
+                      </a>
+                    ))}
+                  </div>
+                </div>
+                
                 <a
                   href="https://github.com/WYeYang/tshock-web-controller/releases"
                   target="_blank"
