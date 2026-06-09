@@ -28,19 +28,22 @@
 1. **GitHub Pages 部署**：把 zip 拷到 `dist/download/` 后作为 Pages 静态文件发布 → 下载速度较慢
 2. **GitHub Release**：用 `softprops/action-gh-release@v2` 上传 zip 到 Releases → 这是真正应该使用的下载源
 
-### 2.3 Release URL 结构
+### 2.3 Release URL 结构（关键修正）
 
-electron-builder 的 win zip target 默认会产出类似：
+根据用户反馈，electron-builder 实际产出的文件名格式为：
+
 ```
-TShock Controller 1.0.1-win-x64.zip
+TShock Controller-1.0.1-win.zip
 ```
+
+格式说明：`${productName}-${version}-${platform}.zip`
 
 GitHub Release 的下载 URL 格式为：
 ```
-https://github.com/WYeYang/tshock-web-controller/releases/download/v{tag}/{filename}
+https://github.com/WYeYang/tshock-web-controller/releases/download/v{tag}/TShock Controller-{version}-win.zip
 ```
 
-**风险点**：electron-builder 产出的文件名含空格和版本号，不同版本文件名不同，需要确认 electron-builder 的实际输出文件名，或在 release.yml 中重命名为固定文件名（推荐）。
+**注意**：URL 中的空格会被编码为 `%20`，构造 URL 时需要处理。
 
 ---
 
@@ -49,8 +52,8 @@ https://github.com/WYeYang/tshock-web-controller/releases/download/v{tag}/{filen
 | 文件 | 改动方向 |
 | --- | --- |
 | [DownloadPage.tsx](file:///workspace/src/components/DownloadPage.tsx) | 下载按钮改为动态构造 GitHub Release URL + 代理镜像链接 |
-| [release.yml](file:///workspace/.github/workflows/release.yml) | 去掉把 zip 拷到 `dist/download/` 的步骤；确保 Release 上传的文件名可预测 |
-| [package.json](file:///workspace/package.json) | productName 检查，确保打包文件名可控 |
+| [release.yml](file:///workspace/.github/workflows/release.yml) | 去掉把 zip 拷到 `dist/download/` 的步骤 |
+| [package.json](file:///workspace/package.json) | 确认 productName 和 version 配置正确 |
 
 ---
 
@@ -60,24 +63,11 @@ https://github.com/WYeYang/tshock-web-controller/releases/download/v{tag}/{filen
 
 **目标**：zip 文件只上传到 GitHub Releases，不再塞进 Pages 产物中。
 
-改动 1：在 `build-electron-win` job 中，给 electron-builder 产出的 zip 一个固定/可预测的文件名（避免 electron-builder 自动加空格和版本号导致构造 URL 困难）。
-
-方案 A（推荐）：在上传 artifact 之前重命名 zip：
-```
-# 在 build-electron-win job 中，上传 artifact 之前加一步
-- name: Rename zip to predictable filename
-  run: |
-    $file = Get-ChildItem release/*.zip | Select-Object -First 1
-    Rename-Item $file.FullName "TShock-Controller-win-x64.zip"
-    Get-ChildItem release/
-```
-（注：Windows PowerShell 语法；如果用 ubuntu runner 则用 bash mv）
-
-改动 2：在 `build-web` job 中**删除**以下步骤：
+改动：在 `build-web` job 中**删除**以下步骤：
 - `Create download directory`（`mkdir -p dist/download`）
 - `Rename and copy zip file`（拷贝 zip 到 dist/download）
 
-改动 3：`release` job 中 `files: release/*.zip` 不变，保持上传到 Releases。
+**说明**：无需重命名 zip，因为 electron-builder 已经产出标准文件名 `TShock Controller-{version}-win.zip`，可以直接用 `packageInfo.version` 构造 URL。
 
 ### 4.2 DownloadPage.tsx 改造
 
@@ -86,26 +76,27 @@ https://github.com/WYeYang/tshock-web-controller/releases/download/v{tag}/{filen
 实现要点：
 
 1. 读取 `packageInfo.version`，构造官方 Release URL：
-   ```
-   https://github.com/WYeYang/tshock-web-controller/releases/download/v{version}/TShock-Controller-win-x64.zip
+   ```typescript
+   const fileName = `TShock Controller-${packageInfo.version}-win.zip`;
+   const encodedFileName = encodeURIComponent(fileName);
+   const githubUrl = `https://github.com/WYeYang/tshock-web-controller/releases/download/v${packageInfo.version}/${encodedFileName}`;
    ```
 
 2. 提供多个代理镜像链接（供国内用户选择）：
-   - **ghproxy 镜像**：`https://ghproxy.com/https://github.com/WYeYang/tshock-web-controller/releases/download/v{version}/TShock-Controller-win-x64.zip`
+   - **ghproxy 镜像**：`https://ghproxy.com/${githubUrl}`
    - **GitHub 直连**（官方，稳定但国内慢）
-   - （可选）**gh-proxy.com**：`https://gh-proxy.com/https://github.com/...`
 
 3. 把单一下载按钮改为「下载卡片」，包含：
    - 主按钮：GitHub 官方下载（英文/海外用户）
    - 次按钮：国内镜像加速下载（ghproxy）
-   - 显示文件名和预计文件大小（可以写死 ~150MB 或从 Release API 拉取，这里先简化为文案提示）
+   - 显示文件名和版本信息
    - 添加「去 Releases 页面查看所有版本」链接
 
 4. 将「进入网页版」和「GitHub」两个次级按钮保留不变。
 
 ### 4.3 package.json 检查
 
-检查 `package.json` 中 `build.productName` 和 `name`，确保 electron-builder 产出的文件名与 DownloadPage 中构造的一致。如果不一致，在 release.yml 中强制重命名更安全（不依赖 build 配置）。
+确认 `productName: "TShock Controller"` 和 `version: "1.0.1"` 配置正确，确保 electron-builder 产出的文件名与 DownloadPage 中构造的一致。
 
 ---
 
@@ -114,10 +105,10 @@ https://github.com/WYeYang/tshock-web-controller/releases/download/v{tag}/{filen
 | 事项 | 说明 |
 | --- | --- |
 | Release tag 必须为 `v{version}` | 构造 URL 时使用，当前 release.yml 的触发条件已经是 `tags: ['v*']`，符合预期 |
-| 文件名必须稳定 | electron-builder 默认输出可能含空格、版本号、平台名，需要在 release.yml 中重命名为固定名 `TShock-Controller-win-x64.zip` |
+| 文件名中的空格需编码 | URL 中的空格必须用 `encodeURIComponent` 编码为 `%20` |
 | ghproxy 可用性风险 | 第三方代理可能间歇性不可用，设计为「可点击跳转，不阻塞」，永远提供官方直连作为保底 |
-| 文件大小展示 | 可以通过 `https://api.github.com/repos/WYeYang/tshock-web-controller/releases/latest` 在运行时获取，但需要处理网络失败。简化方案：在页面写「约 150MB」作为提示 |
-| 跨平台扩展 | 当前只有 Windows 版本，后续加 macOS/Linux 时可以在 DownloadPage 中按平台检测显示对应按钮，本次计划只改 Windows |
+| 文件大小展示 | 简化方案：在页面写「约 150MB」作为提示 |
+| 跨平台扩展 | 当前只有 Windows 版本，后续加 macOS/Linux 时可以在 DownloadPage 中按平台检测显示对应按钮 |
 
 ---
 
@@ -125,7 +116,7 @@ https://github.com/WYeYang/tshock-web-controller/releases/download/v{tag}/{filen
 
 | 风险 | 应对 |
 | --- | --- |
-| Release 中文件名与页面构造的 URL 不一致 → 404 | 在 release.yml 中强制重命名；部署前手动确认 Release 页面的文件名 |
+| Release 中文件名与页面构造的 URL 不一致 → 404 | 部署前手动确认 Release 页面的文件名；如果文件名格式有变化，调整 DownloadPage 中的构造逻辑 |
 | ghproxy 镜像不可用 → 点击失败 | 文案提示「国内加速镜像，如不可用请使用官方下载」；始终保留官方直连 |
 | 用户在 Release 未发布前访问下载页 → 404 | 只在 tag 触发 release 流程后才会有可下载文件，属于正常时序 |
 
@@ -134,15 +125,14 @@ https://github.com/WYeYang/tshock-web-controller/releases/download/v{tag}/{filen
 ## 7. 改动清单速览
 
 1. **release.yml**：
-   - 在 `build-electron-win` 中新增重命名 zip 的步骤（Windows PowerShell）
    - 从 `build-web` job 中删除「Create download directory」和「Rename and copy zip file」两步
-   - `release` job 保持不变
+   - `release` job 保持不变（继续上传 zip 到 Releases）
 
 2. **DownloadPage.tsx**：
-   - 用 `packageInfo.version` 动态构造 GitHub Release URL
+   - 用 `packageInfo.version` 动态构造 GitHub Release URL（处理空格编码）
    - 新增国内镜像加速下载链接（ghproxy）
    - 按钮重构：官方下载 + 镜像下载 + Releases 页面入口
    - 保留「进入网页版」和「GitHub 主页」按钮
 
 3. **package.json**：
-   - 仅检查 productName，不作为改动项
+   - 确认 productName 和 version 配置正确，无需改动
