@@ -109,6 +109,19 @@ export const SetupWizard = ({ onComplete, onSkip }: SetupWizardProps) => {
       // 检测解压失败
       if (data.data.includes('ERROR:') || data.data.includes('解压失败')) {
         setLoading(false);
+        setError('解压失败，请重新开始');
+      }
+      
+      // 检测 dotnet runtime 解压失败
+      if (data.data.includes('Failed to extract')) {
+        setLoading(false);
+        setError('运行时解压失败：' + data.data.trim());
+      }
+      
+      // 检测下载失败
+      if (data.data.includes('Failed to download')) {
+        setLoading(false);
+        setError('下载失败，请检查网络连接后重新开始');
       }
     });
 

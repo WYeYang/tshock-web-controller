@@ -161,7 +161,7 @@ function waitForConfig() {
   return new Promise((resolve, reject) => {
     const configPath = getConfigPath();
     let attempts = 0;
-    const maxAttempts = 30; // 最多等30秒
+    const maxAttempts = 120; // 最多等120秒（2分钟）
     const checkInterval = 1000; // 每1秒检查一次
 
     const check = () => {
@@ -216,8 +216,8 @@ function startTshock(worldPath) {
 
       await sendToShell(command);
       
-      // 等待 config.json 生成
-      await waitForConfig();
+      // 等待 config.json 生成，同时检测解压失败
+      await waitForConfigWithErrorDetection();
       
       updateStatus(TShockStatus.IDLE);
       resolve({ success: true });
@@ -225,6 +225,86 @@ function startTshock(worldPath) {
       updateStatus(TShockStatus.ERROR, error.message);
       reject(error);
     }
+  });
+}
+
+function waitForConfigWithErrorDetection() {
+  return new Promise((resolve, reject) => {
+    const configPath = getConfigPath();
+    let attempts = 0;
+    const maxAttempts = 120; // 最多等120秒（2分钟）
+    const checkInterval = 1000; // 每1秒检查一次
+    let errorDetected = null;
+
+    const check = () => {
+      attempts++;
+      
+      // 检查是否检测到错误
+      if (errorDetected) {
+        reject(new Error(errorDetected));
+        return;
+      }
+
+      if (fs.existsSync(configPath)) {
+        console.log('[waitForConfigWithErrorDetection] 配置文件已生成！');
+        resolve();
+        return;
+      }
+
+      if (attempts >= maxAttempts) {
+        console.log('[waitForConfigWithErrorDetection] 等待配置文件超时');
+        reject(new Error('等待配置文件生成超时'));
+        return;
+      }
+
+      console.log(`[waitForConfigWithErrorDetection] 等待配置文件... (${attempts}/${maxAttempts})`);
+      setTimeout(check, checkInterval);
+    };
+
+    // 监听终端输出中的错误信息
+    const errorDetectionHandler = (data) => {
+      if (data.data.includes('Failed to extract')) {
+        errorDetected = '解压失败：' + data.data.trim();
+      } else if (data.data.includes('Failed to download')) {
+        errorDetected = '下载失败：' + data.data.trim();
+      } else if (data.data.includes('Error') || data.data.includes('error')) {
+        // 只捕获严重错误，忽略一般的 info/warning
+        if (data.data.toLowerCase().includes('error')) {
+          errorDetected = '安装过程中发生错误：' + data.data.trim();
+        }
+      }
+    };
+
+    if (shellProcess) {
+      shellProcess.on('data', errorDetectionHandler);
+    }
+
+    const cleanup = () => {
+      if (shellProcess) {
+        shellProcess.removeListener('data', errorDetectionHandler);
+      }
+    };
+
+    check();
+
+    // 设置超时清理
+    setTimeout(() => {
+      cleanup();
+    }, maxAttempts * checkInterval + 1000);
+
+    // 在 resolve 或 reject 时清理
+    const originalResolve = resolve;
+    const originalReject = reject;
+    
+    resolve = (value) => {
+      cleanup();
+      originalResolve(value);
+    };
+    
+    reject = (reason) => {
+      cleanup();
+      originalReject(reason);
+    };
   });
 }
 
