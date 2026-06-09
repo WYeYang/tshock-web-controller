@@ -84,49 +84,6 @@ export function DownloadPage() {
         <ItemRain />
       </div>
 
-      {/* 右侧定制化导航条 */}
-      <nav className="fixed right-6 top-1/2 -translate-y-1/2 z-40 pointer-events-auto hidden md:flex flex-col items-end gap-3">
-        <div className="glass-card neon-border p-3 flex flex-col gap-3">
-          {NAV_ITEMS.map((item) => {
-            const isActive = activeSection === item.id;
-            const colorMap: Record<string, { dot: string; glow: string; text: string }> = {
-              cyan: { dot: 'bg-cyan-400', glow: 'shadow-[0_0_12px_rgba(34,211,238,0.7)]', text: 'text-cyan-400' },
-              purple: { dot: 'bg-purple-400', glow: 'shadow-[0_0_12px_rgba(168,85,247,0.7)]', text: 'text-purple-400' },
-              pink: { dot: 'bg-pink-400', glow: 'shadow-[0_0_12px_rgba(236,72,153,0.7)]', text: 'text-pink-400' },
-            };
-            const c = colorMap[item.color];
-            return (
-              <button
-                key={item.id}
-                onClick={() => scrollToSection(item.id)}
-                className="group flex items-center gap-3"
-              >
-                <span
-                  className={`text-sm font-medium transition-all duration-300 ${
-                    isActive ? `${c.text} opacity-100 translate-x-0` : 'text-slate-500 opacity-0 group-hover:opacity-100 translate-x-2 group-hover:translate-x-0'
-                  }`}
-                >
-                  {item.label}
-                </span>
-                <span
-                  className={`relative flex items-center justify-center w-3 h-3 rounded-full border-2 transition-all duration-300 cursor-pointer ${
-                    isActive
-                      ? `${c.dot} border-transparent ${c.glow} scale-125`
-                      : 'border-slate-600 hover:border-slate-400'
-                  }`}
-                >
-                  {isActive && (
-                    <span className={`absolute inset-0 rounded-full ${c.dot} animate-ping opacity-40`}></span>
-                  )}
-                </span>
-              </button>
-            );
-          })}
-        </div>
-        {/* 装饰性竖线 */}
-        <div className="w-px h-8 bg-gradient-to-b from-transparent via-slate-600 to-transparent self-center mr-1.5"></div>
-      </nav>
-
       {/* 内容层 */}
       <div className="relative z-10 py-16 px-6">
         <div className="max-w-4xl mx-auto">
@@ -146,6 +103,30 @@ export function DownloadPage() {
                 <span className="w-2.5 h-2.5 bg-blue-400 rounded-full animate-pulse"></span>
                 <span className="text-slate-300">最新版本</span>
                 <span className="font-bold text-lg text-blue-400">v{packageInfo.version}</span>
+              </div>
+            </div>
+
+            {/* Tab 进度条导航 */}
+            <div className="max-w-lg mx-auto mb-12">
+              <div className="relative">
+                <div className="flex gap-1 p-1 bg-slate-800/60 rounded-xl">
+                  {NAV_ITEMS.map((item) => {
+                    const isActive = activeSection === item.id;
+                    return (
+                      <button
+                        key={item.id}
+                        onClick={() => scrollToSection(item.id)}
+                        className={`flex-1 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-300 cursor-pointer ${
+                          isActive
+                            ? 'bg-slate-700/80 text-cyan-400 shadow-lg'
+                            : 'text-slate-500 hover:text-slate-300'
+                        }`}
+                      >
+                        {item.label}
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
             </div>
 
