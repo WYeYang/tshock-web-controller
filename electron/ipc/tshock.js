@@ -102,6 +102,7 @@ function startShell() {
       sendOutput('info', 'Shell session started');
       resolve({ success: true, pid: shellProcess.pid });
     } catch (error) {
+      console.error('[startTshock] 异常:', error);
       updateStatus(TShockStatus.ERROR, error.message);
       reject(error);
     }
@@ -157,35 +158,6 @@ function sendToShell(data) {
   });
 }
 
-function waitForConfig() {
-  return new Promise((resolve, reject) => {
-    const configPath = getConfigPath();
-    let attempts = 0;
-    const maxAttempts = 30; // 最多等30秒
-    const checkInterval = 1000; // 每1秒检查一次
-
-    const check = () => {
-      attempts++;
-      if (fs.existsSync(configPath)) {
-        console.log('[waitForConfig] 配置文件已生成！');
-        resolve();
-        return;
-      }
-
-      if (attempts >= maxAttempts) {
-        console.log('[waitForConfig] 等待配置文件超时');
-        reject(new Error('等待配置文件生成超时'));
-        return;
-      }
-
-      console.log(`[waitForConfig] 等待配置文件... (${attempts}/${maxAttempts})`);
-      setTimeout(check, checkInterval);
-    };
-
-    check();
-  });
-}
-
 function startTshock(worldPath) {
   return new Promise(async (resolve, reject) => {
     try {
@@ -216,15 +188,46 @@ function startTshock(worldPath) {
 
       await sendToShell(command);
       
-      // 等待 config.json 生成
-      await waitForConfig();
+      // 等待 config.json 生成，同时检测解压失败
+      await waitForConfigWithErrorDetection();
       
       updateStatus(TShockStatus.IDLE);
       resolve({ success: true });
     } catch (error) {
+      console.error('[startTshock] 异常:', error);
       updateStatus(TShockStatus.ERROR, error.message);
       reject(error);
     }
+  });
+}
+
+function waitForConfigWithErrorDetection() {
+  return new Promise((resolve, reject) => {
+    const configPath = getConfigPath();
+    let attempts = 0;
+    const maxAttempts = 120;
+    const checkInterval = 1000;
+
+    const check = () => {
+      attempts++;
+
+      if (fs.existsSync(configPath)) {
+        console.log('[waitForConfigWithErrorDetection] 配置文件已生成！');
+        resolve();
+        return;
+      }
+
+      if (attempts >= maxAttempts) {
+        console.log('[waitForConfigWithErrorDetection] 等待配置文件超时');
+        reject(new Error('等待配置文件生成超时'));
+        return;
+      }
+
+      console.log(`[waitForConfigWithErrorDetection] 等待配置文件... (${attempts}/${maxAttempts})`);
+      setTimeout(check, checkInterval);
+    };
+
+    check();
   });
 }
 

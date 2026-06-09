@@ -109,6 +109,19 @@ export const SetupWizard = ({ onComplete, onSkip }: SetupWizardProps) => {
       // 检测解压失败
       if (data.data.includes('ERROR:') || data.data.includes('解压失败')) {
         setLoading(false);
+        setError('解压失败，请重新开始');
+      }
+      
+      // 检测 dotnet runtime 解压失败
+      if (data.data.includes('Failed to extract')) {
+        setLoading(false);
+        setError('运行时解压失败：' + data.data.trim());
+      }
+      
+      // 检测下载失败
+      if (data.data.includes('Failed to download')) {
+        setLoading(false);
+        setError('下载失败，请检查网络连接后重新开始');
       }
     });
 
@@ -121,44 +134,28 @@ export const SetupWizard = ({ onComplete, onSkip }: SetupWizardProps) => {
     if (!isElectronAvailable()) return;
 
     try {
-      // 尝试读取配置来判断是否存在
-      const configPath = await electronBridge.config.getPath();
-      console.log('[SetupWizard] 检查配置路径:', configPath);
-      
-      const readResult = await electronBridge.config.read('config.json');
-      const hasConfig = !(readResult && readResult.success === false);
-      
-      // 如果不存在配置，先执行 Installer 生成配置
-      if (!hasConfig) {
-        console.log('[SetupWizard] 配置不存在，执行 Installer 生成配置');
-        setLoading(true);
-        
-        const result = await electronBridge.terminal.startTShock();
-        if (result.success) {
-          // 配置已生成
+      setLoading(true);
+
+      const result = await electronBridge.terminal.startTShock();
+      setLoading(false);
+
+      if (result.success) {
+        // 成功：弹配置编辑器
+        await electronBridge.terminal.send('\x03');
+        await new Promise(resolve => setTimeout(resolve, 500));
+        await electronBridge.terminal.send('\x03');
+        await new Promise(resolve => setTimeout(resolve, 500));
+
+        if (skipConfig) {
+          const config = await electronBridge.config.read('config.json');
+          const mergedConfig = mergeWithDefaultRestApiSettings(config);
+          await handleConfigConfirm(mergedConfig);
         } else {
-          setError(result.error || 'Installer 执行失败');
+          setShowConfigEditor(true);
         }
-        
-        setLoading(false);
       } else {
-        console.log('[SetupWizard] 配置已存在');
-      }
-      
-      // 先发送两次 Ctrl+C 终止指令
-      await electronBridge.terminal.send('\x03');
-      await new Promise(resolve => setTimeout(resolve, 500)); // 等一会儿
-      await electronBridge.terminal.send('\x03');
-      await new Promise(resolve => setTimeout(resolve, 500)); // 再等一会儿
-      
-      // 配置已就绪
-      if (skipConfig) {
-        const config = await electronBridge.config.read('config.json');
-        // 确保 REST API 配置被设置为默认值
-        const mergedConfig = mergeWithDefaultRestApiSettings(config);
-        await handleConfigConfirm(mergedConfig);
-      } else {
-        setShowConfigEditor(true);
+        // 失败：弹错误
+        setError(result.error || '配置生成失败');
       }
     } catch (err) {
       console.error('[SetupWizard] handleAutoRunInstaller error:', err);
