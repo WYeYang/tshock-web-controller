@@ -1,7 +1,7 @@
 {
   "name": "tshock-web-controller",
   "private": true,
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "TShock Server Web Controller with Desktop Support",
   "type": "module",
   "main": "electron/main.js",
