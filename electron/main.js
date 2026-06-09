@@ -115,13 +115,7 @@ function createWindow() {
     if (!app.isQuitting) {
       event.preventDefault();
       app.isQuitting = true;
-      
-      try {
-        await stopShellOnQuit();
-      } catch (error) {
-        console.error('Error stopping shell on window close:', error);
-      }
-      
+      stopShellOnQuit();
       app.quit();
     }
   });
